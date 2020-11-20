@@ -1,0 +1,2 @@
+- Add workshop settings
+- Add colors to leaderboard and fix percentages
