@@ -1,5 +1,6 @@
 - Fix "enemy in base" when unspawned
 - Add colors to leaderboard and fix percentages
+- Fix hero select
 
 - Add workshop settings - DONE
 
@@ -9,4 +10,5 @@ Player effects:
 - base ring
 - stealing red sphere
 - upgrade sphere
+- stealing sound
 Total: 16+4*12 = 64

@@ -38,7 +38,12 @@ rule "DEBUG SPAWN DUMMY BOT AUTO":
     createDummy(Hero.ANA, Team.ALL, -1, lootSpawnPoints[8], vect(0, 0, 0))
     createDummy(Hero.ANA, Team.ALL, -1, lootSpawnPoints[9], vect(0, 0, 0))
 
-    
+
+rule "debug money":
+    @Event eachPlayer
+    @Condition DEBUG_MODE
+    wait(5)
+    eventPlayer.statsMoney = 10000
 
 rule "DEBUG VARIABLES":
     @Event eachPlayer

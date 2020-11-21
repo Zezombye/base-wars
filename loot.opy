@@ -222,7 +222,7 @@ rule "LOOT POWERUP COLLECT LOOP":
     
     tmpSparkboltClosestPlayer = sorted(lootPossiblePlayers, lambda player: distance(player.getPosition(), sparkboltPickupPos))[0]
     if entityExists(tmpSparkboltClosestPlayer) and distance(tmpSparkboltClosestPlayer.getPosition(), sparkboltPickupPos) <= 2.5:
-        tmpSparkboltClosestPlayer.statsNumSparkbolts += 1
+        tmpSparkboltClosestPlayer.nbSparkbolts += 1
         smallMessage(tmpSparkboltClosestPlayer, "+1 {0} SPARKBOLT".format(iconString(Icon.BOLT)))
         destroyEffect(sparkboltEffects[0])
         destroyEffect(sparkboltEffects[1])
