@@ -47,7 +47,7 @@ rule "DEBUG VARIABLES":
     @Condition hasGameStarted == true
     @Condition eventPlayer == hostPlayer
     
-    hudSubheader(eventPlayer, " \nDebug Output:\n\n{0}\n{1}\n{2}".format("LOAD: {0} \nAVG: {1} \nPEAK: {2}".format(getServerLoad(), getAverageServerLoad(), getPeakServerLoad()), "Distance: {0}\nPlayer Pos: {1}\nPlayer Dir: {2}".format(distance(eventPlayer.getEyePosition(), eventPlayer.playerBaseLocation), eventPlayer.getPosition(), eventPlayer.getHorizontalFacingAngle()), "In Spawn: {0}\nFriendly: {1}\nIn Base of: {2}".format(eventPlayer.isInSpawnRoom(), eventPlayer.isInFriendlyZone, eventPlayer.stealingFromPlayerObject)), HudPosition.LEFT, 100, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    hudSubheader(eventPlayer, " \nDebug Output:\n\n{0}\n{1}\n{2}".format("LOAD: {0} \nAVG: {1} \nPEAK: {2}".format(getServerLoad(), getAverageServerLoad(), getPeakServerLoad()), "Distance: {0}\nPlayer Pos: {1}\nPlayer Dir: {2}".format(distance(eventPlayer.getEyePosition(), eventPlayer.playerBaseLocation), eventPlayer.getPosition(), eventPlayer.getHorizontalFacingAngle()), "In Spawn: {0}\nFriendly: {1}\nIn Base of: {2}".format(eventPlayer.isInSpawnRoom(), eventPlayer.isInFriendlyZone, eventPlayer.stealingFrom)), HudPosition.LEFT, 100, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
     #hudSubheader(getAllPlayers(), "TEST: {0}".format(dotProduct(directionTowards(eventPlayer.getEyePosition(), eventPlayer.playerBaseLocation), eventPlayer.getFacingDirection()) >= 1 - (1 / (distance(eventPlayer.getEyePosition(), eventPlayer.playerBaseLocation) / 10 + 1))), HudPosition.LEFT, 101, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
 
 

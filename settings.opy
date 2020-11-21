@@ -2,7 +2,7 @@
 
 settings {
     "main": {
-        "description": "BaseWars is a FFA in which you build your base, collect loot and raid your neighbours. First to 2500 gold wins - by any means necessary. v1.6 Feedback: discord.gg/EEMjjFB"
+        "description": "BaseWars is a FFA in which you build your base, collect loot and raid your neighbours. First to 2500 gold wins - by any means necessary. v"+VERSION+" Feedback: discord.gg/EEMjjFB"
     },
     "lobby": {
         "mapRotation": "afterGame",

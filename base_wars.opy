@@ -1,7 +1,10 @@
 
 #!define DEBUG_MODE true
 
+#!define VERSION "1.6"
+#!define CREATION_DATE "21/11/2020"
 #!define BASE_RADIUS 3.5
+
 enum Upgrade:
     GOLD_MINER,
     KILL_BOUNTY,
@@ -13,14 +16,13 @@ enum Upgrade:
 
 #Global variables
 
-globalvar powerColors = [Color.WHITE, Color.AQUA, Color.BLUE, Color.PURPLE, Color.RED, Color.ROSE, Color.BLACK]
+globalvar powerLevelColors = [Color.WHITE, Color.AQUA, Color.BLUE, Color.PURPLE, Color.RED, Color.ROSE, Color.BLACK]
 
 globalvar lootArrayLocations
 globalvar isGameInitialized
 globalvar hasGameStarted
 globalvar lootSpawnPoints
 globalvar lootArrayLocationsStored
-globalvar lootSpawnMax
 globalvar lootSpread
 globalvar lootCollectIterator
 globalvar lootArraySpawned
@@ -94,9 +96,9 @@ globalvar tmpBaseOwners
 
 
 #settings
-#!define SETTINGS_TITLE "BASEWARS v1.6 BY DURKHAZ#2629\nCONCEPT: PYROCREEP#2665\nTHANKS: CUDDLYFLOWER#2892, HuKuTa94#2589, Kevin#26140, Zezombye#2627"
+#!define SETTINGS_TITLE "BASE WARS BY DURKHAZ#2629\nCONCEPT: PYROCREEP#2665\nTHANKS: CUDDLYFLOWER#2892, HuKuTa94#2589, Kevin#26140\nRemaster: Zezombye#2627"
 globalvar enableStealing = createWorkshopSetting(bool, SETTINGS_TITLE, "Enable Stealing", true, 0)
-globalvar enableOccupiedStealing = createWorkshopSetting(bool, SETTINGS_TITLE, "Enable stealing in occupied bases", true, 1)
+globalvar enableOccupiedStealing = createWorkshopSetting(bool, SETTINGS_TITLE, "Enable stealing from occupied bases", true, 1)
 globalvar enableSparkbolts = createWorkshopSetting(bool, SETTINGS_TITLE, "Spawn sparkbolts", true, 2)
 globalvar enableGoldMinerUpgrade = createWorkshopSetting(bool, SETTINGS_TITLE, "Players can upgrade gold miner", true, 3)
 globalvar enableLootOrbs = createWorkshopSetting(bool, SETTINGS_TITLE, "Spawn loot orbs", true, 4)
@@ -106,16 +108,16 @@ globalvar gameGoldVictory = createWorkshopSetting(int[1000:10000], SETTINGS_TITL
 globalvar enableAlwaysFreeHeroSwitch = createWorkshopSetting(bool, SETTINGS_TITLE, "Hero switch is always free", false, 8)
 globalvar enableAlwaysFreeBaseMove = createWorkshopSetting(bool, SETTINGS_TITLE, "Base move is always free", false, 9)
 globalvar enableInefficientGoldMiner = createWorkshopSetting(bool, SETTINGS_TITLE, "Make gold miner less efficient", false, 10)
+globalvar lootSpawnMax = createWorkshopSetting(int[5:16], SETTINGS_TITLE, "Maximum number of loot orbs", 16, 11)
 
 
 #Player variables
 
 playervar powerLevel
-playervar stealingFrom
 
 playervar statsMoney
 playervar hasBase
-playervar statsUpgradeCostArray
+playervar statsUpgradeCost
 playervar statsMoneyStorage
 playervar tmpUpgradeCurrentSelection
 playervar canAutoHeal
@@ -158,14 +160,14 @@ playervar upgradeOffsetLeft
 playervar upgradeOffsetRight
 playervar isInFriendlyZone
 playervar isCloaked
-playervar stealingFromPlayerObject
+playervar stealingFrom
 playervar stealingSoundEffect
 playervar stealingText
 playervar tmpStealingAmount
 playervar stealingOnCooldown
 playervar stealingEffect
 playervar stealingEffectsVisibleTo
-playervar stealingFromPlayerObjectBackup
+playervar stealingFromBackup
 playervar upgradeTextDescription
 playervar statsUpgradeLevels
 playervar hudGoldBase
@@ -185,7 +187,7 @@ playervar scoreArray
 
 subroutine settleBalance
 subroutine hudCreateNoBase
-subroutine playerBaseCheck
+subroutine setBaseLocation
 subroutine playerBaseBuildEffects
 subroutine baseUpgradeFail
 subroutine spawnBaseEffect
@@ -197,18 +199,12 @@ subroutine gameEndedScreenPos
 #!include "settings.opy"
 #!include "debug.opy"
 #!include "game_end.opy"
-
-rule "BASEWARS 1.2 BY DURKHAZ#2629 - discord.gg/YP544CH - 21/11/20 - CONCEPT BY PYROCREEP#2665":
-    #BASEWARS BY DURKHAZ#2629 - discord.gg/EEMjjFB
-    #disableInspector()
-
-
-rule "SPECIAL THANKS: CUDDLYFLOWER#2892, HuKuTa94#2589, Kevin#26140":
+#!include "loot.opy"
 
 
 rule "init":
+    @Condition isGameInProgress()
     
-    #BASEWARS BY DURKHAZ#2629 - discord.gg/EEMjjFB
     setMatchTime(819)
     disableGamemodeCompletion()
     disableAnnouncer()
@@ -253,7 +249,6 @@ rule "init":
 rule "GAME INIT MAP":
     @Condition isGameInProgress()
     
-    #BASEWARS BY DURKHAZ#2629 - discord.gg/EEMjjFB
     destroyAllHudTexts()
     lootBlockerVolumePos = null
     mapNavMesh = null
@@ -366,8 +361,6 @@ rule "GAME INIT MAP":
 
 rule "skip assembling heroes":
     @Condition isAssemblingHeroes()
-    
-    #BASEWARS BY DURKHAZ#2629 - discord.gg/EEMjjFB
     setMatchTime(0)
 
 
@@ -378,7 +371,6 @@ rule "GAME WIN CONDITION":
     @Condition eventPlayer.statsMoneyBase >= gameGoldVictory
     @Condition gameEnded == false
     
-    #BASEWARS BY DURKHAZ#2629 - discord.gg/EEMjjFB
     #declarePlayerVictory(eventPlayer)
     gameEnded = true
     gameWinner = eventPlayer
@@ -439,14 +431,13 @@ rule "init player":
     @Condition hasGameStarted
     @Condition gameEnded == false
     
-    #BASEWARS BY DURKHAZ#2629 - discord.gg/EEMjjFB
     eventPlayer.hasBase = false
     eventPlayer.isMovingBase = false
     eventPlayer.statsMoneySec = 0
     eventPlayer.statsMoney = 10000
     eventPlayer.statsMoneyStorage = 100
     eventPlayer.upgradeCurrentSelection = 2
-    eventPlayer.statsUpgradeCostArray = [gameRulesGoldMinerInitialCost, 25, eventPlayer.statsMoneyStorage, gameRulesMoveBaseInitialCost, 0, 30, 80]
+    eventPlayer.statsUpgradeCost = [gameRulesGoldMinerInitialCost, 25, eventPlayer.statsMoneyStorage, gameRulesMoveBaseInitialCost, 0, 30, 80]
     eventPlayer.statsUpgradeLevels = [1, 1, 1, 0, 0, 1, 1]
     eventPlayer.statsUpgradeHeroSwitchShadowCost = 75
     eventPlayer.statsMoneyKill = 5
@@ -477,7 +468,7 @@ rule "PLAYER HUD NOT STARTED":
     hudHeader(eventPlayer, "WAITING FOR HOST ({0}) TO START THE GAME".format(hostPlayer), HudPosition.TOP, 3, Color.RED, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
 
 
-rule "PLAYER HUD FAIL":
+rule "unsupported map":
     @Event eachPlayer
     @Hero all
     @Condition eventPlayer.hasSpawned()
@@ -488,7 +479,7 @@ rule "PLAYER HUD FAIL":
     hudHeader(eventPlayer, "The map {0} IS NOT SUPPORTED".format(getCurrentMap()), HudPosition.TOP, 3, Color.RED, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
 
 
-rule "PLAYER HUD AWAITING NAV":
+rule "waiting for navmesh to generate":
     @Event eachPlayer
     @Hero all
     @Condition eventPlayer.hasSpawned()
@@ -496,10 +487,10 @@ rule "PLAYER HUD AWAITING NAV":
     @Condition isGameInitialized == false
     @Condition mapInfo != null
     
-    hudHeader(eventPlayer, "WAITING FOR GAME TO START", HudPosition.TOP, 3, Color.ORANGE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    hudHeader(eventPlayer, "Building the navmesh, please wait", HudPosition.TOP, 3, Color.ORANGE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
 
 
-rule "PLAYER HUD GAME INIT":
+rule "init player hud":
     @Event eachPlayer
     @Hero all
     @Condition eventPlayer.hasSpawned()
@@ -508,6 +499,7 @@ rule "PLAYER HUD GAME INIT":
     
     wait(0.25)
     eventPlayer.isInitialized = true
+    
     destroyHudText(eventPlayer.hudGoldBase)
     hudText(eventPlayer, iconString(Icon.CIRCLE), "GOLD IN BASE", "{0}/{1} (+{2}/sec)".format(eventPlayer.statsMoneyBase, eventPlayer.statsMoneyStorage, eventPlayer.statsMoneySec), HudPosition.LEFT, 0, Color.ORANGE, Color.ORANGE, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
     eventPlayer.hudGoldBase = getLastCreatedText()
@@ -517,17 +509,6 @@ rule "PLAYER HUD GAME INIT":
     hudCreateNoBase()
     lbl_0:
 
-
-rule "PLAYER HUD GLOBAL":
-    @Condition hasGameStarted
-    
-    wait()
-    #hudSubtext(getAllPlayers(), " \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n ", HudPosition.TOP, -1, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.NEVER)
-    #hudSubtext(getAllPlayers(), " \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n ", HudPosition.TOP, -1, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.NEVER)
-    hudText(getAllPlayers(), null, "                                       discord.gg/YP544CH\nScoreboard    -    Base Wars 1.14 01/04/20", "FIRST TO {0} GOLD IN BASE WINS!\n \n{1}".format(gameGoldVictory, " · {0}\n · {1}\n · {2}".format("{0}% {1} {2} ".format(floor(((leaderboard.last().statsMoneyBase + leaderboard.last().statsMoneyStorage) / leaderboardMaxScore) * 100), heroIcon(leaderboard.last().getCurrentHero()), leaderboard.last()), "{0}% {1} {2}".format(floor((((leaderboard[len(leaderboard) - 2]).statsMoneyBase + ((leaderboard[len(leaderboard) - 2]).statsMoneyStorage)) / leaderboardMaxScore) * 100), heroIcon((leaderboard[len(leaderboard) - 2]).getCurrentHero()), leaderboard[len(leaderboard) - 2]), "{0}% {1} {2}".format(floor((((leaderboard[len(leaderboard) - 3]).statsMoneyBase + ((leaderboard[len(leaderboard) - 3]).statsMoneyStorage)) / leaderboardMaxScore) * 100), heroIcon((leaderboard[len(leaderboard) - 3]).getCurrentHero()), leaderboard[len(leaderboard) - 3]))), HudPosition.RIGHT, 1, Color.WHITE, Color.ORANGE, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
-    
-    #if gameRulesCustomized:
-        #hudText(gameRulesVisibleTo, null, "Lobby Mods: {0}{1}{2}".format("{0}{1}{2}".format("{0}{1}{2}".format(["No Stealing, ", ""][enableStealing], ["Steal from empty base only, ", ""][enableOccupiedStealing], ["No Sparkbolt, ", ""][enableSparkbolts]), ["No Goldminer, ", ""][enableGoldMinerUpgrade], ["No Loot, ", ""][enableLootOrbs]), "{0}{1}{2}".format(["No Sombra Invis loot, ", ""][enableInvisibleLootPickup], ["", "5000 gold victory, "][enableAlwaysFreeHeroSwitch], ["", "Free Heroswitch, "][enableAlwaysFreeHeroSwitch]), "{0}{1}{2}".format(["", "Free Basemove, "][enableAlwaysFreeBaseMove], ["", "Slower Goldminer, "][enableInefficientGoldMiner], "")), "{0} + {1} to hide mods".format(buttonString(Button.CROUCH), buttonString(Button.MELEE)), HudPosition.LEFT, -1, Color.ORANGE, Color.WHITE, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.NEVER)
 
 
 rule "PLAYER HUD BASE GOLD FULL":
@@ -552,12 +533,36 @@ rule "PLAYER HUD BASE GOLD":
     eventPlayer.hudGoldBase = getLastCreatedText()
 
 
-rule "PLAYER HUD LEADERBOARD LOOP":
+rule "display scoreboard":
     @Condition hasGameStarted
     
-    leaderboard = sorted([player for player in getAllPlayers() if player.statsMoneyBase + player.statsMoneyStorage > 0], lambda i: i.statsMoneyBase + i.statsMoneyStorage * 10)
-    wait(1)
-    goto RULE_START
+    wait()
+
+    #title + 1st player
+    hudText(getAllPlayers(), null, 
+        "                                       discord.gg/YP544CH\nScoreboard    -    Base Wars "VERSION" "CREATION_DATE, 
+        "FIRST TO {0} GOLD IN BASE WINS!\n \n{1}".format(gameGoldVictory, 
+            " · {0}% {1} {2} ".format(floor(((leaderboard[0].statsMoneyBase + leaderboard[0].statsMoneyStorage) / leaderboardMaxScore) * 100), heroIcon(leaderboard[0].getCurrentHero()), leaderboard[0])
+        ),
+        HudPosition.RIGHT, 1, Color.WHITE, Color.ORANGE, powerLevelColors[leaderboard[0].powerLevel], HudReeval.VISIBILITY_STRING_AND_COLOR, SpecVisibility.ALWAYS)
+    
+    #2nd player
+    hudSubtext(getAllPlayers(), " · {0}% {1} {2} ".format(floor(((leaderboard[1].statsMoneyBase + leaderboard[1].statsMoneyStorage) / leaderboardMaxScore) * 100), heroIcon(leaderboard[1].getCurrentHero()), leaderboard[1]), HudPosition.RIGHT, 2, powerLevelColors[leaderboard[1].powerLevel], HudReeval.VISIBILITY_STRING_AND_COLOR, SpecVisibility.ALWAYS)
+
+    #3rd player
+    hudSubtext(getAllPlayers(), " · {0}% {1} {2} ".format(floor(((leaderboard[2].statsMoneyBase + leaderboard[2].statsMoneyStorage) / leaderboardMaxScore) * 100), heroIcon(leaderboard[2].getCurrentHero()), leaderboard[2]), HudPosition.RIGHT, 2, powerLevelColors[leaderboard[2].powerLevel], HudReeval.VISIBILITY_STRING_AND_COLOR, SpecVisibility.ALWAYS)
+
+    #if gameRulesCustomized:
+        #hudText(gameRulesVisibleTo, null, "Lobby Mods: {0}{1}{2}".format("{0}{1}{2}".format("{0}{1}{2}".format(["No Stealing, ", ""][enableStealing], ["Steal from empty base only, ", ""][enableOccupiedStealing], ["No Sparkbolt, ", ""][enableSparkbolts]), ["No Goldminer, ", ""][enableGoldMinerUpgrade], ["No Loot, ", ""][enableLootOrbs]), "{0}{1}{2}".format(["No Sombra Invis loot, ", ""][enableInvisibleLootPickup], ["", "5000 gold victory, "][enableAlwaysFreeHeroSwitch], ["", "Free Heroswitch, "][enableAlwaysFreeHeroSwitch]), "{0}{1}{2}".format(["", "Free Basemove, "][enableAlwaysFreeBaseMove], ["", "Slower Goldminer, "][enableInefficientGoldMiner], "")), "{0} + {1} to hide mods".format(buttonString(Button.CROUCH), buttonString(Button.MELEE)), HudPosition.LEFT, -1, Color.ORANGE, Color.WHITE, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.NEVER)
+
+
+
+rule "update leaderboard":
+    @Condition hasGameStarted
+    
+    while true:
+        leaderboard = sorted([player for player in getAllPlayers() if player.statsMoneyBase + player.statsMoneyStorage > 0], lambda i: -(i.statsMoneyBase + i.statsMoneyStorage * 10))
+        wait(1)
 
 
 rule "PLAYER REGEN CONDITION":
@@ -632,9 +637,9 @@ rule "BASE BUILD CHECK CONDITION":
     @Condition eventPlayer.playerBaseLocation.y == -1000
     @Condition eventPlayer.isOnGround()
     @Condition hasGameStarted
-    @Condition eventPlayer.stealingFromPlayerObject == null
+    @Condition eventPlayer.stealingFrom == null
     
-    playerBaseCheck()
+    setBaseLocation()
     wait(0.75)
 
 
@@ -650,7 +655,7 @@ rule "BASE BUILD":
     #createIcon(eventPlayer, eventPlayer.playerBaseLocation + vect(0, 2.8, 0), Icon.HALO, IconReeval.POSITION, Color.WHITE, false)
     createInWorldText([player for player in getAllPlayers() if player != eventPlayer], "{1} {0} {2}".format(eventPlayer, heroIcon(eventPlayer.getCurrentHero()), eventPlayer.statsMoneyBase), eventPlayer.playerBaseLocation + vect(0, 2, 0), 0.8, Clip.SURFACES, WorldTextReeval.VISIBILITY_POSITION_AND_STRING, Color.WHITE, SpecVisibility.ALWAYS)
     createInWorldText(eventPlayer, "{0} YOUR BASE".format(heroIcon(eventPlayer.getCurrentHero())), eventPlayer.playerBaseLocation + vect(0, 2.5, 0), 1, Clip.NONE, WorldTextReeval.VISIBILITY_POSITION_AND_STRING, Color.WHITE, SpecVisibility.NEVER)
-    createInWorldText(eventPlayer.upgradeCostTextVisibility, " \n \n \n \n \n{0} GOLD".format(eventPlayer.statsUpgradeCostArray[eventPlayer.upgradeCurrentSelection]), eventPlayer.playerBaseLocation, 2, Clip.NONE, WorldTextReeval.VISIBILITY_POSITION_AND_STRING, Color.ORANGE, SpecVisibility.DEFAULT)
+    createInWorldText(eventPlayer.upgradeCostTextVisibility, " \n \n \n \n \n{0} GOLD".format(eventPlayer.statsUpgradeCost[eventPlayer.upgradeCurrentSelection]), eventPlayer.playerBaseLocation, 2, Clip.NONE, WorldTextReeval.VISIBILITY_POSITION_AND_STRING, Color.ORANGE, SpecVisibility.DEFAULT)
     playerBaseBuildEffects()
 
 
@@ -774,16 +779,21 @@ rule "BASE RESPAWN":
     eventPlayer.playerObjectInBase = eventPlayer
     eventPlayer.setInvisibility(Invis.ALL)
 
-rule "update 'stealing from'":
+rule "check if player is in someone else's base":
     @Event eachPlayer
     @Condition hasGameStarted
     @Condition enableStealing
     while true:
-        if eventPlayer.isAlive() and eventPlayer.hasSpawned() and not eventPlayer.isCloaked and eventPlayer.playerObjectInBase:
-            tmpBaseOwners = [player for player in getAllPlayers() if player != eventPlayer and player.hasBase and player.statsMoneyBase != 0]
+        if eventPlayer.isAlive() and eventPlayer.hasSpawned() and eventPlayer.stealingFrom == null and not eventPlayer.isCloaked and eventPlayer.playerObjectInBase:
+            tmpBaseOwners = [player for player in getAllPlayers() if player != eventPlayer and player.hasBase and player.statsMoneyBase != 0 and not (player.isProtected and not enableOccupiedStealing)]
             for stealingBaseOwnerIterator in range(len(tmpBaseOwners)):
-                if distance(eventPlayer.getPosition(), tmpBaseOwners[stealingBaseOwnerIterator]
-
+                if distance(eventPlayer.getPosition(), tmpBaseOwners[stealingBaseOwnerIterator]) <= BASE_RADIUS:
+                    eventPlayer.stealingFrom = tmpBaseOwners[stealingBaseOwnerIterator]
+                    break
+        
+        wait(0.64)
+        
+/*
 rule "ENEMY BASE LOOP":
     @Condition hasGameStarted
     @Condition enableStealing
@@ -799,89 +809,90 @@ rule "ENEMY BASE LOOP":
                 if tmpStealingPlayer != tmpStealingBaseOwner and distance(tmpStealingPlayer.getPosition(), tmpStealingBaseOwner.playerBaseLocation) <= 3.5:
                     if not enableOccupiedStealing and tmpStealingBaseOwner.isProtected:
                         goto lbl_0
-                    tmpStealingPlayer.stealingFromPlayerObject = tmpStealingBaseOwner
+                    tmpStealingPlayer.stealingFrom = tmpStealingBaseOwner
                     tmpStealingAllPlayers.remove(tmpStealingPlayer)
                     lbl_0:
         wait()
     for stealingPlayerIterator in range(len(tmpStealingAllPlayers)):
-        tmpStealingAllPlayers[stealingPlayerIterator].stealingFromPlayerObject = null
+        tmpStealingAllPlayers[stealingPlayerIterator].stealingFrom = null
     wait(0.64)
     goto RULE_START
-
+*/
 
 rule "ENEMY BASE STEAL LOOP":
     @Event eachPlayer
     @Hero all
-    @Condition eventPlayer.stealingFromPlayerObject != null
-    @Condition eventPlayer.isHoldingButton(Button.INTERACT)
+    @Condition enableStealing
     @Condition eventPlayer.isAlive()
     @Condition eventPlayer.hasSpawned()
+    @Condition eventPlayer.stealingFrom != null
+    @Condition eventPlayer.isHoldingButton(Button.INTERACT)
     @Condition eventPlayer.stealingOnCooldown == false
-    @Condition eventPlayer.stealingFromPlayerObject.statsMoneyBase != 0
-    @Condition dotProduct(directionTowards(eventPlayer.getEyePosition(), eventPlayer.stealingFromPlayerObject.playerBaseLocation), eventPlayer.getFacingDirection()) >= 0.99
-    @Condition distance(eventPlayer.getPosition(), eventPlayer.stealingFromPlayerObject.playerBaseLocation) < 2
     @Condition eventPlayer.isCloaked == false
+    @Condition eventPlayer.stealingFrom.statsMoneyBase != 0
+    @Condition dotProduct(directionTowards(eventPlayer.getEyePosition(), eventPlayer.stealingFrom.playerBaseLocation), eventPlayer.getFacingDirection()) >= 0.99
+    @Condition distance(eventPlayer.getPosition(), eventPlayer.stealingFrom.playerBaseLocation) < 2
     
-    if eventPlayer.isStealingActive:
-        goto lbl_0
-    createEffect(eventPlayer, Effect.PICKUP_SOUND, Color.WHITE, eventPlayer, 2000, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
-    eventPlayer.stealingSoundEffect = getLastCreatedEntity()
-    eventPlayer.isStealingActive = true
-    lbl_0:
-    eventPlayer.tmpMoneyDifference = eventPlayer.stealingFromPlayerObject.statsMoneyBase
-    if not eventPlayer.stealingFromPlayerObject.isProtected:
-        goto lbl_1
-    eventPlayer.tmpMoneyDifference += eventPlayer.stealingFromPlayerObject.statsMoney
-    lbl_1:
-    eventPlayer.tmpStealingAmount = ceil(eventPlayer.stealingFromPlayerObject.statsMoneySec / 2) + eventPlayer.statsStealingSpeed
-    eventPlayer.tmpStealingRiskBonus = round(eventPlayer.statsStealingSpeed * ((stealingRiskMultiplier + stealingRiskThreshold) * (min(1, distance(eventPlayer.playerBaseLocation, eventPlayer.stealingFromPlayerObject.playerBaseLocation) / mapSize)) - stealingRiskThreshold))
-    if eventPlayer.tmpStealingRiskBonus <= 0:
-        goto lbl_2
-    eventPlayer.tmpStealingAmount += eventPlayer.tmpStealingRiskBonus
-    eventPlayer.tmpStealingAmount = min(eventPlayer.tmpStealingAmount, eventPlayer.tmpMoneyDifference)
-    smallMessage(eventPlayer, "+{0} GOLD [{1} RISK BONUS]".format(eventPlayer.tmpStealingAmount, eventPlayer.tmpStealingRiskBonus))
-    goto lbl_3
-    lbl_2:
-    eventPlayer.tmpStealingAmount = min(eventPlayer.tmpStealingAmount, eventPlayer.tmpMoneyDifference)
-    smallMessage(eventPlayer, "+{0} GOLD".format(eventPlayer.tmpStealingAmount))
-    lbl_3:
-    eventPlayer.statsMoney += eventPlayer.tmpStealingAmount
-    eventPlayer.scoreArray[2] += eventPlayer.tmpStealingAmount
-    eventPlayer.scoreArray[3] += eventPlayer.tmpStealingAmount
-    eventPlayer.stealingFromPlayerObject.scoreArray[8] += eventPlayer.tmpStealingAmount
-    eventPlayer.stealingFromPlayerObject.statsMoneyBase -= eventPlayer.tmpStealingAmount
-    if eventPlayer.stealingFromPlayerObject.isProtected and eventPlayer.stealingFromPlayerObject.statsMoneyStorage != eventPlayer.stealingFromPlayerObject.statsMoneyBase and eventPlayer.stealingFromPlayerObject.statsMoney > 0:
-        eventPlayer.stealingFromPlayerObject.tmpMoneyDifference = min(eventPlayer.stealingFromPlayerObject.statsMoneyStorage - eventPlayer.stealingFromPlayerObject.statsMoneyBase, eventPlayer.stealingFromPlayerObject.statsMoney)
-        eventPlayer.stealingFromPlayerObject.statsMoney -= eventPlayer.stealingFromPlayerObject.tmpMoneyDifference
-        eventPlayer.stealingFromPlayerObject.statsMoneyBase += eventPlayer.stealingFromPlayerObject.tmpMoneyDifference
-    playEffect(eventPlayer, DynamicEffect.EXPLOSION_SOUND, Color.WHITE, eventPlayer.stealingFromPlayerObject.playerBaseLocation, 5)
-    playEffect(eventPlayer, DynamicEffect.RING_EXPLOSION, Color.RED, eventPlayer.stealingFromPlayerObject.playerBaseLocation, 2)
-    wait(0.5)
-    if RULE_CONDITION:
-        goto RULE_START
+    do:
+        if not eventPlayer.isStealingActive:
+            createEffect(eventPlayer, Effect.PICKUP_SOUND, Color.WHITE, eventPlayer, 2000, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+            eventPlayer.stealingSoundEffect = getLastCreatedEntity()
+            eventPlayer.isStealingActive = true
+
+        eventPlayer.tmpMoneyDifference = eventPlayer.stealingFrom.statsMoneyBase
+        if eventPlayer.stealingFrom.isProtected:
+            eventPlayer.tmpMoneyDifference += eventPlayer.stealingFrom.statsMoney
+
+        eventPlayer.tmpStealingAmount = ceil(eventPlayer.stealingFrom.statsMoneySec / 2) + eventPlayer.statsStealingSpeed
+        eventPlayer.tmpStealingRiskBonus = round(eventPlayer.statsStealingSpeed * ((stealingRiskMultiplier + stealingRiskThreshold) * (min(1, distance(eventPlayer.playerBaseLocation, eventPlayer.stealingFrom.playerBaseLocation) / mapSize)) - stealingRiskThreshold))
+        if eventPlayer.tmpStealingRiskBonus <= 0:
+            goto lbl_2
+        eventPlayer.tmpStealingAmount += eventPlayer.tmpStealingRiskBonus
+        eventPlayer.tmpStealingAmount = min(eventPlayer.tmpStealingAmount, eventPlayer.tmpMoneyDifference)
+        smallMessage(eventPlayer, "+{0} GOLD [{1} RISK BONUS]".format(eventPlayer.tmpStealingAmount, eventPlayer.tmpStealingRiskBonus))
+        goto lbl_3
+        lbl_2:
+        eventPlayer.tmpStealingAmount = min(eventPlayer.tmpStealingAmount, eventPlayer.tmpMoneyDifference)
+        smallMessage(eventPlayer, "+{0} GOLD".format(eventPlayer.tmpStealingAmount))
+        lbl_3:
+        eventPlayer.statsMoney += eventPlayer.tmpStealingAmount
+        eventPlayer.scoreArray[2] += eventPlayer.tmpStealingAmount
+        eventPlayer.scoreArray[3] += eventPlayer.tmpStealingAmount
+        eventPlayer.stealingFrom.scoreArray[8] += eventPlayer.tmpStealingAmount
+        eventPlayer.stealingFrom.statsMoneyBase -= eventPlayer.tmpStealingAmount
+        if eventPlayer.stealingFrom.isProtected and eventPlayer.stealingFrom.statsMoneyStorage != eventPlayer.stealingFrom.statsMoneyBase and eventPlayer.stealingFrom.statsMoney > 0:
+            eventPlayer.stealingFrom.tmpMoneyDifference = min(eventPlayer.stealingFrom.statsMoneyStorage - eventPlayer.stealingFrom.statsMoneyBase, eventPlayer.stealingFrom.statsMoney)
+            eventPlayer.stealingFrom.statsMoney -= eventPlayer.stealingFrom.tmpMoneyDifference
+            eventPlayer.stealingFrom.statsMoneyBase += eventPlayer.stealingFrom.tmpMoneyDifference
+        playEffect(eventPlayer, DynamicEffect.EXPLOSION_SOUND, Color.WHITE, eventPlayer.stealingFrom.playerBaseLocation, 5)
+        playEffect(eventPlayer, DynamicEffect.RING_EXPLOSION, Color.RED, eventPlayer.stealingFrom.playerBaseLocation, 2)
+        wait(0.5)
+    while RULE_CONDITION
+
     eventPlayer.stealingOnCooldown = true
     destroyEffect(eventPlayer.stealingSoundEffect)
     eventPlayer.isStealingActive = false
     wait(1)
     eventPlayer.stealingOnCooldown = false
 
-
+/*
 rule "ENEMY BASE ENTER":
     @Event eachPlayer
     @Hero all
-    @Condition eventPlayer.stealingFromPlayerObject != null
+    @Condition eventPlayer.stealingFrom != null
     
-    eventPlayer.stealingFromPlayerObjectBackup = eventPlayer.stealingFromPlayerObject
-    eventPlayer.stealingFromPlayerObject.stealingEffectsVisibleTo.append(eventPlayer)
+    eventPlayer.stealingFromBackup = eventPlayer.stealingFrom
+    eventPlayer.stealingFrom.stealingEffectsVisibleTo.append(eventPlayer)
 
 
-rule "ENEMY BASE LEAVE":
+rule "check if player is not in someone else's base anymore":
     @Event eachPlayer
     @Hero all
-    @Condition eventPlayer.stealingFromPlayerObject == null
+    @Condition eventPlayer.stealingFrom != null
+    @Condition distance(eventPlayer.getPosition(), tmpBaseOwners[stealingBaseOwnerIterator]) <= BASE_RADIUS:
     
-    eventPlayer.stealingFromPlayerObjectBackup.stealingEffectsVisibleTo.remove(eventPlayer)
-
+    eventPlayer.stealingFromBackup.stealingEffectsVisibleTo.remove(eventPlayer)
+*/
 
 rule "ENEMY BASE EFFECT CREATE":
     @Event eachPlayer
@@ -918,13 +929,13 @@ rule "UPGRADE BUY MONEY/SEC":
     @Condition eventPlayer.upgradeCostTextVisibility != null
     @Condition eventPlayer.hasBase
     
-    if eventPlayer.statsMoneyBase >= eventPlayer.statsUpgradeCostArray[eventPlayer.upgradeCurrentSelection]:
+    if eventPlayer.statsMoneyBase >= eventPlayer.statsUpgradeCost[eventPlayer.upgradeCurrentSelection]:
         eventPlayer.scoreArray[6] += 1
-        eventPlayer.statsMoneyBase -= eventPlayer.statsUpgradeCostArray[eventPlayer.upgradeCurrentSelection]
+        eventPlayer.statsMoneyBase -= eventPlayer.statsUpgradeCost[eventPlayer.upgradeCurrentSelection]
         playEffect(eventPlayer, DynamicEffect.RING_EXPLOSION, Color.BLUE, eventPlayer.playerBaseLocation, 4)
         playEffect(eventPlayer, DynamicEffect.BUFF_EXPLOSION_SOUND, Color.WHITE, eventPlayer, 200)
-        eventPlayer.statsUpgradeCostArray[eventPlayer.upgradeCurrentSelection] = ceil(eventPlayer.statsUpgradeCostArray * 1.5 / 10) * 10
-        eventPlayer.statsUpgradeCostArray[5] = eventPlayer.statsUpgradeCostArray[eventPlayer.upgradeCurrentSelection]
+        eventPlayer.statsUpgradeCost[eventPlayer.upgradeCurrentSelection] = ceil(eventPlayer.statsUpgradeCost * 1.5 / 10) * 10
+        eventPlayer.statsUpgradeCost[5] = eventPlayer.statsUpgradeCost[eventPlayer.upgradeCurrentSelection]
         eventPlayer.statsMoneySec += 1
         eventPlayer.statsUpgradeLevels[eventPlayer.upgradeCurrentSelection] += 1
         smallMessage(eventPlayer, "{0} +1 GOLD/SEC {0}".format(iconString(Icon.ARROW_UP)))
@@ -960,12 +971,12 @@ rule "UPGRADE BUY MONEY/KILL":
     @Condition eventPlayer.upgradeCostTextVisibility != null
     @Condition eventPlayer.hasBase
     
-    if eventPlayer.statsMoneyBase >= eventPlayer.statsUpgradeCostArray[eventPlayer.upgradeCurrentSelection]:
+    if eventPlayer.statsMoneyBase >= eventPlayer.statsUpgradeCost[eventPlayer.upgradeCurrentSelection]:
         eventPlayer.scoreArray[6] += 1
-        eventPlayer.statsMoneyBase -= eventPlayer.statsUpgradeCostArray[eventPlayer.upgradeCurrentSelection]
+        eventPlayer.statsMoneyBase -= eventPlayer.statsUpgradeCost[eventPlayer.upgradeCurrentSelection]
         playEffect(eventPlayer, DynamicEffect.RING_EXPLOSION, Color.RED, eventPlayer.playerBaseLocation, 4)
         playEffect(eventPlayer, DynamicEffect.BUFF_EXPLOSION_SOUND, Color.WHITE, eventPlayer, 200)
-        eventPlayer.statsUpgradeCostArray[eventPlayer.upgradeCurrentSelection] = round(eventPlayer.statsUpgradeCostArray[eventPlayer.upgradeCurrentSelection] * 1.5 / 10) * 10
+        eventPlayer.statsUpgradeCost[eventPlayer.upgradeCurrentSelection] = round(eventPlayer.statsUpgradeCost[eventPlayer.upgradeCurrentSelection] * 1.5 / 10) * 10
         eventPlayer.statsMoneyKill += 15
         eventPlayer.statsUpgradeLevels[eventPlayer.upgradeCurrentSelection] += 1
         smallMessage(eventPlayer, "{0} +15 KILL BOUNTY {0}".format(iconString(Icon.ARROW_UP)))
@@ -1022,28 +1033,28 @@ rule "UPGRADE BUY STORAGE":
     @Condition eventPlayer.upgradeCostTextVisibility != null
     @Condition eventPlayer.hasBase
     
-    if eventPlayer.statsMoneyBase >= eventPlayer.statsUpgradeCostArray[eventPlayer.upgradeCurrentSelection]:
+    if eventPlayer.statsMoneyBase >= eventPlayer.statsUpgradeCost[eventPlayer.upgradeCurrentSelection]:
         eventPlayer.scoreArray[6] += 1
         eventPlayer.statsMoneyBase = 0
         playEffect(eventPlayer, DynamicEffect.RING_EXPLOSION, Color.YELLOW, eventPlayer.playerBaseLocation, 4)
         playEffect(eventPlayer, DynamicEffect.BUFF_EXPLOSION_SOUND, Color.WHITE, eventPlayer, 200)
         eventPlayer.statsMoneyStorage = min(ceil(eventPlayer.statsMoneyStorage * 1.5 / 10) * 10, gameGoldVictory)
-        eventPlayer.statsUpgradeCostArray[eventPlayer.upgradeCurrentSelection] = eventPlayer.statsMoneyStorage
+        eventPlayer.statsUpgradeCost[eventPlayer.upgradeCurrentSelection] = eventPlayer.statsMoneyStorage
         if enableAlwaysFreeHeroSwitch:
             goto lbl_0
         if eventPlayer.statsUpgradeHeroSwitchUsed or eventPlayer.statsUpgradeLevels[eventPlayer.upgradeCurrentSelection] >= 4:
             eventPlayer.statsUpgradeHeroSwitchUsed = true
-            if eventPlayer.statsUpgradeCostArray[4] != 0:
+            if eventPlayer.statsUpgradeCost[4] != 0:
                 goto lbl_1
-            eventPlayer.statsUpgradeCostArray[4] = eventPlayer.statsUpgradeHeroSwitchShadowCost
+            eventPlayer.statsUpgradeCost[4] = eventPlayer.statsUpgradeHeroSwitchShadowCost
             lbl_1:
-            eventPlayer.statsUpgradeCostArray[4] += ceil(eventPlayer.statsMoneyStorage / 5)
+            eventPlayer.statsUpgradeCost[4] += ceil(eventPlayer.statsMoneyStorage / 5)
         else:
             eventPlayer.statsUpgradeHeroSwitchShadowCost += ceil(eventPlayer.statsMoneyStorage / 5)
         lbl_0:
         if enableAlwaysFreeBaseMove:
             goto lbl_2
-        eventPlayer.statsUpgradeCostArray[3] = max(ceil(eventPlayer.statsMoneyStorage / 5), 50)
+        eventPlayer.statsUpgradeCost[3] = max(ceil(eventPlayer.statsMoneyStorage / 5), 50)
         lbl_2:
         eventPlayer.statsUpgradeLevels[eventPlayer.upgradeCurrentSelection] += 1
         smallMessage(eventPlayer, "{1} +{0} GOLD CAPACITY {1}".format(ceil(eventPlayer.statsMoneyStorage / 2), iconString(Icon.ARROW_UP)))
@@ -1063,9 +1074,9 @@ rule "UPGRADE BUY MOVE BASE":
     @Condition eventPlayer.upgradeCostTextVisibility != null
     @Condition eventPlayer.hasBase
     
-    if eventPlayer.statsMoneyBase >= eventPlayer.statsUpgradeCostArray[eventPlayer.upgradeCurrentSelection]:
+    if eventPlayer.statsMoneyBase >= eventPlayer.statsUpgradeCost[eventPlayer.upgradeCurrentSelection]:
         eventPlayer.scoreArray[7] += 1
-        eventPlayer.statsMoneyBase -= eventPlayer.statsUpgradeCostArray[eventPlayer.upgradeCurrentSelection]
+        eventPlayer.statsMoneyBase -= eventPlayer.statsUpgradeCost[eventPlayer.upgradeCurrentSelection]
         playEffect(eventPlayer, DynamicEffect.RING_EXPLOSION, Color.GREEN, eventPlayer.playerBaseLocation, 2)
         playEffect(eventPlayer, DynamicEffect.BUFF_EXPLOSION_SOUND, Color.WHITE, eventPlayer, 200)
         eventPlayer.playerBaseLocation = vect(0, -10000, 0)
@@ -1084,9 +1095,9 @@ rule "UPGRADE END MOVE BASE":
     @Condition eventPlayer.isHoldingButton(Button.INTERACT)
     @Condition eventPlayer.hasBase
     @Condition eventPlayer.isOnGround()
-    @Condition eventPlayer.stealingFromPlayerObject == null
+    @Condition eventPlayer.stealingFrom == null
     
-    playerBaseCheck()
+    setBaseLocation()
     if eventPlayer.playerBaseLocation.y > -10000:
         eventPlayer.isMovingBase = false
         playerBaseBuildEffects()
@@ -1103,14 +1114,14 @@ rule "UPGRADE BUY HERO":
     @Condition eventPlayer.hasBase
     @Condition eventPlayer.isChangingHero == false
     
-    if eventPlayer.statsMoneyBase >= eventPlayer.statsUpgradeCostArray[eventPlayer.upgradeCurrentSelection]:
+    if eventPlayer.statsMoneyBase >= eventPlayer.statsUpgradeCost[eventPlayer.upgradeCurrentSelection]:
         eventPlayer.isChangingHero = true
-        eventPlayer.statsMoneyBase -= eventPlayer.statsUpgradeCostArray[eventPlayer.upgradeCurrentSelection]
+        eventPlayer.statsMoneyBase -= eventPlayer.statsUpgradeCost[eventPlayer.upgradeCurrentSelection]
         if enableAlwaysFreeHeroSwitch:
             goto lbl_0
         if eventPlayer.statsUpgradeHeroSwitchUsed:
             goto lbl_1
-        eventPlayer.statsUpgradeCostArray[4] = eventPlayer.statsUpgradeHeroSwitchShadowCost
+        eventPlayer.statsUpgradeCost[4] = eventPlayer.statsUpgradeHeroSwitchShadowCost
         lbl_1:
         eventPlayer.statsUpgradeHeroSwitchUsed = true
         lbl_0:
@@ -1157,15 +1168,15 @@ rule "UPGRADE BUY STEAL SPEED":
     @Condition eventPlayer.upgradeCostTextVisibility != null
     @Condition eventPlayer.hasBase
     
-    if eventPlayer.statsMoneyBase >= eventPlayer.statsUpgradeCostArray[eventPlayer.upgradeCurrentSelection]:
+    if eventPlayer.statsMoneyBase >= eventPlayer.statsUpgradeCost[eventPlayer.upgradeCurrentSelection]:
         eventPlayer.scoreArray[6] += 1
-        eventPlayer.statsMoneyBase -= eventPlayer.statsUpgradeCostArray[eventPlayer.upgradeCurrentSelection]
+        eventPlayer.statsMoneyBase -= eventPlayer.statsUpgradeCost[eventPlayer.upgradeCurrentSelection]
         playEffect(eventPlayer, DynamicEffect.RING_EXPLOSION, Color.PURPLE, eventPlayer.playerBaseLocation, 4)
         playEffect(eventPlayer, DynamicEffect.BUFF_EXPLOSION_SOUND, Color.WHITE, eventPlayer, 200)
-        eventPlayer.statsUpgradeCostArray[eventPlayer.upgradeCurrentSelection] = ceil(eventPlayer.statsUpgradeCostArray[eventPlayer.upgradeCurrentSelection] * 1.5 / 10) * 10
+        eventPlayer.statsUpgradeCost[eventPlayer.upgradeCurrentSelection] = ceil(eventPlayer.statsUpgradeCost[eventPlayer.upgradeCurrentSelection] * 1.5 / 10) * 10
         if not enableGoldMinerUpgrade:
             goto lbl_0
-        eventPlayer.statsUpgradeCostArray[0] = eventPlayer.statsUpgradeCostArray[eventPlayer.upgradeCurrentSelection]
+        eventPlayer.statsUpgradeCost[0] = eventPlayer.statsUpgradeCost[eventPlayer.upgradeCurrentSelection]
         lbl_0:
         eventPlayer.statsStealingSpeed += 1
         eventPlayer.statsUpgradeLevels[eventPlayer.upgradeCurrentSelection] += 1
@@ -1185,16 +1196,16 @@ rule "UPGRADE BUY DELAY":
     @Condition eventPlayer.upgradeCostTextVisibility != null
     @Condition eventPlayer.hasBase
     
-    if eventPlayer.statsMoneyBase >= eventPlayer.statsUpgradeCostArray[eventPlayer.upgradeCurrentSelection]:
+    if eventPlayer.statsMoneyBase >= eventPlayer.statsUpgradeCost[eventPlayer.upgradeCurrentSelection]:
         eventPlayer.scoreArray[6] += 1
-        eventPlayer.statsMoneyBase -= eventPlayer.statsUpgradeCostArray[eventPlayer.upgradeCurrentSelection]
+        eventPlayer.statsMoneyBase -= eventPlayer.statsUpgradeCost[eventPlayer.upgradeCurrentSelection]
         playEffect(eventPlayer, DynamicEffect.RING_EXPLOSION, Color.SKY_BLUE, eventPlayer.playerBaseLocation, 4)
         playEffect(eventPlayer, DynamicEffect.BUFF_EXPLOSION_SOUND, Color.WHITE, eventPlayer, 200)
         eventPlayer.statsBaseDelay -= 0.5
         if eventPlayer.statsBaseDelay <= 0.5:
-            eventPlayer.statsUpgradeCostArray[eventPlayer.upgradeCurrentSelection] += 10000
+            eventPlayer.statsUpgradeCost[eventPlayer.upgradeCurrentSelection] += 10000
         else:
-            eventPlayer.statsUpgradeCostArray[eventPlayer.upgradeCurrentSelection] *= 2
+            eventPlayer.statsUpgradeCost[eventPlayer.upgradeCurrentSelection] *= 2
         eventPlayer.statsUpgradeLevels[eventPlayer.upgradeCurrentSelection] += 1
         smallMessage(eventPlayer, "{0} -0.5 SEC DELAY {0}".format(iconString(Icon.ARROW_UP)))
         checkUpgradeAvailability()
@@ -1249,9 +1260,9 @@ rule "UPGRADE SELECT LEFT":
     while true:
         if eventPlayer.tmpUpgradeCurrentSelection >= 0:
             goto lbl_0
-        eventPlayer.tmpUpgradeCurrentSelection = len(eventPlayer.statsUpgradeCostArray) - 1
+        eventPlayer.tmpUpgradeCurrentSelection = len(eventPlayer.statsUpgradeCost) - 1
         lbl_0:
-        if eventPlayer.statsUpgradeCostArray[eventPlayer.tmpUpgradeCurrentSelection] <= gameGoldVictory:
+        if eventPlayer.statsUpgradeCost[eventPlayer.tmpUpgradeCurrentSelection] <= gameGoldVictory:
             goto lbl_1
         eventPlayer.tmpUpgradeCurrentSelection -= 1
     lbl_1:
@@ -1274,11 +1285,11 @@ rule "UPGRADE SELECT RIGHT":
     
     playEffect(eventPlayer, DynamicEffect.DEBUFF_IMPACT_SOUND, Color.WHITE, eventPlayer, 20)
     eventPlayer.upgradeInputCooldown = true
-    eventPlayer.tmpUpgradeCurrentSelection = (eventPlayer.upgradeCurrentSelection + 1) % len(eventPlayer.statsUpgradeCostArray)
+    eventPlayer.tmpUpgradeCurrentSelection = (eventPlayer.upgradeCurrentSelection + 1) % len(eventPlayer.statsUpgradeCost)
     while true:
-        if eventPlayer.statsUpgradeCostArray[eventPlayer.tmpUpgradeCurrentSelection] <= gameGoldVictory:
+        if eventPlayer.statsUpgradeCost[eventPlayer.tmpUpgradeCurrentSelection] <= gameGoldVictory:
             goto lbl_0
-        eventPlayer.tmpUpgradeCurrentSelection = (eventPlayer.tmpUpgradeCurrentSelection + 1) % len(eventPlayer.statsUpgradeCostArray)
+        eventPlayer.tmpUpgradeCurrentSelection = (eventPlayer.tmpUpgradeCurrentSelection + 1) % len(eventPlayer.statsUpgradeCost)
     lbl_0:
     eventPlayer.upgradeCurrentSelection = eventPlayer.tmpUpgradeCurrentSelection
     eventPlayer.upgradeTextUpdated = true
@@ -1336,297 +1347,45 @@ rule "UPGRADE UPDATE TEXT":
         eventPlayer.upgradeTextTitle = getLastCreatedText()
         createInWorldText(eventPlayer, "    [LVL {0}]\n\n  Upgrades your gold generation\n    to {1} per second. Can't generate\nwhen there are players in your base\n ".format(eventPlayer.statsUpgradeLevels[eventPlayer.upgradeCurrentSelection], eventPlayer.statsMoneySec + 1), eventPlayer.playerBaseLocation, 1.1, Clip.NONE, WorldTextReeval.VISIBILITY_POSITION_AND_STRING, Color.WHITE, SpecVisibility.DEFAULT)
         createEffect(eventPlayer, Effect.SPHERE, Color.BLUE, eventPlayer.playerBaseLocation, 0.4, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+
     elif eventPlayer.upgradeCurrentSelection == Upgrade.KILL_BOUNTY:
         createInWorldText(eventPlayer, "             {0}\nKILL GOLD BOUNTY\n\n\n\n".format(iconString(Icon.SKULL)), eventPlayer.playerBaseLocation, 2, Clip.NONE, WorldTextReeval.VISIBILITY_POSITION_AND_STRING, Color.RED, SpecVisibility.DEFAULT)
         eventPlayer.upgradeTextTitle = getLastCreatedText()
         createInWorldText(eventPlayer, "     [LVL {0}]\n\n    Increases bounty from {2} to {1}\nAwarded by dealing finishing blow\n  Doesn't affect dropped loot orbs\n ".format(eventPlayer.statsUpgradeLevels[eventPlayer.upgradeCurrentSelection], eventPlayer.statsMoneyKill + 15, eventPlayer.statsMoneyKill), eventPlayer.playerBaseLocation, 1.1, Clip.NONE, WorldTextReeval.VISIBILITY_POSITION_AND_STRING, Color.WHITE, SpecVisibility.DEFAULT)
         createEffect(eventPlayer, Effect.SPHERE, Color.RED, eventPlayer.playerBaseLocation, 0.4, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+
     elif eventPlayer.upgradeCurrentSelection == Upgrade.GOLD_STORAGE:
         createInWorldText(eventPlayer, "               {0}\nBASE GOLD STORAGE\n\n\n\n".format(iconString(Icon.CIRCLE)), eventPlayer.playerBaseLocation, 2, Clip.NONE, WorldTextReeval.VISIBILITY_POSITION_AND_STRING, Color.YELLOW, SpecVisibility.DEFAULT)
         eventPlayer.upgradeTextTitle = getLastCreatedText()
         createInWorldText(eventPlayer, "[LVL {0}]\n\nIncreases the maximum amount \n  of gold your base can store.\n  Upgraded storage: {1} gold\n ".format(eventPlayer.statsUpgradeLevels[eventPlayer.upgradeCurrentSelection], ceil(eventPlayer.statsMoneyStorage * 1.5)), eventPlayer.playerBaseLocation, 1.1, Clip.NONE, WorldTextReeval.VISIBILITY_POSITION_AND_STRING, Color.WHITE, SpecVisibility.DEFAULT)
         createEffect(eventPlayer, Effect.SPHERE, Color.YELLOW, eventPlayer.playerBaseLocation, 0.4, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+
     elif eventPlayer.upgradeCurrentSelection == Upgrade.BASE_MOVE:
         createInWorldText(eventPlayer, "            {0}\nMOVE YOUR BASE\n\n\n\n".format(iconString(Icon.TRASHCAN)), eventPlayer.playerBaseLocation, 2, Clip.NONE, WorldTextReeval.VISIBILITY_POSITION_AND_STRING, Color.GREEN, SpecVisibility.DEFAULT)
         eventPlayer.upgradeTextTitle = getLastCreatedText()
         createInWorldText(eventPlayer, "   [NO LVL]\n \n           Packs up your base. \nYou keep your gold & upgrades. \nPrice depends on gold storage.\n ", eventPlayer.playerBaseLocation, 1.1, Clip.NONE, WorldTextReeval.VISIBILITY_POSITION_AND_STRING, Color.WHITE, SpecVisibility.DEFAULT)
         createEffect(eventPlayer, Effect.SPHERE, Color.GREEN, eventPlayer.playerBaseLocation, 0.4, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+
     elif eventPlayer.upgradeCurrentSelection == Upgrade.SWITCH_HERO:
         createInWorldText(eventPlayer, "              {0}\nSWITCH YOUR HERO\n\n\n\n".format(iconString(Icon.RECYCLE)), eventPlayer.playerBaseLocation, 2, Clip.NONE, WorldTextReeval.VISIBILITY_POSITION_AND_STRING, Color.TURQUOISE, SpecVisibility.DEFAULT)
         eventPlayer.upgradeTextTitle = getLastCreatedText()
         createInWorldText(eventPlayer, " [NO LVL]\n \n     Takes you to hero selection.\n  Bug: If only one hero shows up\nWait 5 seconds until they appear.\n ", eventPlayer.playerBaseLocation, 1.1, Clip.NONE, WorldTextReeval.VISIBILITY_POSITION_AND_STRING, Color.WHITE, SpecVisibility.DEFAULT)
         createEffect(eventPlayer, Effect.SPHERE, Color.TURQUOISE, eventPlayer.playerBaseLocation, 0.4, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+
     elif eventPlayer.upgradeCurrentSelection == Upgrade.STEAL_SPEED:
         createInWorldText(eventPlayer, "            {0}\nGOLD STEAL SPEED\n\n\n\n".format(iconString(Icon.STOP)), eventPlayer.playerBaseLocation, 2, Clip.NONE, WorldTextReeval.VISIBILITY_POSITION_AND_STRING, Color.PURPLE, SpecVisibility.DEFAULT)
         eventPlayer.upgradeTextTitle = getLastCreatedText()
         createInWorldText(eventPlayer, "     [LVL {0}]\n \n    Steal +2 gold/sec from bases.\nSame upgrade price as gold miner.\n  Total {1} + enemy gold miner/sec.\n ".format(eventPlayer.statsUpgradeLevels[eventPlayer.upgradeCurrentSelection], (eventPlayer.statsStealingSpeed + 1) * 2), eventPlayer.playerBaseLocation, 1.1, Clip.NONE, WorldTextReeval.VISIBILITY_POSITION_AND_STRING, Color.WHITE, SpecVisibility.DEFAULT)
         createEffect(eventPlayer, Effect.SPHERE, Color.PURPLE, eventPlayer.playerBaseLocation, 0.4, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+
     elif eventPlayer.upgradeCurrentSelection == Upgrade.ENTRY_TIME:
         createInWorldText(eventPlayer, "           {0}\nBASE ENTRY TIME\n\n\n\n".format(iconString(Icon.WARNING)), eventPlayer.playerBaseLocation, 2, Clip.NONE, WorldTextReeval.VISIBILITY_POSITION_AND_STRING, Color.AQUA, SpecVisibility.DEFAULT)
         eventPlayer.upgradeTextTitle = getLastCreatedText()
         createInWorldText(eventPlayer, "  [LVL {0}]\n \n      Reduces the time it takes\nto enter your base by 0.5 sec.\n    The current delay is {1} sec.\n ".format(eventPlayer.statsUpgradeLevels[eventPlayer.upgradeCurrentSelection], eventPlayer.statsBaseDelay), eventPlayer.playerBaseLocation, 1.1, Clip.NONE, WorldTextReeval.VISIBILITY_POSITION_AND_STRING, Color.WHITE, SpecVisibility.DEFAULT)
         createEffect(eventPlayer, Effect.SPHERE, Color.AQUA, eventPlayer.playerBaseLocation, 0.4, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+
     eventPlayer.upgradeSphere = getLastCreatedEntity()
     eventPlayer.upgradeTextDescription = getLastCreatedText()
-
-
-rule "LOOT UPDATE PLAYERS ADD":
-    @Event eachPlayer
-    @Hero all
-    @Condition hasGameStarted
-    @Condition eventPlayer.isAlive()
-    @Condition eventPlayer.isProtected == false
-    @Condition eventPlayer.hasSpawned()
-    @Condition (enableInvisibleLootPickup or not eventPlayer.isCloaked)
-    
-    if eventPlayer in lootPossiblePlayers:
-        return
-    lootPossiblePlayers.append(eventPlayer)
-
-
-rule "LOOT UPDATE PLAYERS REMOVE":
-    @Event eachPlayer
-    @Hero all
-    @Condition hasGameStarted
-    @Condition (any([eventPlayer.isDead(), eventPlayer.isProtected, not eventPlayer.hasSpawned(), not enableInvisibleLootPickup and eventPlayer.isCloaked]))
-    
-    lootPossiblePlayers.remove(eventPlayer)
-
-
-rule "LOOT BOUNTY COLLECT LOOP":
-    @Condition bountyArrayNum != 0
-    
-    for bountyArrayIterator in range(len(bountyArrayLocations)):
-        if bountyArrayEffects[bountyArrayIterator] != null:
-            tmpBountyLocation = bountyArrayLocations[bountyArrayIterator]
-            tmpBountyClosestPlayer = sorted(lootPossiblePlayers, lambda player: distance(player.getPosition(), tmpBountyLocation))[0]
-            if entityExists(tmpBountyClosestPlayer) and distance(tmpBountyClosestPlayer.getPosition(), tmpBountyLocation) <= 2.5:
-                tmpBountyClosestPlayer.statsMoney += bountyArrayMoney[bountyArrayIterator]
-                tmpBountyClosestPlayer.scoreArray[2] += bountyArrayMoney[bountyArrayIterator]
-                tmpBountyClosestPlayer.scoreArray[5] += 1
-                destroyEffect(bountyArrayEffects[bountyArrayIterator])
-                bountyArrayNum -= 1
-                bountyArrayEffects[bountyArrayIterator] = null
-                playEffect(tmpBountyClosestPlayer, DynamicEffect.BUFF_EXPLOSION_SOUND, Color.WHITE, tmpBountyLocation, 50)
-                smallMessage(tmpBountyClosestPlayer, "+{0} PLAYER GOLD [LOOT]".format(bountyArrayMoney[bountyArrayIterator]))
-                if bountyArrayMoney[bountyArrayIterator] <= 25:
-                    playEffect(tmpBountyClosestPlayer, DynamicEffect.GOOD_PICKUP_EFFECT, Color.GREEN, tmpBountyLocation, 1)
-                elif bountyArrayMoney[bountyArrayIterator] > 25 and bountyArrayMoney[bountyArrayIterator] <= 250:
-                    playEffect(tmpBountyClosestPlayer, DynamicEffect.GOOD_PICKUP_EFFECT, Color.TURQUOISE, tmpBountyLocation, 1)
-                elif bountyArrayMoney[bountyArrayIterator] > 250 and bountyArrayMoney[bountyArrayIterator] <= 750:
-                    playEffect(tmpBountyClosestPlayer, DynamicEffect.GOOD_PICKUP_EFFECT, Color.BLUE, tmpBountyLocation, 1)
-                else:
-                    playEffect(tmpBountyClosestPlayer, DynamicEffect.GOOD_PICKUP_EFFECT, Color.PURPLE, tmpBountyLocation, 1)
-            wait()
-    wait(0.1)
-    if RULE_CONDITION:
-        goto RULE_START
-
-
-rule "LOOT FIND SPAWNPOINTS":
-    @Condition hasGameStarted
-    
-    while lootSpawnpointIterator <= 200 and len(tmpLootSpawnpointProximity) < 128:
-        tmpLootSpawnpointRandomPointWP = mapOrigin + mapRotationVector * random.uniform(0, mapXYZ.x) + vect(mapRotationVector.z, 0, mapRotationVector.x * -1) * random.uniform(0, mapXYZ.z) + vect(0, random.uniform(0, mapXYZ.y), 0)
-        tmpLootSpawnpoint = nearestWalkablePosition(tmpLootSpawnpointRandomPointWP) + vect(0, 0.35, 0)
-        if tmpLootSpawnpoint == 0 or lootBlockerVolumePos != 0 and distance(tmpLootSpawnpoint, lootBlockerVolumePos) <= lootBlockerVolumeRadius or distance(tmpLootSpawnpoint, tmpLootSpawnpointRandomPointWP) > 5:
-            goto lbl_0
-        tmpLootSpawnpointProximity = sorted([player for player in lootSpawnPoints if player != null], lambda i: distance(tmpLootSpawnpoint, i))
-        if distance(tmpLootSpawnpoint, tmpLootSpawnpointProximity[0]) < lootSpread and len(tmpLootSpawnpointProximity) != 0:
-            goto lbl_1
-        goto lbl_2
-        lbl_1:
-        lootSpawnpointIterator += 1
-        lbl_0:
-        wait(0.001)
-        goto RULE_START
-        lbl_2:
-        lootSpawnPoints.append(tmpLootSpawnpoint)
-        lootSpawnpointIterator = 0
-        wait(0.001)
-    lootSpawnpointIterator = 0
-    lootSpawnMax = min(lootSpawnMax, len(lootSpawnPoints))
-    lootArrayLocations[lootSpawnMax - 1] = null
-    lootArrayLocationsStored[lootSpawnMax - 1] = 0
-    tmpLootSpawnpointProximity = null
-
-
-rule "LOOT LOOT EFFECTS":
-    @Condition hasGameStarted
-    @Condition lootArrayLocations != []
-    @Condition enableLootOrbs
-    
-    for lootCollectIterator in range(len(lootArrayLocations)):
-        lootArrayLocations[lootCollectIterator] = vect(0, -9999, 0)
-    #This is ugly, but this way loot effects stay persistent
-    createEffect(getAllPlayers(), Effect.ORB, Color.GREEN, lootArrayLocations[0], 1, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
-    if lootSpawnMax == 1:
-        return
-    createEffect(getAllPlayers(), Effect.ORB, Color.GREEN, lootArrayLocations[1], 1, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
-    if lootSpawnMax == 2:
-        return
-    createEffect(getAllPlayers(), Effect.ORB, Color.GREEN, lootArrayLocations[2], 1, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
-    if lootSpawnMax == 3:
-        return
-    createEffect(getAllPlayers(), Effect.ORB, Color.GREEN, lootArrayLocations[3], 1, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
-    if lootSpawnMax == 4:
-        return
-    createEffect(getAllPlayers(), Effect.ORB, Color.GREEN, lootArrayLocations[4], 1, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
-    if lootSpawnMax == 5:
-        return
-    createEffect(getAllPlayers(), Effect.ORB, Color.GREEN, lootArrayLocations[5], 1, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
-    if lootSpawnMax == 6:
-        return
-    createEffect(getAllPlayers(), Effect.ORB, Color.GREEN, lootArrayLocations[6], 1, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
-    if lootSpawnMax == 7:
-        return
-    createEffect(getAllPlayers(), Effect.ORB, Color.GREEN, lootArrayLocations[7], 1, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
-    if lootSpawnMax == 8:
-        return
-    createEffect(getAllPlayers(), Effect.ORB, Color.GREEN, lootArrayLocations[8], 1, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
-    if lootSpawnMax == 9:
-        return
-    createEffect(getAllPlayers(), Effect.ORB, Color.GREEN, lootArrayLocations[9], 1, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
-    if lootSpawnMax == 10:
-        return
-    createEffect(getAllPlayers(), Effect.ORB, Color.GREEN, lootArrayLocations[10], 1, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
-    if lootSpawnMax == 11:
-        return
-    createEffect(getAllPlayers(), Effect.ORB, Color.GREEN, lootArrayLocations[11], 1, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
-    if lootSpawnMax == 12:
-        return
-    createEffect(getAllPlayers(), Effect.ORB, Color.GREEN, lootArrayLocations[12], 1, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
-    if lootSpawnMax == 13:
-        return
-    createEffect(getAllPlayers(), Effect.ORB, Color.GREEN, lootArrayLocations[13], 1, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
-    if lootSpawnMax == 14:
-        return
-    createEffect(getAllPlayers(), Effect.ORB, Color.GREEN, lootArrayLocations[14], 1, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
-    if lootSpawnMax == 15:
-        return
-    createEffect(getAllPlayers(), Effect.ORB, Color.GREEN, lootArrayLocations[15], 1, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
-
-
-rule "LOOT SPAWN":
-    @Condition hasGameStarted
-    @Condition len(lootArrayLocations) != 0
-    @Condition lootSpawnerNumLoot < lootSpawnMax
-    @Condition enableLootOrbs
-    @Condition gameEnded == false
-    
-    if not lootArraySpawned[lootSpawnerEffectIterator]:
-        goto lbl_0
-    lootSpawnerEffectIterator += 1
-    if lootSpawnerEffectIterator < len(lootArrayLocations):
-        goto lbl_1
-    lootSpawnerEffectIterator = 0
-    lbl_1:
-    wait()
-    goto RULE_START
-    lbl_0:
-    while true:
-        tmpLootSpawnpointRandomPoint = normalize(vect(random.uniform(-1, 1), random.uniform(-1, 1), random.uniform(-1, 1))) * random.uniform(2, 10) + lootSpawnPoints[lootSpawnerIterator]
-        tmpLootSpawnpointRandomPointWP = nearestWalkablePosition(tmpLootSpawnpointRandomPoint)
-        if distance(tmpLootSpawnpointRandomPointWP, tmpLootSpawnpointRandomPoint) >= 1.5:
-            goto lbl_2
-        tmpLootSpawnpointRandomPointWP = raycast(tmpLootSpawnpointRandomPointWP + vect(0, 2, 0), tmpLootSpawnpointRandomPointWP - vect(0, 10, 0), null, null, false).getHitPosition() + vect(0, 0.35, 0)
-        if distance(tmpLootSpawnpointRandomPointWP, nearestWalkablePosition(tmpLootSpawnpointRandomPointWP)) <= 0.1 and (lootBlockerVolumePos == null or lootBlockerVolumePos != null and distance(tmpLootSpawnpointRandomPointWP, lootBlockerVolumePos) > lootBlockerVolumeRadius):
-            goto lbl_3
-        lbl_2:
-        wait(0.064)
-    lbl_3:
-    lootArrayLocations[lootSpawnerEffectIterator] = tmpLootSpawnpointRandomPointWP
-    lootArraySpawned[lootSpawnerEffectIterator] = true
-    lootSpawnerIterator += 1
-    lootSpawnerNumLoot += 1
-    if lootSpawnerIterator >= len(lootSpawnPoints):
-        lootSpawnerIterator = 0
-    wait(1.12)
-    if RULE_CONDITION:
-        goto RULE_START
-
-
-rule "LOOT COLLECT LOOP":
-    @Condition hasGameStarted
-    @Condition enableLootOrbs
-    
-    for lootCollectIterator in range(len(lootArrayLocations)):
-        if lootArraySpawned[lootCollectIterator]:
-            tmpLootCollectClosestPlayer = sorted(lootPossiblePlayers, lambda player: distance(player.getPosition(), lootArrayLocations[lootCollectIterator]))[0]
-            if entityExists(tmpLootCollectClosestPlayer) and distance(tmpLootCollectClosestPlayer, lootArrayLocations[lootCollectIterator]) <= 2.5:
-                lootArrayLocationsStored[lootCollectIterator] = lootArrayLocations[lootCollectIterator]
-                lootSpawnerNumLoot -= 1
-                playEffect(getAllPlayers(), DynamicEffect.GOOD_PICKUP_EFFECT, Color.GREEN, lootArrayLocationsStored[lootCollectIterator], 1)
-                playEffect(tmpLootCollectClosestPlayer, DynamicEffect.BUFF_EXPLOSION_SOUND, Color.WHITE, lootArrayLocationsStored[lootCollectIterator], 50)
-                lootArrayLocations[lootCollectIterator] = vect(0, -9999, 0)
-                lootArraySpawned[lootCollectIterator] = false
-                tmpLootCollectClosestPlayer.statsMoney += gameLootOrbAmount
-                tmpLootCollectClosestPlayer.scoreArray[2] += gameLootOrbAmount
-                tmpLootCollectClosestPlayer.scoreArray[5] += 1
-                smallMessage(tmpLootCollectClosestPlayer, "+{0} PLAYER GOLD [LOOT]".format(gameLootOrbAmount))
-        wait()
-    wait(0.1)
-    goto RULE_START
-
-
-rule "LOOT LOSS1":
-    @Event playerDied
-    @Hero all
-    @Condition attacker == victim
-    @Condition hasGameStarted
-    
-    eventPlayer.statsMoney = 0
-
-
-rule "LOOT LOSS2":
-    @Event playerDied
-    @Hero all
-    @Condition hasGameStarted
-    
-    destroyHudText(eventPlayer.hudBaseProtection)
-
-
-rule "LOOT POWERUP COLLECT LOOP":
-    @Condition sparkboltPickupPos != null
-    @Condition enableSparkbolts
-    
-    tmpSparkboltClosestPlayer = sorted(lootPossiblePlayers, lambda player: distance(player.getPosition(), sparkboltPickupPos))[0]
-    if entityExists(tmpSparkboltClosestPlayer) and distance(tmpSparkboltClosestPlayer.getPosition(), sparkboltPickupPos) <= 2.5:
-        tmpSparkboltClosestPlayer.statsNumSparkbolts += 1
-        smallMessage(tmpSparkboltClosestPlayer, "+1 {0} SPARKBOLT".format(iconString(Icon.BOLT)))
-        destroyEffect(sparkboltEffects[0])
-        destroyEffect(sparkboltEffects[1])
-        playEffect(getAllPlayers(), DynamicEffect.GOOD_PICKUP_EFFECT, Color.WHITE, sparkboltPickupPos, 1)
-        playEffect(tmpSparkboltClosestPlayer, DynamicEffect.BUFF_EXPLOSION_SOUND, Color.WHITE, sparkboltPickupPos, 50)
-        sparkboltPickupPos = null
-        sparkboltSpawnpointIndex = (sparkboltSpawnpointIndex + 1) % len(lootSpawnPoints)
-    wait(0.25)
-    if RULE_CONDITION:
-        goto RULE_START
-
-
-rule "LOOT POWERUP SPAWN":
-    @Condition hasGameStarted
-    @Condition sparkboltPickupPos == null
-    @Condition enableSparkbolts
-    
-    wait(60 - getNumberOfPlayers(Team.ALL))
-    while true:
-        tmpPowerupSpawnpointRandomPoint = normalize(vect(random.uniform(-1, 1), random.uniform(-1, 1), random.uniform(-1, 1))) * random.uniform(2, 10) + lootSpawnPoints[sparkboltSpawnpointIndex]
-        tmpPowerupSpawnpointRandomPointW = nearestWalkablePosition(tmpPowerupSpawnpointRandomPoint)
-        if distance(tmpPowerupSpawnpointRandomPointW, tmpPowerupSpawnpointRandomPoint) >= 1.5:
-            goto lbl_0
-        tmpPowerupSpawnpointRandomPointW = raycast(tmpPowerupSpawnpointRandomPointW + vect(0, 2, 0), tmpPowerupSpawnpointRandomPointW - vect(0, 10, 0), null, null, false).getHitPosition() + vect(0, 0.35, 0)
-        if distance(tmpPowerupSpawnpointRandomPointW, nearestWalkablePosition(tmpPowerupSpawnpointRandomPointW)) <= 0.1:
-            goto lbl_1
-        lbl_0:
-        wait(0.064)
-    lbl_1:
-    sparkboltPickupPos = tmpPowerupSpawnpointRandomPointW
-    createEffect(getAllPlayers(), Effect.SPARKLES, Color.WHITE, sparkboltPickupPos, 0.5, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
-    sparkboltEffects[0] = getLastCreatedEntity()
-    createEffect(getAllPlayers(), Effect.SPHERE, Color.WHITE, sparkboltPickupPos.getPosition() + vect(0, getTotalTimeElapsed() % 0.2 / 3, 0), getTotalTimeElapsed() % 0.3 / 3 + 0.2, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
-    sparkboltEffects[1] = getLastCreatedEntity()
 
 
 def settleBalance():
@@ -1646,8 +1405,8 @@ def hudCreateNoBase():
     eventPlayer.hudBuildingBase = getLastCreatedText()
 
 
-def playerBaseCheck():
-    @Name "SUB BASE BUILD CHECK"
+def setBaseLocation():
+    @Name "place player base if location is good"
     
     if distance(eventPlayer.getPosition(), getAllPlayers()[eventPlayer.playerBaseProximityIterator].playerBaseLocation) < 14:
         smallMessage(eventPlayer, "{0} ENEMY BASE TOO CLOSE {0}".format(iconString(Icon.STOP)))
@@ -1744,10 +1503,10 @@ def protectedBaseEffect():
 def checkUpgradeAvailability():
     @Name "SUB SKIP TO AVAILABLE UPGRADE AFTER PURCHASE"
     
-    if eventPlayer.statsUpgradeCostArray[eventPlayer.upgradeCurrentSelection] > gameGoldVictory:
+    if eventPlayer.statsUpgradeCost[eventPlayer.upgradeCurrentSelection] > gameGoldVictory:
         eventPlayer.upgradeInputCooldown = true
-        while eventPlayer.statsUpgradeCostArray[eventPlayer.upgradeCurrentSelection] > gameGoldVictory:
-            if eventPlayer.upgradeCurrentSelection < len(eventPlayer.statsUpgradeCostArray) - 1:
+        while eventPlayer.statsUpgradeCost[eventPlayer.upgradeCurrentSelection] > gameGoldVictory:
+            if eventPlayer.upgradeCurrentSelection < len(eventPlayer.statsUpgradeCost) - 1:
                 goto lbl_0
             eventPlayer.upgradeCurrentSelection = 0
             goto lbl_1
