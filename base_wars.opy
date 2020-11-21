@@ -1,174 +1,204 @@
 
 #!define DEBUG_MODE true
 
+#!define BASE_RADIUS 3.5
+enum Upgrade:
+    GOLD_MINER,
+    KILL_BOUNTY,
+    GOLD_STORAGE,
+    BASE_MOVE,
+    SWITCH_HERO,
+    STEAL_SPEED,
+    ENTRY_TIME,
+
 #Global variables
 
-globalvar lootArrayLocations 0
-globalvar isGameInitialized 1
-globalvar hasGameStarted 2
-globalvar lootSpawnPoints 3
-globalvar lootArrayLocationsStored 4
-globalvar gameGoldVictory 5
-globalvar lootSpawnMax 6
-globalvar lootSpread 7
-globalvar lootCollectIterator 8
-globalvar lootArraySpawned 9
-globalvar lootSpawnpointIterator 10
-globalvar lootSpawnerIterator 11
-globalvar lootSpawnerNumLoot 12
-globalvar lootSpawnerEffectIterator 13
-globalvar gameRulesCurrentSelection 14
-globalvar gameRulesArray 15
-globalvar gameRulesHost 16
-globalvar tmpLootSpawnpointRandomPointWP 17
-globalvar tmpLootCollectClosestPlayer 18
-globalvar tmpLootSpawnpoint 19
-globalvar tmpLootSpawnpointProximity 20
-globalvar gameRulesGoldMinerInitialCost 21
-globalvar debugDummyBot 23
-globalvar mapNavMesh 24
-globalvar leaderboard 25
-globalvar mapOrigin 26
-globalvar mapXYZ 27
-globalvar mapRotationVector 28
-globalvar gameRulesSelectionMarkerArray 29
-globalvar mapInfo 30
-globalvar debugMapRot 31
-globalvar bountyArrayLocations 32
-globalvar bountyArrayEffects 33
-globalvar bountyArrayMoney 34
-globalvar bountyArrayNum 35
-globalvar bountyArrayIterator 36
-globalvar tmpBountyClosestPlayer 37
-globalvar tmpBountyLocation 38
-globalvar stealingPlayerIterator 39
-globalvar tmpStealingBaseOwner 40
-globalvar tmpStealingAllPlayers 41
-globalvar tmpStealingPlayer 42
-globalvar tmpStealingAllPlayersFiltered 43
-globalvar tmpStealingAllBaseOwners 44
-globalvar stealingBaseOwnerIterator 45
-globalvar gameHealingHeroes 46
-globalvar tmpPlayerLeftBaseIterator 47
-globalvar tmpPlayerLeftIterator 48
-globalvar disconnectedPlayers 49
-globalvar mapSize 50
-globalvar stealingRiskThreshold 51
-globalvar stealingRiskMultiplier 52
-globalvar leaderboardMaxScore 53
-globalvar sparkboltSpawnpointIndex 54
-globalvar sparkboltPickupPos 55
-globalvar tmpSparkboltClosestPlayer 56
-globalvar sparkboltEffects 57
-globalvar tmpLootSpawnpointRandomPoint 58
-globalvar lootBlockerVolumePos 59
-globalvar tmpPowerupSpawnpointRandomPoint 60
-globalvar tmpPowerupSpawnpointRandomPointW 61
-globalvar lootBlockerVolumeRadius 62
-globalvar gameRulesMoveBaseInitialCost 63
-globalvar gameRulesGoldMinerFrequency 64
-globalvar gameRulesVisibleTo 65
-globalvar gameRulesArraySaved 66
-globalvar gameRulesCustomized 67
-globalvar gameEnded 68
-globalvar gameWinner 69
-globalvar gameEndingScreenPos 70
-globalvar gameLootOrbAmount 71
-globalvar gameScorePositions 72
-globalvar lootPossiblePlayers 73
-globalvar gameScoreTopPlayers 74
-globalvar gameScoreTopPlayersValues 75
-globalvar baseUpgradeSphereActualSize 76
+globalvar powerColors = [Color.WHITE, Color.AQUA, Color.BLUE, Color.PURPLE, Color.RED, Color.ROSE, Color.BLACK]
+
+globalvar lootArrayLocations
+globalvar isGameInitialized
+globalvar hasGameStarted
+globalvar lootSpawnPoints
+globalvar lootArrayLocationsStored
+globalvar lootSpawnMax
+globalvar lootSpread
+globalvar lootCollectIterator
+globalvar lootArraySpawned
+globalvar lootSpawnpointIterator
+globalvar lootSpawnerIterator
+globalvar lootSpawnerNumLoot
+globalvar lootSpawnerEffectIterator
+#globalvar gameRulesCurrentSelection
+#globalvar gameRulesArray
+#globalvar gameRulesHost
+globalvar tmpLootSpawnpointRandomPointWP
+globalvar tmpLootCollectClosestPlayer
+globalvar tmpLootSpawnpoint
+globalvar tmpLootSpawnpointProximity
+globalvar gameRulesGoldMinerInitialCost
+globalvar debugDummyBot
+globalvar mapNavMesh
+globalvar leaderboard
+globalvar mapOrigin
+globalvar mapXYZ
+globalvar mapRotationVector
+globalvar gameRulesSelectionMarkerArray
+globalvar mapInfo
+globalvar debugMapRot
+globalvar bountyArrayLocations
+globalvar bountyArrayEffects
+globalvar bountyArrayMoney
+globalvar bountyArrayNum
+globalvar bountyArrayIterator
+globalvar tmpBountyClosestPlayer
+globalvar tmpBountyLocation
+globalvar stealingPlayerIterator
+globalvar tmpStealingBaseOwner
+globalvar tmpStealingAllPlayers
+globalvar tmpStealingPlayer
+globalvar tmpStealingAllPlayersFiltered
+globalvar tmpStealingAllBaseOwners
+globalvar stealingBaseOwnerIterator
+globalvar gameHealingHeroes
+globalvar tmpPlayerLeftBaseIterator
+globalvar tmpPlayerLeftIterator
+#globalvar disconnectedPlayers
+globalvar mapSize
+globalvar stealingRiskThreshold
+globalvar stealingRiskMultiplier
+globalvar leaderboardMaxScore
+globalvar sparkboltSpawnpointIndex
+globalvar sparkboltPickupPos
+globalvar tmpSparkboltClosestPlayer
+globalvar sparkboltEffects
+globalvar tmpLootSpawnpointRandomPoint
+globalvar lootBlockerVolumePos
+globalvar tmpPowerupSpawnpointRandomPoint
+globalvar tmpPowerupSpawnpointRandomPointW
+globalvar lootBlockerVolumeRadius
+globalvar gameRulesMoveBaseInitialCost
+globalvar gameRulesGoldMinerFrequency
+globalvar gameRulesVisibleTo
+globalvar gameRulesArraySaved
+#globalvar gameRulesCustomized
+globalvar gameEnded
+globalvar gameWinner
+globalvar gameEndingScreenPos
+globalvar gameLootOrbAmount
+globalvar gameScorePositions
+globalvar lootPossiblePlayers
+globalvar gameScoreTopPlayers
+globalvar gameScoreTopPlayersValues
+globalvar baseUpgradeSphereActualSize
+globalvar tmpBaseOwners
+
+
+#settings
+#!define SETTINGS_TITLE "BASEWARS v1.6 BY DURKHAZ#2629\nCONCEPT: PYROCREEP#2665\nTHANKS: CUDDLYFLOWER#2892, HuKuTa94#2589, Kevin#26140, Zezombye#2627"
+globalvar enableStealing = createWorkshopSetting(bool, SETTINGS_TITLE, "Enable Stealing", true, 0)
+globalvar enableOccupiedStealing = createWorkshopSetting(bool, SETTINGS_TITLE, "Enable stealing in occupied bases", true, 1)
+globalvar enableSparkbolts = createWorkshopSetting(bool, SETTINGS_TITLE, "Spawn sparkbolts", true, 2)
+globalvar enableGoldMinerUpgrade = createWorkshopSetting(bool, SETTINGS_TITLE, "Players can upgrade gold miner", true, 3)
+globalvar enableLootOrbs = createWorkshopSetting(bool, SETTINGS_TITLE, "Spawn loot orbs", true, 4)
+globalvar lootOrbsGold = createWorkshopSetting(int[10:40], SETTINGS_TITLE, "Gold given by loot orbs", 25, 5)
+globalvar enableInvisibleLootPickup = createWorkshopSetting(bool, SETTINGS_TITLE, "Sombra can pick up orbs while invisible", false, 6)
+globalvar gameGoldVictory = createWorkshopSetting(int[1000:10000], SETTINGS_TITLE, "Amount of gold to win", 2500, 7)
+globalvar enableAlwaysFreeHeroSwitch = createWorkshopSetting(bool, SETTINGS_TITLE, "Hero switch is always free", false, 8)
+globalvar enableAlwaysFreeBaseMove = createWorkshopSetting(bool, SETTINGS_TITLE, "Base move is always free", false, 9)
+globalvar enableInefficientGoldMiner = createWorkshopSetting(bool, SETTINGS_TITLE, "Make gold miner less efficient", false, 10)
 
 
 #Player variables
 
-playervar statsMoney 0
-playervar hasBase 1
-playervar statsUpgradeCostArray 2
-playervar statsMoneyStorage 3
-playervar tmpUpgradeCurrentSelection 4
-playervar canAutoHeal 5
-playervar regenStartTime 6
-playervar isStealingActive 7
-playervar playerBaseProximityIterator 8
-playervar statsStealingSpeed 9
-playervar debugWalkablePosition 10
-playervar playerBaseLocation 11
-playervar statsMoneyBase 12
-playervar debugWalkablePositionEffect 13
-playervar debugEffectCountIterator 14
-playervar debugFreecam 15
-playervar tmpUpgradeMoneySecDiff 16
-playervar debugEffectCountArray 17
-playervar baseProtectionTimer 18
-playervar isMovingBase 19
-playervar hudBaseProtection 20
-playervar hudStealing 21
-playervar hudBuildingBase 23
-playervar baseEffectOrb 24
-playervar tmpMoneyDifference 25
-playervar statsMoneySec 26
-playervar playerObjectInBase 27
-playervar statsMoneyKill 28
-playervar isProtected 29
-playervar isChangingHero 30
-playervar oldHeroHealth 31
-playervar isInitialized 32
-playervar upgradeLeftArrow 33
-playervar upgradeRightArrow 34
-playervar upgradeCurrentSelection 35
-playervar upgradeInputCooldown 36
-playervar upgradeTextTitle 37
-playervar upgradeTextUpdated 38
-playervar upgradeSphere 39
-playervar upgradeCostTextVisibility 40
-playervar regenID 41
-playervar upgradeOffsetLeft 42
-playervar upgradeOffsetRight 43
-playervar isInFriendlyZone 44
-playervar isCloaked 45
-playervar stealingFromPlayerObject 46
-playervar stealingSoundEffect 47
-playervar stealingText 48
-playervar tmpStealingAmount 49
-playervar stealingOnCooldown 50
-playervar stealingEffect 51
-playervar stealingEffectsVisibleTo 52
-playervar stealingFromPlayerObjectBackup 53
-playervar upgradeTextDescription 54
-playervar statsUpgradeLevels 55
-playervar hudGoldBase 56
-playervar baseEffectRing 57
-playervar statsUpgradeHeroSwitchUsed 58
-playervar statsUpgradeHeroSwitchShadowCost 59
-playervar tmpStealingRiskBonus 60
-playervar statsBaseDelay 61
-playervar baseSparkboltCooldown 62
-playervar tmpBaseSparkboltTarget 63
-playervar statsNumSparkbolts 64
-playervar sparkboltEffect 65
-playervar scoreArray 66
+playervar powerLevel
+playervar stealingFrom
+
+playervar statsMoney
+playervar hasBase
+playervar statsUpgradeCostArray
+playervar statsMoneyStorage
+playervar tmpUpgradeCurrentSelection
+playervar canAutoHeal
+playervar regenStartTime
+playervar isStealingActive
+playervar playerBaseProximityIterator
+playervar statsStealingSpeed
+playervar debugWalkablePosition
+playervar playerBaseLocation
+playervar statsMoneyBase
+playervar debugWalkablePositionEffect
+playervar debugEffectCountIterator
+playervar debugFreecam
+playervar tmpUpgradeMoneySecDiff
+playervar debugEffectCountArray
+playervar baseProtectionTimer
+playervar isMovingBase
+playervar hudBaseProtection
+playervar hudStealing
+playervar hudBuildingBase
+playervar baseEffectOrb
+playervar tmpMoneyDifference
+playervar statsMoneySec
+playervar playerObjectInBase
+playervar statsMoneyKill
+playervar isProtected
+playervar isChangingHero
+playervar oldHeroHealth
+playervar isInitialized
+playervar upgradeLeftArrow
+playervar upgradeRightArrow
+playervar upgradeCurrentSelection
+playervar upgradeInputCooldown
+playervar upgradeTextTitle
+playervar upgradeTextUpdated
+playervar upgradeSphere
+playervar upgradeCostTextVisibility
+playervar regenID
+playervar upgradeOffsetLeft
+playervar upgradeOffsetRight
+playervar isInFriendlyZone
+playervar isCloaked
+playervar stealingFromPlayerObject
+playervar stealingSoundEffect
+playervar stealingText
+playervar tmpStealingAmount
+playervar stealingOnCooldown
+playervar stealingEffect
+playervar stealingEffectsVisibleTo
+playervar stealingFromPlayerObjectBackup
+playervar upgradeTextDescription
+playervar statsUpgradeLevels
+playervar hudGoldBase
+playervar baseEffectRing
+playervar statsUpgradeHeroSwitchUsed
+playervar statsUpgradeHeroSwitchShadowCost
+playervar tmpStealingRiskBonus
+playervar statsBaseDelay
+playervar baseSparkboltCooldown
+playervar tmpBaseSparkboltTarget
+playervar statsNumSparkbolts
+playervar sparkboltEffect
+playervar scoreArray
 
 
 #Subroutine names
 
-subroutine settleBalance 0
-subroutine HUDCreateNoBase 1
-subroutine playerBaseCheck 2
-subroutine playerBaseBuildEffects 3
-subroutine baseUpgradeFail 4
-subroutine spawnBaseEffect 5
-subroutine checkUpgradeAvailability 6
-subroutine protectedBaseEffect 7
-subroutine gameStart 8
-subroutine gameEndedScreenPos 9
-
+subroutine settleBalance
+subroutine hudCreateNoBase
+subroutine playerBaseCheck
+subroutine playerBaseBuildEffects
+subroutine baseUpgradeFail
+subroutine spawnBaseEffect
+subroutine checkUpgradeAvailability
+subroutine protectedBaseEffect
+subroutine gameStart
+subroutine gameEndedScreenPos
 
 #!include "settings.opy"
 #!include "debug.opy"
+#!include "game_end.opy"
 
-rule "BASEWARS 1.141 BY DURKHAZ#2629 || discord.gg/EEMjjFB || 01.04.2020 || CONCEPT BY PYROCREEP#2665":
+rule "BASEWARS 1.2 BY DURKHAZ#2629 - discord.gg/YP544CH - 21/11/20 - CONCEPT BY PYROCREEP#2665":
     #BASEWARS BY DURKHAZ#2629 - discord.gg/EEMjjFB
     #disableInspector()
 
@@ -176,38 +206,15 @@ rule "BASEWARS 1.141 BY DURKHAZ#2629 || discord.gg/EEMjjFB || 01.04.2020 || CONC
 rule "SPECIAL THANKS: CUDDLYFLOWER#2892, HuKuTa94#2589, Kevin#26140":
 
 
-def gameStart():
-    @Name "GAME START"
+rule "init":
     
-    for gameRulesCurrentSelection in range(len(gameRulesArray)):
-        if gameRulesArray[gameRulesCurrentSelection] != gameRulesArraySaved[gameRulesCurrentSelection]:
-            gameRulesCustomized = true
-            goto lbl_0
-    lbl_0:
-    gameRulesHost.setInvisibility(Invis.NONE)
-    gameRulesHost.allowButton(Button.PRIMARY_FIRE)
-    gameRulesHost.allowButton(Button.SECONDARY_FIRE)
-    gameRulesHost.allowButton(Button.ABILITY_1)
-    gameRulesHost.allowButton(Button.ABILITY_2)
-    gameRulesHost.allowButton(Button.ULTIMATE)
-    gameRulesHost.allowButton(Button.INTERACT)
-    gameRulesHost.allowButton(Button.MELEE)
-    gameRulesHost.stopCamera()
-    gameRulesHost.setGravity(100)
-    gameRulesHost.clearStatusEffect(Status.PHASED_OUT)
-    destroyAllHudTexts()
-    gameRulesHost.enableHeroHud()
-    ([player for player in getAllPlayers() if player != gameRulesHost]).respawn()
-    gameRulesSelectionMarkerArray = []
-    gameRulesArraySaved = null
-    gameRulesHost.stopForcingCurrentHero()
-    gameRulesHost.setAllowedHeroes(getAllHeroes().exclude(gameRulesHost.getCurrentHero()))
     #BASEWARS BY DURKHAZ#2629 - discord.gg/EEMjjFB
     setMatchTime(819)
     disableGamemodeCompletion()
     disableAnnouncer()
     disableScoring()
-    disconnectedPlayers = []
+
+    #disconnectedPlayers = []
     lootArrayLocations = []
     lootSpawnPoints = []
     lootPossiblePlayers = []
@@ -222,39 +229,29 @@ def gameStart():
     baseUpgradeSphereActualSize = 0.4 * 0.985
     sparkboltPickupPos = null
     gameRulesGoldMinerInitialCost = 30
-    if gameRulesArray[3]:
-        goto lbl_1
-    gameRulesGoldMinerInitialCost = 100000
-    lbl_1:
-    gameGoldVictory = 2500
-    if not gameRulesArray[6]:
-        goto lbl_2
-    gameGoldVictory = 5000
-    lbl_2:
+
+    if not enableGoldMinerUpgrade:
+        gameRulesGoldMinerInitialCost = 100000
+
     gameRulesMoveBaseInitialCost = 50
-    if not gameRulesArray[7]:
-        goto lbl_3
-    gameRulesMoveBaseInitialCost = 0
-    lbl_3:
+    if enableAlwaysFreeBaseMove:
+        gameRulesMoveBaseInitialCost = 0
+
     gameRulesGoldMinerFrequency = 1
-    if not gameRulesArray[9]:
-        goto lbl_4
-    gameRulesGoldMinerFrequency = 2
-    lbl_4:
+    if enableInefficientGoldMiner:
+        gameRulesGoldMinerFrequency = 2
+
     lootSpawnMax = 16
     leaderboardMaxScore = gameGoldVictory * 2
     gameHealingHeroes = ((((([i for i in getAllHeroes() if not i in getSupportHeroes()]).concat(Hero.ZENYATTA.concat(Hero.ANA).concat(Hero.BRIGITTE))).exclude(Hero.BASTION)).exclude(Hero.MEI)).exclude(Hero.ROADHOG)).exclude(Hero.SOLDIER)
     bigMessage(getAllPlayers(), "GAME STARTED")
     hasGameStarted = true
-    wait(0.25)
-    gameRulesHost.resetHeroAvailability()
-    gameRulesHost = null
-    wait(0.75)
+    wait(1)
     pauseMatchTime()
 
 
 rule "GAME INIT MAP":
-    @Condition isGameInProgress() == true
+    @Condition isGameInProgress()
     
     #BASEWARS BY DURKHAZ#2629 - discord.gg/EEMjjFB
     destroyAllHudTexts()
@@ -367,58 +364,8 @@ rule "GAME INIT MAP":
     gameEndingScreenPos = vect(0, 0, 0)
 
 
-/*
-rule "GAME INIT":
-    @Condition hasGameStarted == true
-    
-    #BASEWARS BY DURKHAZ#2629 - discord.gg/EEMjjFB
-    setMatchTime(819)
-    disableGamemodeCompletion()
-    disableAnnouncer()
-    disableScoring()
-    disconnectedPlayers = []
-    lootArrayLocations = []
-    lootSpawnPoints = []
-    lootPossiblePlayers = []
-    bountyArrayLocations[11] = null
-    bountyArrayEffects[11] = null
-    bountyArrayMoney[11] = null
-    leaderboard = []
-    stealingRiskMultiplier = 1.5
-    stealingRiskThreshold = 0.75
-    gameLootOrbAmount = 25
-    lootSpread = 15
-    baseUpgradeSphereActualSize = 0.4 * 0.985
-    sparkboltPickupPos = null
-    gameRulesGoldMinerInitialCost = 30
-    if gameRulesArray[3]:
-        goto lbl_0
-    gameRulesGoldMinerInitialCost = 100000
-    lbl_0:
-    gameGoldVictory = 2500
-    if not gameRulesArray[6]:
-        goto lbl_1
-    gameGoldVictory = 5000
-    lbl_1:
-    gameRulesMoveBaseInitialCost = 50
-    if not gameRulesArray[7]:
-        goto lbl_2
-    gameRulesMoveBaseInitialCost = 0
-    lbl_2:
-    gameRulesGoldMinerFrequency = 1
-    if not gameRulesArray[9]:
-        goto lbl_3
-    gameRulesGoldMinerFrequency = 2
-    lbl_3:
-    leaderboardMaxScore = gameGoldVictory * 2
-    gameHealingHeroes = ((((([i for i in getAllHeroes() if not i in getSupportHeroes()]).concat(Hero.ZENYATTA.concat(Hero.ANA).concat(Hero.BRIGITTE))).exclude(Hero.BASTION)).exclude(Hero.MEI)).exclude(Hero.ROADHOG)).exclude(Hero.SOLDIER)
-    lootSpawnMax = 16
-    wait(1)
-    pauseMatchTime()
-*/
-
 rule "skip assembling heroes":
-    @Condition isAssemblingHeroes() == true
+    @Condition isAssemblingHeroes()
     
     #BASEWARS BY DURKHAZ#2629 - discord.gg/EEMjjFB
     setMatchTime(0)
@@ -478,7 +425,7 @@ rule "GAME WIN CONDITION":
 rule "GAME MEDKIT NERF":
     @Event playerReceivedHealing
     @Hero all
-    @Condition eventWasHealthPack == true
+    @Condition eventWasHealthPack
     
     eventPlayer.setStatusEffect(null, Status.HACKED, 5)
     eventPlayer.setMoveSpeed(75)
@@ -486,26 +433,10 @@ rule "GAME MEDKIT NERF":
     eventPlayer.setMoveSpeed(100)
 
 
-rule "GAME RULES HUD SHOW":
+rule "init player":
     @Event eachPlayer
     @Hero all
-    @Condition eventPlayer.isHoldingButton(Button.MELEE) == true
-    @Condition eventPlayer.isHoldingButton(Button.CROUCH) == true
-    @Condition hasGameStarted == true
-    @Condition gameRulesCustomized == true
-    
-    if eventPlayer in gameRulesVisibleTo:
-        gameRulesVisibleTo.remove(eventPlayer)
-    else:
-        gameRulesVisibleTo.append(eventPlayer)
-    wait(1)
-
-
-
-rule "PLAYER INIT":
-    @Event eachPlayer
-    @Hero all
-    @Condition hasGameStarted == true
+    @Condition hasGameStarted
     @Condition gameEnded == false
     
     #BASEWARS BY DURKHAZ#2629 - discord.gg/EEMjjFB
@@ -527,44 +458,14 @@ rule "PLAYER INIT":
     eventPlayer.stealingEffectsVisibleTo = []
     eventPlayer.isInFriendlyZone = false
     eventPlayer.debugEffectCountArray = []
-    W = [null, null, null]
+
     eventPlayer.upgradeInputCooldown = false
     eventPlayer.upgradeOffsetLeft = 0.9
     eventPlayer.upgradeOffsetRight = eventPlayer.upgradeOffsetLeft * -1
 
-
-rule "PLAYER JOIN":
-    @Event playerJoined
-    @Hero all
-    
     eventPlayer.disableGamemodeHud()
     eventPlayer.disableScoreboard()
     eventPlayer.scoreArray[4] = getTotalTimeElapsed()
-    if gameRulesVisibleTo != 0:
-        goto lbl_0
-    gameRulesVisibleTo = []
-    lbl_0:
-    gameRulesVisibleTo.append(eventPlayer)
-
-
-rule "PLAYER DISCONNECT QUEUE":
-    @Event playerLeft
-    @Hero all
-    
-    disconnectedPlayers.append(eventPlayer)
-    gameRulesVisibleTo.remove(eventPlayer)
-
-
-rule "PLAYER DISCONNECT CLEANUP":
-    @Condition hasGameStarted
-    
-    if disconnectedPlayers != []:
-        for tmpPlayerLeftIterator in range(len(disconnectedPlayers)):
-            for tmpPlayerLeftBaseIterator in range(len(getAllPlayers())):
-                getAllPlayers()[tmpPlayerLeftBaseIterator].stealingEffectsVisibleTo.remove(disconnectedPlayers[tmpPlayerLeftIterator])
-        disconnectedPlayers = []
-    wait(3)
-    goto RULE_START
 
 
 rule "PLAYER HUD NOT STARTED":
@@ -601,9 +502,9 @@ rule "PLAYER HUD AWAITING NAV":
 rule "PLAYER HUD GAME INIT":
     @Event eachPlayer
     @Hero all
-    @Condition eventPlayer.hasSpawned() == true
+    @Condition eventPlayer.hasSpawned()
     @Condition eventPlayer.isInitialized == false
-    @Condition hasGameStarted == true
+    @Condition hasGameStarted
     
     wait(0.25)
     eventPlayer.isInitialized = true
@@ -613,21 +514,20 @@ rule "PLAYER HUD GAME INIT":
     hudText(eventPlayer, iconString(Icon.POISON), "GOLD ON PLAYER", eventPlayer.statsMoney, HudPosition.LEFT, 1, Color.ORANGE, Color.ORANGE, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
     if eventPlayer.hasBase:
         goto lbl_0
-    HUDCreateNoBase()
+    hudCreateNoBase()
     lbl_0:
 
 
 rule "PLAYER HUD GLOBAL":
-    @Condition hasGameStarted == true
+    @Condition hasGameStarted
     
     wait()
     #hudSubtext(getAllPlayers(), " \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n ", HudPosition.TOP, -1, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.NEVER)
     #hudSubtext(getAllPlayers(), " \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n \n ", HudPosition.TOP, -1, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.NEVER)
     hudText(getAllPlayers(), null, "                                       discord.gg/YP544CH\nScoreboard    -    Base Wars 1.14 01/04/20", "FIRST TO {0} GOLD IN BASE WINS!\n \n{1}".format(gameGoldVictory, " · {0}\n · {1}\n · {2}".format("{0}% {1} {2} ".format(floor(((leaderboard.last().statsMoneyBase + leaderboard.last().statsMoneyStorage) / leaderboardMaxScore) * 100), heroIcon(leaderboard.last().getCurrentHero()), leaderboard.last()), "{0}% {1} {2}".format(floor((((leaderboard[len(leaderboard) - 2]).statsMoneyBase + ((leaderboard[len(leaderboard) - 2]).statsMoneyStorage)) / leaderboardMaxScore) * 100), heroIcon((leaderboard[len(leaderboard) - 2]).getCurrentHero()), leaderboard[len(leaderboard) - 2]), "{0}% {1} {2}".format(floor((((leaderboard[len(leaderboard) - 3]).statsMoneyBase + ((leaderboard[len(leaderboard) - 3]).statsMoneyStorage)) / leaderboardMaxScore) * 100), heroIcon((leaderboard[len(leaderboard) - 3]).getCurrentHero()), leaderboard[len(leaderboard) - 3]))), HudPosition.RIGHT, 1, Color.WHITE, Color.ORANGE, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
-    if not gameRulesCustomized:
-        goto lbl_0
-    hudText(gameRulesVisibleTo, null, "Lobby Mods: {0}{1}{2}".format("{0}{1}{2}".format("{0}{1}{2}".format(["No Stealing, ", ""][gameRulesArray[0]], ["Steal from empty base only, ", ""][gameRulesArray[1]], ["No Sparkbolt, ", ""][gameRulesArray[2]]), ["No Goldminer, ", ""][gameRulesArray[3]], ["No Loot, ", ""][gameRulesArray[4]]), "{0}{1}{2}".format(["No Sombra Invis loot, ", ""][gameRulesArray[5]], ["", "5000 gold victory, "][gameRulesArray[6]], ["", "Free Heroswitch, "][gameRulesArray[7]]), "{0}{1}{2}".format(["", "Free Basemove, "][gameRulesArray[8]], ["", "Slower Goldminer, "][gameRulesArray[9]], "")), "{0} + {1} to hide mods".format(buttonString(Button.CROUCH), buttonString(Button.MELEE)), HudPosition.LEFT, -1, Color.ORANGE, Color.WHITE, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.NEVER)
-    lbl_0:
+    
+    #if gameRulesCustomized:
+        #hudText(gameRulesVisibleTo, null, "Lobby Mods: {0}{1}{2}".format("{0}{1}{2}".format("{0}{1}{2}".format(["No Stealing, ", ""][enableStealing], ["Steal from empty base only, ", ""][enableOccupiedStealing], ["No Sparkbolt, ", ""][enableSparkbolts]), ["No Goldminer, ", ""][enableGoldMinerUpgrade], ["No Loot, ", ""][enableLootOrbs]), "{0}{1}{2}".format(["No Sombra Invis loot, ", ""][enableInvisibleLootPickup], ["", "5000 gold victory, "][enableAlwaysFreeHeroSwitch], ["", "Free Heroswitch, "][enableAlwaysFreeHeroSwitch]), "{0}{1}{2}".format(["", "Free Basemove, "][enableAlwaysFreeBaseMove], ["", "Slower Goldminer, "][enableInefficientGoldMiner], "")), "{0} + {1} to hide mods".format(buttonString(Button.CROUCH), buttonString(Button.MELEE)), HudPosition.LEFT, -1, Color.ORANGE, Color.WHITE, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.NEVER)
 
 
 rule "PLAYER HUD BASE GOLD FULL":
@@ -653,7 +553,7 @@ rule "PLAYER HUD BASE GOLD":
 
 
 rule "PLAYER HUD LEADERBOARD LOOP":
-    @Condition hasGameStarted == true
+    @Condition hasGameStarted
     
     leaderboard = sorted([player for player in getAllPlayers() if player.statsMoneyBase + player.statsMoneyStorage > 0], lambda i: i.statsMoneyBase + i.statsMoneyStorage * 10)
     wait(1)
@@ -663,7 +563,7 @@ rule "PLAYER HUD LEADERBOARD LOOP":
 rule "PLAYER REGEN CONDITION":
     @Event eachPlayer
     @Hero all
-    @Condition eventPlayer.hasSpawned() == true
+    @Condition eventPlayer.hasSpawned()
     
     eventPlayer.canAutoHeal = false
     if not eventPlayer.getCurrentHero() in gameHealingHeroes:
@@ -674,7 +574,7 @@ rule "PLAYER REGEN CONDITION":
 rule "PLAYER REGEN TAKE DAMAGE":
     @Event playerTookDamage
     @Hero all
-    @Condition eventPlayer.canAutoHeal == true
+    @Condition eventPlayer.canAutoHeal
     
     eventPlayer.regenStartTime = getTotalTimeElapsed() + 5
     stopHoT(eventPlayer.regenID)
@@ -684,7 +584,7 @@ rule "PLAYER REGEN TAKE DAMAGE":
 rule "PLAYER REGEN START":
     @Event eachPlayer
     @Hero all
-    @Condition eventPlayer.canAutoHeal == true
+    @Condition eventPlayer.canAutoHeal
     @Condition eventPlayer.getHealth() != eventPlayer.getMaxHealth()
     @Condition eventPlayer.regenStartTime < getTotalTimeElapsed()
     @Condition eventPlayer.regenStartTime != 0
@@ -708,9 +608,9 @@ rule "PLAYER REGEN STOP":
 rule "PLAYER SOMBRA CLOAK ON":
     @Event eachPlayer
     @Hero all
-    @Condition hasGameStarted == true
+    @Condition hasGameStarted
     @Condition eventPlayer.getCurrentHero() == Hero.SOMBRA
-    @Condition eventPlayer.isUsingAbility1() == true
+    @Condition eventPlayer.isUsingAbility1()
     
     eventPlayer.isCloaked = true
 
@@ -718,9 +618,8 @@ rule "PLAYER SOMBRA CLOAK ON":
 rule "PLAYER SOMBRA CLOAK OFF":
     @Event eachPlayer
     @Hero all
-    @Condition hasGameStarted == true
-    @Condition eventPlayer.getCurrentHero() == Hero.SOMBRA
-    @Condition eventPlayer.isUsingAbility1() == false
+    @Condition hasGameStarted
+    @Condition eventPlayer.getCurrentHero() != Hero.SOMBRA or eventPlayer.isUsingAbility1() == false
     
     eventPlayer.isCloaked = false
 
@@ -729,10 +628,10 @@ rule "BASE BUILD CHECK CONDITION":
     @Event eachPlayer
     @Hero all
     @Condition eventPlayer.hasBase == false
-    @Condition eventPlayer.isHoldingButton(Button.INTERACT) == true
+    @Condition eventPlayer.isHoldingButton(Button.INTERACT)
     @Condition eventPlayer.playerBaseLocation.y == -1000
-    @Condition eventPlayer.isOnGround() == true
-    @Condition hasGameStarted == true
+    @Condition eventPlayer.isOnGround()
+    @Condition hasGameStarted
     @Condition eventPlayer.stealingFromPlayerObject == null
     
     playerBaseCheck()
@@ -744,7 +643,7 @@ rule "BASE BUILD":
     @Hero all
     @Condition eventPlayer.hasBase == false
     @Condition eventPlayer.playerBaseLocation.y != -1000
-    @Condition hasGameStarted == true
+    @Condition hasGameStarted
     
     eventPlayer.hasBase = true
     spawnBaseEffect()
@@ -758,9 +657,9 @@ rule "BASE BUILD":
 rule "BASE ENTER":
     @Event eachPlayer
     @Hero all
-    @Condition hasGameStarted == true
+    @Condition hasGameStarted
     @Condition eventPlayer.playerObjectInBase == null
-    @Condition eventPlayer.hasBase == true
+    @Condition eventPlayer.hasBase
     @Condition distance(eventPlayer.playerBaseLocation, eventPlayer) <= 3.5
     @Condition eventPlayer.hasStatusEffect(Status.ASLEEP) == false
     @Condition eventPlayer.hasStatusEffect(Status.FROZEN) == false
@@ -783,7 +682,7 @@ rule "BASE ENTER ABORT":
     @Hero all
     @Condition eventPlayer.playerObjectInBase == eventPlayer
     @Condition eventPlayer.isProtected == false
-    @Condition (eventPlayer.isCloaked or eventPlayer.hasStatusEffect(Status.ASLEEP) or eventPlayer.hasStatusEffect(Status.FROZEN) or eventPlayer.hasStatusEffect(Status.UNKILLABLE) or eventPlayer.hasStatusEffect(Status.INVINCIBLE) or eventPlayer.hasStatusEffect(Status.PHASED_OUT) or eventPlayer.isUsingUltimate()) == true
+    @Condition (eventPlayer.isCloaked or eventPlayer.hasStatusEffect(Status.ASLEEP) or eventPlayer.hasStatusEffect(Status.FROZEN) or eventPlayer.hasStatusEffect(Status.UNKILLABLE) or eventPlayer.hasStatusEffect(Status.INVINCIBLE) or eventPlayer.hasStatusEffect(Status.PHASED_OUT) or eventPlayer.isUsingUltimate())
     
     stopChasingVariable(eventPlayer.baseProtectionTimer)
     destroyHudText(eventPlayer.hudBaseProtection)
@@ -794,8 +693,8 @@ rule "BASE EXIT":
     @Event eachPlayer
     @Hero all
     @Condition eventPlayer.playerObjectInBase != null
-    @Condition hasGameStarted == true
-    @Condition eventPlayer.hasBase == true
+    @Condition hasGameStarted
+    @Condition eventPlayer.hasBase
     @Condition distance(eventPlayer.playerBaseLocation, eventPlayer) >= 3.5
     
     eventPlayer.playerObjectInBase = null
@@ -826,7 +725,7 @@ rule "BASE PROTECTED":
     @Hero all
     @Condition eventPlayer.playerObjectInBase != null
     @Condition eventPlayer.baseProtectionTimer == 0
-    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.isAlive()
     @Condition gameEnded == false
     
     eventPlayer.setDamageDealt(0)
@@ -863,7 +762,7 @@ rule "BASE PROTECTED":
 rule "BASE RESPAWN":
     @Event eachPlayer
     @Hero all
-    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.isAlive()
     
     if not eventPlayer.hasBase or eventPlayer.isMovingBase:
         return
@@ -875,10 +774,19 @@ rule "BASE RESPAWN":
     eventPlayer.playerObjectInBase = eventPlayer
     eventPlayer.setInvisibility(Invis.ALL)
 
+rule "update 'stealing from'":
+    @Event eachPlayer
+    @Condition hasGameStarted
+    @Condition enableStealing
+    while true:
+        if eventPlayer.isAlive() and eventPlayer.hasSpawned() and not eventPlayer.isCloaked and eventPlayer.playerObjectInBase:
+            tmpBaseOwners = [player for player in getAllPlayers() if player != eventPlayer and player.hasBase and player.statsMoneyBase != 0]
+            for stealingBaseOwnerIterator in range(len(tmpBaseOwners)):
+                if distance(eventPlayer.getPosition(), tmpBaseOwners[stealingBaseOwnerIterator]
 
 rule "ENEMY BASE LOOP":
-    @Condition hasGameStarted == true
-    @Condition gameRulesArray[0] == true
+    @Condition hasGameStarted
+    @Condition enableStealing
     
     tmpStealingAllPlayers = getAllPlayers()
     tmpStealingAllPlayersFiltered = [player for player in getLivingPlayers(Team.ALL) if player.playerObjectInBase == null]
@@ -889,7 +797,7 @@ rule "ENEMY BASE LOOP":
             for stealingBaseOwnerIterator in range(len(tmpStealingAllBaseOwners)):
                 tmpStealingBaseOwner = tmpStealingAllBaseOwners[stealingBaseOwnerIterator]
                 if tmpStealingPlayer != tmpStealingBaseOwner and distance(tmpStealingPlayer.getPosition(), tmpStealingBaseOwner.playerBaseLocation) <= 3.5:
-                    if not gameRulesArray[1] and tmpStealingBaseOwner.isProtected:
+                    if not enableOccupiedStealing and tmpStealingBaseOwner.isProtected:
                         goto lbl_0
                     tmpStealingPlayer.stealingFromPlayerObject = tmpStealingBaseOwner
                     tmpStealingAllPlayers.remove(tmpStealingPlayer)
@@ -905,9 +813,9 @@ rule "ENEMY BASE STEAL LOOP":
     @Event eachPlayer
     @Hero all
     @Condition eventPlayer.stealingFromPlayerObject != null
-    @Condition eventPlayer.isHoldingButton(Button.INTERACT) == true
-    @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.hasSpawned() == true
+    @Condition eventPlayer.isHoldingButton(Button.INTERACT)
+    @Condition eventPlayer.isAlive()
+    @Condition eventPlayer.hasSpawned()
     @Condition eventPlayer.stealingOnCooldown == false
     @Condition eventPlayer.stealingFromPlayerObject.statsMoneyBase != 0
     @Condition dotProduct(directionTowards(eventPlayer.getEyePosition(), eventPlayer.stealingFromPlayerObject.playerBaseLocation), eventPlayer.getFacingDirection()) >= 0.99
@@ -1001,18 +909,14 @@ rule "ENEMY BASE EFFECT DESTROY":
     destroyHudText(eventPlayer.hudStealing)
 
 
-/*
-rule "":
-*/
-
 rule "UPGRADE BUY MONEY/SEC":
     @Event eachPlayer
     @Hero all
-    @Condition eventPlayer.isProtected == true
-    @Condition eventPlayer.isHoldingButton(Button.INTERACT) == true
+    @Condition eventPlayer.isProtected
+    @Condition eventPlayer.isHoldingButton(Button.INTERACT)
     @Condition eventPlayer.upgradeCurrentSelection == 0
     @Condition eventPlayer.upgradeCostTextVisibility != null
-    @Condition eventPlayer.hasBase == true
+    @Condition eventPlayer.hasBase
     
     if eventPlayer.statsMoneyBase >= eventPlayer.statsUpgradeCostArray[eventPlayer.upgradeCurrentSelection]:
         eventPlayer.scoreArray[6] += 1
@@ -1033,7 +937,7 @@ rule "UPGRADE BUY MONEY/SEC":
 rule "UPGRADE GET MONEY/SEC":
     @Event eachPlayer
     @Hero all
-    @Condition hasGameStarted == true
+    @Condition hasGameStarted
     @Condition eventPlayer.statsMoneySec != 0
     
     if not eventPlayer.hasBase or eventPlayer.isDead() or eventPlayer.stealingEffectsVisibleTo != [] or eventPlayer.isMovingBase or eventPlayer.isProtected:
@@ -1050,11 +954,11 @@ rule "UPGRADE GET MONEY/SEC":
 rule "UPGRADE BUY MONEY/KILL":
     @Event eachPlayer
     @Hero all
-    @Condition eventPlayer.isProtected == true
-    @Condition eventPlayer.isHoldingButton(Button.INTERACT) == true
+    @Condition eventPlayer.isProtected
+    @Condition eventPlayer.isHoldingButton(Button.INTERACT)
     @Condition eventPlayer.upgradeCurrentSelection == 1
     @Condition eventPlayer.upgradeCostTextVisibility != null
-    @Condition eventPlayer.hasBase == true
+    @Condition eventPlayer.hasBase
     
     if eventPlayer.statsMoneyBase >= eventPlayer.statsUpgradeCostArray[eventPlayer.upgradeCurrentSelection]:
         eventPlayer.scoreArray[6] += 1
@@ -1074,24 +978,22 @@ rule "UPGRADE BUY MONEY/KILL":
 rule "UPGRADE GET MONEY/KILL":
     @Event playerDied
     @Hero all
-    @Condition hasGameStarted == true
+    @Condition hasGameStarted
     
     eventPlayer.scoreArray[1] += 1
-    if attacker == victim:
-        goto lbl_0
-    smallMessage(attacker, "+ {0} PLAYER GOLD [BOUNTY]".format(attacker.statsMoneyKill))
-    attacker.statsMoney += attacker.statsMoneyKill
-    attacker.scoreArray[2] += attacker.statsMoneyKill
-    attacker.scoreArray[0] += 1
-    lbl_0:
+    if attacker != victim:
+        smallMessage(attacker, "+ {0} PLAYER GOLD [BOUNTY]".format(attacker.statsMoneyKill))
+        attacker.statsMoney += attacker.statsMoneyKill
+        attacker.scoreArray[2] += attacker.statsMoneyKill
+        attacker.scoreArray[0] += 1
+
     if victim.statsMoney <= 0:
         return
-    if bountyArrayEffects[victim.getSlot()] == null:
-        goto lbl_1
-    destroyEffect(bountyArrayEffects[victim.getSlot()])
-    bountyArrayEffects[victim.getSlot()] = null
-    bountyArrayNum -= 1
-    lbl_1:
+    if bountyArrayEffects[victim.getSlot()] != null:
+        destroyEffect(bountyArrayEffects[victim.getSlot()])
+        bountyArrayEffects[victim.getSlot()] = null
+        bountyArrayNum -= 1
+        
     bountyArrayLocations[victim.getSlot()] = raycast(victim.getEyePosition(), victim.getEyePosition() - vect(0, 15, 0), null, null, false).getHitPosition() + vect(0, 0.35, 0)
     bountyArrayMoney[victim.getSlot()] = victim.statsMoney
     if victim.statsMoney <= 25:
@@ -1114,11 +1016,11 @@ rule "UPGRADE GET MONEY/KILL":
 rule "UPGRADE BUY STORAGE":
     @Event eachPlayer
     @Hero all
-    @Condition eventPlayer.isProtected == true
-    @Condition eventPlayer.isHoldingButton(Button.INTERACT) == true
+    @Condition eventPlayer.isProtected
+    @Condition eventPlayer.isHoldingButton(Button.INTERACT)
     @Condition eventPlayer.upgradeCurrentSelection == 2
     @Condition eventPlayer.upgradeCostTextVisibility != null
-    @Condition eventPlayer.hasBase == true
+    @Condition eventPlayer.hasBase
     
     if eventPlayer.statsMoneyBase >= eventPlayer.statsUpgradeCostArray[eventPlayer.upgradeCurrentSelection]:
         eventPlayer.scoreArray[6] += 1
@@ -1127,7 +1029,7 @@ rule "UPGRADE BUY STORAGE":
         playEffect(eventPlayer, DynamicEffect.BUFF_EXPLOSION_SOUND, Color.WHITE, eventPlayer, 200)
         eventPlayer.statsMoneyStorage = min(ceil(eventPlayer.statsMoneyStorage * 1.5 / 10) * 10, gameGoldVictory)
         eventPlayer.statsUpgradeCostArray[eventPlayer.upgradeCurrentSelection] = eventPlayer.statsMoneyStorage
-        if gameRulesArray[7]:
+        if enableAlwaysFreeHeroSwitch:
             goto lbl_0
         if eventPlayer.statsUpgradeHeroSwitchUsed or eventPlayer.statsUpgradeLevels[eventPlayer.upgradeCurrentSelection] >= 4:
             eventPlayer.statsUpgradeHeroSwitchUsed = true
@@ -1139,7 +1041,7 @@ rule "UPGRADE BUY STORAGE":
         else:
             eventPlayer.statsUpgradeHeroSwitchShadowCost += ceil(eventPlayer.statsMoneyStorage / 5)
         lbl_0:
-        if gameRulesArray[8]:
+        if enableAlwaysFreeBaseMove:
             goto lbl_2
         eventPlayer.statsUpgradeCostArray[3] = max(ceil(eventPlayer.statsMoneyStorage / 5), 50)
         lbl_2:
@@ -1155,11 +1057,11 @@ rule "UPGRADE BUY STORAGE":
 rule "UPGRADE BUY MOVE BASE":
     @Event eachPlayer
     @Hero all
-    @Condition eventPlayer.isProtected == true
-    @Condition eventPlayer.isHoldingButton(Button.INTERACT) == true
+    @Condition eventPlayer.isProtected
+    @Condition eventPlayer.isHoldingButton(Button.INTERACT)
     @Condition eventPlayer.upgradeCurrentSelection == 3
     @Condition eventPlayer.upgradeCostTextVisibility != null
-    @Condition eventPlayer.hasBase == true
+    @Condition eventPlayer.hasBase
     
     if eventPlayer.statsMoneyBase >= eventPlayer.statsUpgradeCostArray[eventPlayer.upgradeCurrentSelection]:
         eventPlayer.scoreArray[7] += 1
@@ -1168,7 +1070,7 @@ rule "UPGRADE BUY MOVE BASE":
         playEffect(eventPlayer, DynamicEffect.BUFF_EXPLOSION_SOUND, Color.WHITE, eventPlayer, 200)
         eventPlayer.playerBaseLocation = vect(0, -10000, 0)
         smallMessage(eventPlayer, "{0} PACKED UP BASE {0}".format(iconString(Icon.TRASHCAN)))
-        HUDCreateNoBase()
+        hudCreateNoBase()
         wait(1)
         eventPlayer.isMovingBase = true
     else:
@@ -1178,10 +1080,10 @@ rule "UPGRADE BUY MOVE BASE":
 rule "UPGRADE END MOVE BASE":
     @Event eachPlayer
     @Hero all
-    @Condition eventPlayer.isMovingBase == true
-    @Condition eventPlayer.isHoldingButton(Button.INTERACT) == true
-    @Condition eventPlayer.hasBase == true
-    @Condition eventPlayer.isOnGround() == true
+    @Condition eventPlayer.isMovingBase
+    @Condition eventPlayer.isHoldingButton(Button.INTERACT)
+    @Condition eventPlayer.hasBase
+    @Condition eventPlayer.isOnGround()
     @Condition eventPlayer.stealingFromPlayerObject == null
     
     playerBaseCheck()
@@ -1194,17 +1096,17 @@ rule "UPGRADE END MOVE BASE":
 rule "UPGRADE BUY HERO":
     @Event eachPlayer
     @Hero all
-    @Condition eventPlayer.isProtected == true
-    @Condition eventPlayer.isHoldingButton(Button.INTERACT) == true
+    @Condition eventPlayer.isProtected
+    @Condition eventPlayer.isHoldingButton(Button.INTERACT)
     @Condition eventPlayer.upgradeCurrentSelection == 4
     @Condition eventPlayer.upgradeCostTextVisibility != null
-    @Condition eventPlayer.hasBase == true
+    @Condition eventPlayer.hasBase
     @Condition eventPlayer.isChangingHero == false
     
     if eventPlayer.statsMoneyBase >= eventPlayer.statsUpgradeCostArray[eventPlayer.upgradeCurrentSelection]:
         eventPlayer.isChangingHero = true
         eventPlayer.statsMoneyBase -= eventPlayer.statsUpgradeCostArray[eventPlayer.upgradeCurrentSelection]
-        if gameRulesArray[7]:
+        if enableAlwaysFreeHeroSwitch:
             goto lbl_0
         if eventPlayer.statsUpgradeHeroSwitchUsed:
             goto lbl_1
@@ -1229,7 +1131,7 @@ rule "UPGRADE BUY HERO":
 rule "UPGRADE BUY HERO TELEPORT":
     @Event eachPlayer
     @Hero all
-    @Condition eventPlayer.hasSpawned() == true
+    @Condition eventPlayer.hasSpawned()
     
     if not eventPlayer.isInitialized or not eventPlayer.hasBase:
         return
@@ -1249,11 +1151,11 @@ rule "UPGRADE BUY HERO TELEPORT":
 rule "UPGRADE BUY STEAL SPEED":
     @Event eachPlayer
     @Hero all
-    @Condition eventPlayer.isProtected == true
-    @Condition eventPlayer.isHoldingButton(Button.INTERACT) == true
+    @Condition eventPlayer.isProtected
+    @Condition eventPlayer.isHoldingButton(Button.INTERACT)
     @Condition eventPlayer.upgradeCurrentSelection == 5
     @Condition eventPlayer.upgradeCostTextVisibility != null
-    @Condition eventPlayer.hasBase == true
+    @Condition eventPlayer.hasBase
     
     if eventPlayer.statsMoneyBase >= eventPlayer.statsUpgradeCostArray[eventPlayer.upgradeCurrentSelection]:
         eventPlayer.scoreArray[6] += 1
@@ -1261,7 +1163,7 @@ rule "UPGRADE BUY STEAL SPEED":
         playEffect(eventPlayer, DynamicEffect.RING_EXPLOSION, Color.PURPLE, eventPlayer.playerBaseLocation, 4)
         playEffect(eventPlayer, DynamicEffect.BUFF_EXPLOSION_SOUND, Color.WHITE, eventPlayer, 200)
         eventPlayer.statsUpgradeCostArray[eventPlayer.upgradeCurrentSelection] = ceil(eventPlayer.statsUpgradeCostArray[eventPlayer.upgradeCurrentSelection] * 1.5 / 10) * 10
-        if not gameRulesArray[3]:
+        if not enableGoldMinerUpgrade:
             goto lbl_0
         eventPlayer.statsUpgradeCostArray[0] = eventPlayer.statsUpgradeCostArray[eventPlayer.upgradeCurrentSelection]
         lbl_0:
@@ -1277,11 +1179,11 @@ rule "UPGRADE BUY STEAL SPEED":
 rule "UPGRADE BUY DELAY":
     @Event eachPlayer
     @Hero all
-    @Condition eventPlayer.isProtected == true
-    @Condition eventPlayer.isHoldingButton(Button.INTERACT) == true
+    @Condition eventPlayer.isProtected
+    @Condition eventPlayer.isHoldingButton(Button.INTERACT)
     @Condition eventPlayer.upgradeCurrentSelection == 6
     @Condition eventPlayer.upgradeCostTextVisibility != null
-    @Condition eventPlayer.hasBase == true
+    @Condition eventPlayer.hasBase
     
     if eventPlayer.statsMoneyBase >= eventPlayer.statsUpgradeCostArray[eventPlayer.upgradeCurrentSelection]:
         eventPlayer.scoreArray[6] += 1
@@ -1304,8 +1206,8 @@ rule "UPGRADE BUY DELAY":
 rule "UPGRADE BUY SPARKBOLT":
     @Event eachPlayer
     @Hero all
-    @Condition eventPlayer.isProtected == true
-    @Condition eventPlayer.isHoldingButton(Button.ULTIMATE) == true
+    @Condition eventPlayer.isProtected
+    @Condition eventPlayer.isHoldingButton(Button.ULTIMATE)
     @Condition eventPlayer.statsNumSparkbolts != 0
     @Condition eventPlayer.baseSparkboltCooldown == false
     
@@ -1338,8 +1240,8 @@ rule "UPGRADE SELECT LEFT":
     @Hero all
     @Condition eventPlayer.upgradeInputCooldown == false
     @Condition eventPlayer.upgradeCostTextVisibility != null
-    @Condition eventPlayer.isHoldingButton(Button.PRIMARY_FIRE) == true
-    @Condition eventPlayer.isProtected == true
+    @Condition eventPlayer.isHoldingButton(Button.PRIMARY_FIRE)
+    @Condition eventPlayer.isProtected
     
     playEffect(eventPlayer, DynamicEffect.DEBUFF_IMPACT_SOUND, Color.WHITE, eventPlayer, 20)
     eventPlayer.upgradeInputCooldown = true
@@ -1367,8 +1269,8 @@ rule "UPGRADE SELECT RIGHT":
     @Hero all
     @Condition eventPlayer.upgradeInputCooldown == false
     @Condition eventPlayer.upgradeCostTextVisibility != null
-    @Condition eventPlayer.isHoldingButton(Button.SECONDARY_FIRE) == true
-    @Condition eventPlayer.isProtected == true
+    @Condition eventPlayer.isHoldingButton(Button.SECONDARY_FIRE)
+    @Condition eventPlayer.isProtected
     
     playEffect(eventPlayer, DynamicEffect.DEBUFF_IMPACT_SOUND, Color.WHITE, eventPlayer, 20)
     eventPlayer.upgradeInputCooldown = true
@@ -1390,7 +1292,7 @@ rule "UPGRADE SELECT RIGHT":
 rule "UPGRADE SHOW MENU":
     @Event eachPlayer
     @Hero all
-    @Condition eventPlayer.isProtected == true
+    @Condition eventPlayer.isProtected
     @Condition eventPlayer.upgradeCostTextVisibility == null
     #@Condition dotProduct(directionTowards(eventPlayer.getEyePosition(), eventPlayer.playerBaseLocation), eventPlayer.getFacingDirection()) >= 0.99
     @Condition distance(vect(0, 0, 0), eventPlayer.playerBaseLocation - (eventPlayer.getEyePosition() + ((abs(dotProduct(eventPlayer.playerBaseLocation - eventPlayer.getEyePosition(), eventPlayer.getFacingDirection()))) * eventPlayer.getFacingDirection()))) <= baseUpgradeSphereActualSize
@@ -1400,17 +1302,15 @@ rule "UPGRADE SHOW MENU":
     eventPlayer.upgradeCostTextVisibility = eventPlayer
     eventPlayer.upgradeTextUpdated = true
     wait(0.25)
-    if eventPlayer.upgradeCostTextVisibility == null:
-        goto lbl_0
-    eventPlayer.upgradeInputCooldown = false
-    lbl_0:
+    if eventPlayer.upgradeCostTextVisibility != null:
+        eventPlayer.upgradeInputCooldown = false
 
 
 rule "UPGRADE HIDE MENU":
     @Event eachPlayer
     @Hero all
     @Condition eventPlayer.upgradeCostTextVisibility != null
-    #@Condition (dotProduct(directionTowards(eventPlayer.getEyePosition(), eventPlayer.playerBaseLocation), eventPlayer.getFacingDirection()) < 0.99 or not eventPlayer.isProtected) == true
+    #@Condition (dotProduct(directionTowards(eventPlayer.getEyePosition(), eventPlayer.playerBaseLocation), eventPlayer.getFacingDirection()) < 0.99 or not eventPlayer.isProtected)
     @Condition distance(vect(0, 0, 0), eventPlayer.playerBaseLocation - (eventPlayer.getEyePosition() + ((abs(dotProduct(eventPlayer.playerBaseLocation - eventPlayer.getEyePosition(), eventPlayer.getFacingDirection()))) * eventPlayer.getFacingDirection()))) > baseUpgradeSphereActualSize
     
     eventPlayer.upgradeCostTextVisibility = null
@@ -1423,45 +1323,45 @@ rule "UPGRADE HIDE MENU":
 rule "UPGRADE UPDATE TEXT":
     @Event eachPlayer
     @Hero all
-    @Condition eventPlayer.upgradeTextUpdated == true
-    @Condition eventPlayer.isProtected == true
+    @Condition eventPlayer.upgradeTextUpdated
+    @Condition eventPlayer.isProtected
     @Condition eventPlayer.upgradeCostTextVisibility != null
     
     eventPlayer.upgradeTextUpdated = false
     destroyInWorldText(eventPlayer.upgradeTextTitle)
     destroyInWorldText(eventPlayer.upgradeTextDescription)
     destroyEffect(eventPlayer.upgradeSphere)
-    if eventPlayer.upgradeCurrentSelection == 0:
+    if eventPlayer.upgradeCurrentSelection == Upgrade.GOLD_MINER:
         createInWorldText(eventPlayer, "             {0}\nAUTO GOLD MINER\n\n\n\n".format(iconString(Icon.DIAMOND)), eventPlayer.playerBaseLocation, 2, Clip.NONE, WorldTextReeval.VISIBILITY_POSITION_AND_STRING, Color.BLUE, SpecVisibility.DEFAULT)
         eventPlayer.upgradeTextTitle = getLastCreatedText()
         createInWorldText(eventPlayer, "    [LVL {0}]\n\n  Upgrades your gold generation\n    to {1} per second. Can't generate\nwhen there are players in your base\n ".format(eventPlayer.statsUpgradeLevels[eventPlayer.upgradeCurrentSelection], eventPlayer.statsMoneySec + 1), eventPlayer.playerBaseLocation, 1.1, Clip.NONE, WorldTextReeval.VISIBILITY_POSITION_AND_STRING, Color.WHITE, SpecVisibility.DEFAULT)
         createEffect(eventPlayer, Effect.SPHERE, Color.BLUE, eventPlayer.playerBaseLocation, 0.4, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
-    elif eventPlayer.upgradeCurrentSelection == 1:
+    elif eventPlayer.upgradeCurrentSelection == Upgrade.KILL_BOUNTY:
         createInWorldText(eventPlayer, "             {0}\nKILL GOLD BOUNTY\n\n\n\n".format(iconString(Icon.SKULL)), eventPlayer.playerBaseLocation, 2, Clip.NONE, WorldTextReeval.VISIBILITY_POSITION_AND_STRING, Color.RED, SpecVisibility.DEFAULT)
         eventPlayer.upgradeTextTitle = getLastCreatedText()
         createInWorldText(eventPlayer, "     [LVL {0}]\n\n    Increases bounty from {2} to {1}\nAwarded by dealing finishing blow\n  Doesn't affect dropped loot orbs\n ".format(eventPlayer.statsUpgradeLevels[eventPlayer.upgradeCurrentSelection], eventPlayer.statsMoneyKill + 15, eventPlayer.statsMoneyKill), eventPlayer.playerBaseLocation, 1.1, Clip.NONE, WorldTextReeval.VISIBILITY_POSITION_AND_STRING, Color.WHITE, SpecVisibility.DEFAULT)
         createEffect(eventPlayer, Effect.SPHERE, Color.RED, eventPlayer.playerBaseLocation, 0.4, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
-    elif eventPlayer.upgradeCurrentSelection == 2:
+    elif eventPlayer.upgradeCurrentSelection == Upgrade.GOLD_STORAGE:
         createInWorldText(eventPlayer, "               {0}\nBASE GOLD STORAGE\n\n\n\n".format(iconString(Icon.CIRCLE)), eventPlayer.playerBaseLocation, 2, Clip.NONE, WorldTextReeval.VISIBILITY_POSITION_AND_STRING, Color.YELLOW, SpecVisibility.DEFAULT)
         eventPlayer.upgradeTextTitle = getLastCreatedText()
         createInWorldText(eventPlayer, "[LVL {0}]\n\nIncreases the maximum amount \n  of gold your base can store.\n  Upgraded storage: {1} gold\n ".format(eventPlayer.statsUpgradeLevels[eventPlayer.upgradeCurrentSelection], ceil(eventPlayer.statsMoneyStorage * 1.5)), eventPlayer.playerBaseLocation, 1.1, Clip.NONE, WorldTextReeval.VISIBILITY_POSITION_AND_STRING, Color.WHITE, SpecVisibility.DEFAULT)
         createEffect(eventPlayer, Effect.SPHERE, Color.YELLOW, eventPlayer.playerBaseLocation, 0.4, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
-    elif eventPlayer.upgradeCurrentSelection == 3:
+    elif eventPlayer.upgradeCurrentSelection == Upgrade.BASE_MOVE:
         createInWorldText(eventPlayer, "            {0}\nMOVE YOUR BASE\n\n\n\n".format(iconString(Icon.TRASHCAN)), eventPlayer.playerBaseLocation, 2, Clip.NONE, WorldTextReeval.VISIBILITY_POSITION_AND_STRING, Color.GREEN, SpecVisibility.DEFAULT)
         eventPlayer.upgradeTextTitle = getLastCreatedText()
         createInWorldText(eventPlayer, "   [NO LVL]\n \n           Packs up your base. \nYou keep your gold & upgrades. \nPrice depends on gold storage.\n ", eventPlayer.playerBaseLocation, 1.1, Clip.NONE, WorldTextReeval.VISIBILITY_POSITION_AND_STRING, Color.WHITE, SpecVisibility.DEFAULT)
         createEffect(eventPlayer, Effect.SPHERE, Color.GREEN, eventPlayer.playerBaseLocation, 0.4, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
-    elif eventPlayer.upgradeCurrentSelection == 4:
+    elif eventPlayer.upgradeCurrentSelection == Upgrade.SWITCH_HERO:
         createInWorldText(eventPlayer, "              {0}\nSWITCH YOUR HERO\n\n\n\n".format(iconString(Icon.RECYCLE)), eventPlayer.playerBaseLocation, 2, Clip.NONE, WorldTextReeval.VISIBILITY_POSITION_AND_STRING, Color.TURQUOISE, SpecVisibility.DEFAULT)
         eventPlayer.upgradeTextTitle = getLastCreatedText()
         createInWorldText(eventPlayer, " [NO LVL]\n \n     Takes you to hero selection.\n  Bug: If only one hero shows up\nWait 5 seconds until they appear.\n ", eventPlayer.playerBaseLocation, 1.1, Clip.NONE, WorldTextReeval.VISIBILITY_POSITION_AND_STRING, Color.WHITE, SpecVisibility.DEFAULT)
         createEffect(eventPlayer, Effect.SPHERE, Color.TURQUOISE, eventPlayer.playerBaseLocation, 0.4, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
-    elif eventPlayer.upgradeCurrentSelection == 5:
+    elif eventPlayer.upgradeCurrentSelection == Upgrade.STEAL_SPEED:
         createInWorldText(eventPlayer, "            {0}\nGOLD STEAL SPEED\n\n\n\n".format(iconString(Icon.STOP)), eventPlayer.playerBaseLocation, 2, Clip.NONE, WorldTextReeval.VISIBILITY_POSITION_AND_STRING, Color.PURPLE, SpecVisibility.DEFAULT)
         eventPlayer.upgradeTextTitle = getLastCreatedText()
         createInWorldText(eventPlayer, "     [LVL {0}]\n \n    Steal +2 gold/sec from bases.\nSame upgrade price as gold miner.\n  Total {1} + enemy gold miner/sec.\n ".format(eventPlayer.statsUpgradeLevels[eventPlayer.upgradeCurrentSelection], (eventPlayer.statsStealingSpeed + 1) * 2), eventPlayer.playerBaseLocation, 1.1, Clip.NONE, WorldTextReeval.VISIBILITY_POSITION_AND_STRING, Color.WHITE, SpecVisibility.DEFAULT)
         createEffect(eventPlayer, Effect.SPHERE, Color.PURPLE, eventPlayer.playerBaseLocation, 0.4, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
-    elif eventPlayer.upgradeCurrentSelection == 6:
+    elif eventPlayer.upgradeCurrentSelection == Upgrade.ENTRY_TIME:
         createInWorldText(eventPlayer, "           {0}\nBASE ENTRY TIME\n\n\n\n".format(iconString(Icon.WARNING)), eventPlayer.playerBaseLocation, 2, Clip.NONE, WorldTextReeval.VISIBILITY_POSITION_AND_STRING, Color.AQUA, SpecVisibility.DEFAULT)
         eventPlayer.upgradeTextTitle = getLastCreatedText()
         createInWorldText(eventPlayer, "  [LVL {0}]\n \n      Reduces the time it takes\nto enter your base by 0.5 sec.\n    The current delay is {1} sec.\n ".format(eventPlayer.statsUpgradeLevels[eventPlayer.upgradeCurrentSelection], eventPlayer.statsBaseDelay), eventPlayer.playerBaseLocation, 1.1, Clip.NONE, WorldTextReeval.VISIBILITY_POSITION_AND_STRING, Color.WHITE, SpecVisibility.DEFAULT)
@@ -1470,18 +1370,14 @@ rule "UPGRADE UPDATE TEXT":
     eventPlayer.upgradeTextDescription = getLastCreatedText()
 
 
-/*
-rule "":
-*/
-
 rule "LOOT UPDATE PLAYERS ADD":
     @Event eachPlayer
     @Hero all
-    @Condition hasGameStarted == true
-    @Condition eventPlayer.isAlive() == true
+    @Condition hasGameStarted
+    @Condition eventPlayer.isAlive()
     @Condition eventPlayer.isProtected == false
-    @Condition eventPlayer.hasSpawned() == true
-    @Condition (gameRulesArray[5] or not eventPlayer.isCloaked) == true
+    @Condition eventPlayer.hasSpawned()
+    @Condition (enableInvisibleLootPickup or not eventPlayer.isCloaked)
     
     if eventPlayer in lootPossiblePlayers:
         return
@@ -1491,8 +1387,8 @@ rule "LOOT UPDATE PLAYERS ADD":
 rule "LOOT UPDATE PLAYERS REMOVE":
     @Event eachPlayer
     @Hero all
-    @Condition hasGameStarted == true
-    @Condition (any([eventPlayer.isDead(), eventPlayer.isProtected, not eventPlayer.hasSpawned(), not gameRulesArray[5] and eventPlayer.isCloaked])) == true
+    @Condition hasGameStarted
+    @Condition (any([eventPlayer.isDead(), eventPlayer.isProtected, not eventPlayer.hasSpawned(), not enableInvisibleLootPickup and eventPlayer.isCloaked]))
     
     lootPossiblePlayers.remove(eventPlayer)
 
@@ -1528,7 +1424,7 @@ rule "LOOT BOUNTY COLLECT LOOP":
 
 
 rule "LOOT FIND SPAWNPOINTS":
-    @Condition hasGameStarted == true
+    @Condition hasGameStarted
     
     while lootSpawnpointIterator <= 200 and len(tmpLootSpawnpointProximity) < 128:
         tmpLootSpawnpointRandomPointWP = mapOrigin + mapRotationVector * random.uniform(0, mapXYZ.x) + vect(mapRotationVector.z, 0, mapRotationVector.x * -1) * random.uniform(0, mapXYZ.z) + vect(0, random.uniform(0, mapXYZ.y), 0)
@@ -1556,9 +1452,9 @@ rule "LOOT FIND SPAWNPOINTS":
 
 
 rule "LOOT LOOT EFFECTS":
-    @Condition hasGameStarted == true
+    @Condition hasGameStarted
     @Condition lootArrayLocations != []
-    @Condition gameRulesArray[4] == true
+    @Condition enableLootOrbs
     
     for lootCollectIterator in range(len(lootArrayLocations)):
         lootArrayLocations[lootCollectIterator] = vect(0, -9999, 0)
@@ -1612,10 +1508,10 @@ rule "LOOT LOOT EFFECTS":
 
 
 rule "LOOT SPAWN":
-    @Condition hasGameStarted == true
+    @Condition hasGameStarted
     @Condition len(lootArrayLocations) != 0
     @Condition lootSpawnerNumLoot < lootSpawnMax
-    @Condition gameRulesArray[4] == true
+    @Condition enableLootOrbs
     @Condition gameEnded == false
     
     if not lootArraySpawned[lootSpawnerEffectIterator]:
@@ -1643,18 +1539,16 @@ rule "LOOT SPAWN":
     lootArraySpawned[lootSpawnerEffectIterator] = true
     lootSpawnerIterator += 1
     lootSpawnerNumLoot += 1
-    if lootSpawnerIterator < len(lootSpawnPoints):
-        goto lbl_4
-    lootSpawnerIterator = 0
-    lbl_4:
+    if lootSpawnerIterator >= len(lootSpawnPoints):
+        lootSpawnerIterator = 0
     wait(1.12)
     if RULE_CONDITION:
         goto RULE_START
 
 
 rule "LOOT COLLECT LOOP":
-    @Condition hasGameStarted == true
-    @Condition gameRulesArray[4] == true
+    @Condition hasGameStarted
+    @Condition enableLootOrbs
     
     for lootCollectIterator in range(len(lootArrayLocations)):
         if lootArraySpawned[lootCollectIterator]:
@@ -1679,7 +1573,7 @@ rule "LOOT LOSS1":
     @Event playerDied
     @Hero all
     @Condition attacker == victim
-    @Condition hasGameStarted == true
+    @Condition hasGameStarted
     
     eventPlayer.statsMoney = 0
 
@@ -1687,14 +1581,14 @@ rule "LOOT LOSS1":
 rule "LOOT LOSS2":
     @Event playerDied
     @Hero all
-    @Condition hasGameStarted == true
+    @Condition hasGameStarted
     
     destroyHudText(eventPlayer.hudBaseProtection)
 
 
 rule "LOOT POWERUP COLLECT LOOP":
     @Condition sparkboltPickupPos != null
-    @Condition gameRulesArray[2] == true
+    @Condition enableSparkbolts
     
     tmpSparkboltClosestPlayer = sorted(lootPossiblePlayers, lambda player: distance(player.getPosition(), sparkboltPickupPos))[0]
     if entityExists(tmpSparkboltClosestPlayer) and distance(tmpSparkboltClosestPlayer.getPosition(), sparkboltPickupPos) <= 2.5:
@@ -1712,9 +1606,9 @@ rule "LOOT POWERUP COLLECT LOOP":
 
 
 rule "LOOT POWERUP SPAWN":
-    @Condition hasGameStarted == true
+    @Condition hasGameStarted
     @Condition sparkboltPickupPos == null
-    @Condition gameRulesArray[2] == true
+    @Condition enableSparkbolts
     
     wait(60 - getNumberOfPlayers(Team.ALL))
     while true:
@@ -1745,7 +1639,7 @@ def settleBalance():
         smallMessage(eventPlayer, "STORED {0} GOLD IN BASE".format(eventPlayer.tmpMoneyDifference))
 
 
-def HUDCreateNoBase():
+def hudCreateNoBase():
     @Name "SUB CREATE HUD NO BASE"
     
     hudHeader(eventPlayer, "{0} NO BASE BUILT {0}\n  PRESS [{1}] TO BUILD".format(iconString(Icon.WARNING), buttonString(Button.INTERACT)), HudPosition.TOP, -4, Color.RED, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
@@ -1756,7 +1650,10 @@ def playerBaseCheck():
     @Name "SUB BASE BUILD CHECK"
     
     if distance(eventPlayer.getPosition(), getAllPlayers()[eventPlayer.playerBaseProximityIterator].playerBaseLocation) < 14:
-        goto lbl_0
+        smallMessage(eventPlayer, "{0} ENEMY BASE TOO CLOSE {0}".format(iconString(Icon.STOP)))
+        eventPlayer.playerBaseProximityIterator = 0
+        return
+
     eventPlayer.playerBaseProximityIterator += 1
     if eventPlayer.playerBaseProximityIterator < len(getAllPlayers()):
         goto RULE_START
@@ -1779,10 +1676,6 @@ def playerBaseCheck():
     lbl_4:
     lbl_5:
     smallMessage(eventPlayer, "{0} BAD BASE LOCATION {0}".format(iconString(Icon.STOP)))
-    return
-    lbl_0:
-    smallMessage(eventPlayer, "{0} ENEMY BASE TOO CLOSE {0}".format(iconString(Icon.STOP)))
-    eventPlayer.playerBaseProximityIterator = 0
 
 
 def playerBaseBuildEffects():
@@ -1804,14 +1697,12 @@ def baseUpgradeFail():
 def spawnBaseEffect():
     @Name "SUB SPAWN BASE EFFECT"
     
-    if not entityExists(eventPlayer.baseEffectOrb):
-        goto lbl_0
-    destroyEffect(eventPlayer.baseEffectOrb)
-    lbl_0:
-    if not entityExists(eventPlayer.baseEffectRing):
-        goto lbl_1
-    destroyEffect(eventPlayer.baseEffectRing)
-    lbl_1:
+    if entityExists(eventPlayer.baseEffectOrb):
+        destroyEffect(eventPlayer.baseEffectOrb)
+
+    if entityExists(eventPlayer.baseEffectRing):
+        destroyEffect(eventPlayer.baseEffectRing)
+
     if eventPlayer.statsUpgradeLevels[2] < 4:
         createEffect([player for player in getAllPlayers() if player != eventPlayer.playerObjectInBase], Effect.SPHERE, Color.WHITE, eventPlayer.playerBaseLocation, 3.5, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
         eventPlayer.baseEffectOrb = getLastCreatedEntity()
@@ -1866,63 +1757,4 @@ def checkUpgradeAvailability():
         eventPlayer.upgradeTextUpdated = true
         wait(0.25)
         eventPlayer.upgradeInputCooldown = false
-
-
-rule "GAME ENDED LATE JOIN":
-    @Event eachPlayer
-    @Hero all
-    @Condition eventPlayer.hasSpawned() == true
-    @Condition gameEnded == true
-    
-    eventPlayer.disallowButton(Button.PRIMARY_FIRE)
-    eventPlayer.disallowButton(Button.SECONDARY_FIRE)
-    eventPlayer.disallowButton(Button.ABILITY_1)
-    eventPlayer.disallowButton(Button.ABILITY_2)
-    eventPlayer.disallowButton(Button.ULTIMATE)
-    eventPlayer.disallowButton(Button.INTERACT)
-    eventPlayer.disallowButton(Button.JUMP)
-    eventPlayer.disallowButton(Button.CROUCH)
-    eventPlayer.disallowButton(Button.MELEE)
-    eventPlayer.disallowButton(Button.RELOAD)
-    eventPlayer.setStatusEffect(null, Status.FROZEN, 9999)
-    eventPlayer.setStatusEffect(null, Status.INVINCIBLE, 9999)
-    eventPlayer.setInvisibility(Invis.ALL)
-    eventPlayer.isProtected = true
-
-
-rule "Rule 94":
-    @Event eachPlayer
-    @Hero all
-    @Condition eventPlayer.debugFreecam != null
-    @Condition eventPlayer.isHoldingButton(Button.ULTIMATE) == true
-    
-    destroyAllInWorldTexts()
-    destroyAllHudTexts()
-    destroyAllDummies()
-    wait()
-    getAllPlayers().disableHeroHUD()
-    getAllPlayers().disableMessages()
-    getAllPlayers().startForcingOutlineFor(getAllPlayers(), false, Color.WHITE, OutlineVisibility.DEFAULT)
-    getAllPlayers().disableNameplatesFor(getAllPlayers())
-    gameScorePositions[0] = raycast(eventPlayer.debugFreecam, eventPlayer.debugFreecam - vect(0, 10, 0), [], [], false).getHitPosition()
-    createDummy(random.choice(getAllHeroes()), Team.ALL, -1, gameScorePositions[0], Vector.BACKWARD)
-    debugDummyBot = getLastCreatedEntity()
-    wait(0.5)
-    eventPlayer.setFacing(Vector.FORWARD, Relativity.TO_WORLD)
-    gameScorePositions[1] = ((debugDummyBot.getEyePosition() - debugDummyBot.getPosition()) * 0.75).y
-    eventPlayer.debugFreecam = gameScorePositions[0] + vect(gameScorePositions[1] * -1, gameScorePositions[1], gameScorePositions[1] * -2)
-    debugDummyBot.setFacing(directionTowards(debugDummyBot.getEyePosition(), eventPlayer.debugFreecam), Relativity.TO_WORLD)
-    gameScorePositions[2] = gameScorePositions[0] + vect(gameScorePositions[1] * -1.5, gameScorePositions[1] * 0.06, gameScorePositions[1] * 0)
-    gameScorePositions[3] = gameScorePositions[2] + vect(0, gameScorePositions[1] * 0.075, 0)
-    gameScorePositions[4] = debugDummyBot.getEyePosition() + vect(0, gameScorePositions[1] * 0.55, 0)
-    createInWorldText(getAllPlayers(), "Winner\n ", gameScorePositions[4], 2, Clip.NONE, WorldTextReeval.VISIBILITY_POSITION_AND_STRING, Color.ORANGE, SpecVisibility.DEFAULT)
-    createInWorldText(getAllPlayers(), " \n{0}".format(debugDummyBot), gameScorePositions[4], 2, Clip.NONE, WorldTextReeval.VISIBILITY_POSITION_AND_STRING, Color.WHITE, SpecVisibility.DEFAULT)
-    createInWorldText(getAllPlayers(), "{0} BOUNTY HUNTER \n\n{1} ASSASSIN\n\n{2} VICTIM\n\n \n\n \n\n \n\n \n\n \n\n \n\n \n".format(iconString(Icon.SKULL), abilityIconString(Hero.MCCREE, Button.ULTIMATE), iconString(Icon.SAD)), gameScorePositions[2], 1.9, Clip.NONE, WorldTextReeval.VISIBILITY_AND_STRING, Color.ORANGE, SpecVisibility.DEFAULT)
-    createInWorldText(getAllPlayers(), " \n\n \n\n \n\n{0} GOLDHOARDER    \n\n{1} MASTERTHIEF\n\n{2} FAST EARNER\n\n \n\n \n\n \n\n \n ".format(abilityIconString(Hero.SIGMA, Button.PRIMARY_FIRE), abilityIconString(Hero.MOIRA, Button.SECONDARY_FIRE), abilityIconString(Hero.TRACER, Button.ABILITY_1)), gameScorePositions[2], 1.9, Clip.NONE, WorldTextReeval.VISIBILITY_AND_STRING, Color.ORANGE, SpecVisibility.DEFAULT)
-    createInWorldText(getAllPlayers(), " \n\n \n\n \n\n \n\n \n\n \n\n{0} FRIENDLY FARMER\n\n{1} COOKIE CLICKER\n\n{2} ENGINEER\n\n \n ".format(iconString(Icon.HEART), abilityIconString(Hero.SIGMA, Button.ABILITY_1), abilityIconString(Hero.BASTION, Button.SECONDARY_FIRE)), gameScorePositions[2], 1.9, Clip.NONE, WorldTextReeval.VISIBILITY_AND_STRING, Color.ORANGE, SpecVisibility.DEFAULT)
-    createInWorldText(getAllPlayers(), " \n\n \n\n \n\n \n\n \n\n \n\n \n\n \n\n \n\n{0} TRAVELER              \n ".format(abilityIconString(Hero.SOLDIER, Button.ABILITY_1)), gameScorePositions[2], 1.9, Clip.NONE, WorldTextReeval.VISIBILITY_AND_STRING, Color.ORANGE, SpecVisibility.DEFAULT)
-    createInWorldText(getAllPlayers(), "{0}{1}".format("{0}{1}{2}".format("  \n{0}\n\n{1}\n\n{2}\n".format(gameScoreTopPlayers[0], gameScoreTopPlayers[1], gameScoreTopPlayers[2]), "  \n{0}\n\n{1}\n\n{2}\n".format(gameScoreTopPlayers[3], gameScoreTopPlayers[4], gameScoreTopPlayers[5]), "  \n{0}\n\n{1}\n\n{2}\n".format(gameScoreTopPlayers[6], gameScoreTopPlayers[7], gameScoreTopPlayers[8])), "  \n{0}".format(gameScoreTopPlayers[10])), gameScorePositions[3], 2.14, Clip.NONE, WorldTextReeval.VISIBILITY_AND_STRING, Color.WHITE, SpecVisibility.DEFAULT)
-    createInWorldText(getAllPlayers(), "{0}{1} \n\n \n\n \n\n \n".format("{0}\n\n{1}\n\n{2}\n\n".format("                                                                          {0} kills".format(gameScoreTopPlayersValues[0]), "                                                             {0} K/D".format(gameScoreTopPlayersValues[1]), "                                                        {0} gold stolen from".format(gameScoreTopPlayersValues[2])), "{0}\n\n{1}\n\n{2}\n\n".format("                                                                       {0} gold earned".format(gameScoreTopPlayersValues[3]), "                                                                  {0} gold stolen".format(gameScoreTopPlayersValues[4]), "                                                                  {0} gold/sec".format(gameScoreTopPlayersValues[5]))), gameScorePositions[2], 1.9, Clip.NONE, WorldTextReeval.VISIBILITY_AND_STRING, Color.WHITE, SpecVisibility.DEFAULT)
-    createInWorldText(getAllPlayers(), " \n\n \n\n \n\n \n\n \n\n \n\n{0}{1}".format("{0}\n\n{1}\n\n{2}\n\n".format("                                                                              {0} gold/kills".format(gameScoreTopPlayersValues[6]), "                                                                           {0} orbs collected".format(gameScoreTopPlayersValues[7]), "                                                                {0} upgrades".format(gameScoreTopPlayersValues[8])), "                                                                {0} bases moved\n ".format(gameScoreTopPlayersValues[9])), gameScorePositions[2], 1.9, Clip.NONE, WorldTextReeval.VISIBILITY_AND_STRING, Color.WHITE, SpecVisibility.DEFAULT)
-
 

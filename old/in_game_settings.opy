@@ -1,4 +1,4 @@
-#!mainFile "base_wars.opy"
+#!mainFile "../base_wars.opy"
 
 
 rule "GAME RULES PREPARE HOST JOIN":
@@ -32,7 +32,18 @@ rule "GAME RULES PREPARE HOST":
     eventPlayer.setStatusEffect(null, Status.PHASED_OUT, 9999)
     wait()
     hudHeader(gameRulesHost, " \n{0}{1}{2}\n ".format("{0} {1}".format(iconString(Icon.ARROW_LEFT), buttonString(Button.PRIMARY_FIRE)), "                   [{0}]: toggle         [{1}]: finish                  ".format(buttonString(Button.INTERACT), buttonString(Button.ULTIMATE)), "{1} {0}".format(iconString(Icon.ARROW_RIGHT), buttonString(Button.SECONDARY_FIRE))), HudPosition.TOP, 4, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.NEVER)
-    hudHeader(gameRulesHost, [" \n               Players can steal from bases              \n ", " \n         Occupied bases can be stolen from         \n ", "  \n                Enable Sparkbolts powerup                 \n ", "  \n           Base gold miner upgrade enabled          \n ", " \n      Randomly spawn loot orbs on the map     \n ", " \n    Sombra can pick up loot while invisible    \n ", " \n      Long Match (5000 gold win condition)      \n ", " \n                 Hero Switch is always free                   \n ", " \n                    Base Move is always free                    \n ", " \n        Base gold miner is half as efficient        \n "][gameRulesCurrentSelection], HudPosition.TOP, 6, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    hudHeader(gameRulesHost, [
+        " \n               Players can steal from bases              \n ",
+        " \n         Occupied bases can be stolen from         \n ",
+        "  \n                Enable Sparkbolts powerup                 \n ",
+        "  \n           Base gold miner upgrade enabled          \n ",
+        " \n      Randomly spawn loot orbs on the map     \n ",
+        " \n    Sombra can pick up loot while invisible    \n ",
+        " \n      Long Match (5000 gold win condition)      \n ",
+        " \n                 Hero Switch is always free                   \n ",
+        " \n                    Base Move is always free                    \n ",
+        " \n        Base gold miner is half as efficient        \n "
+    ][gameRulesCurrentSelection], HudPosition.TOP, 6, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
     hudHeader(gameRulesHost, [].concat("{0}".format(iconString(Icon.NO)).concat("{0}".format(iconString(Icon.CHECKMARK))))[gameRulesArray[gameRulesCurrentSelection]], HudPosition.TOP, 7, Color.ORANGE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.NEVER)
     tmpLootSpawnpointRandomPointWP = mapOrigin + mapRotationVector * mapXYZ.x * 0.5 + vect(mapRotationVector.z, 0, mapRotationVector.x * -1) * mapXYZ.z * 0.5 + (vect(0, mapXYZ.y + 100, 0))
     gameRulesHost.startCamera(tmpLootSpawnpointRandomPointWP, tmpLootSpawnpointRandomPointWP - vect(0, 50, 0), 0)
@@ -102,3 +113,96 @@ rule "PLAYER HUD SETUP HOST":
     @Condition mapInfo != null
     
     hudHeader(getAllPlayers(), "WAITING FOR {0} TO SET GAME RULES".format(hostPlayer), HudPosition.TOP, 3, Color.ORANGE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+
+
+def gameStart():
+    @Name "GAME START"
+    
+    for gameRulesCurrentSelection in range(len(gameRulesArray)):
+        if gameRulesArray[gameRulesCurrentSelection] != gameRulesArraySaved[gameRulesCurrentSelection]:
+            gameRulesCustomized = true
+            goto lbl_0
+    lbl_0:
+    gameRulesHost.setInvisibility(Invis.NONE)
+    gameRulesHost.allowButton(Button.PRIMARY_FIRE)
+    gameRulesHost.allowButton(Button.SECONDARY_FIRE)
+    gameRulesHost.allowButton(Button.ABILITY_1)
+    gameRulesHost.allowButton(Button.ABILITY_2)
+    gameRulesHost.allowButton(Button.ULTIMATE)
+    gameRulesHost.allowButton(Button.INTERACT)
+    gameRulesHost.allowButton(Button.MELEE)
+    gameRulesHost.stopCamera()
+    gameRulesHost.setGravity(100)
+    gameRulesHost.clearStatusEffect(Status.PHASED_OUT)
+    destroyAllHudTexts()
+    gameRulesHost.enableHeroHud()
+    ([player for player in getAllPlayers() if player != gameRulesHost]).respawn()
+    gameRulesSelectionMarkerArray = []
+    gameRulesArraySaved = null
+    gameRulesHost.stopForcingCurrentHero()
+    gameRulesHost.setAllowedHeroes(getAllHeroes().exclude(gameRulesHost.getCurrentHero()))
+    #BASEWARS BY DURKHAZ#2629 - discord.gg/EEMjjFB
+    setMatchTime(819)
+    disableGamemodeCompletion()
+    disableAnnouncer()
+    disableScoring()
+    disconnectedPlayers = []
+    lootArrayLocations = []
+    lootSpawnPoints = []
+    lootPossiblePlayers = []
+    bountyArrayLocations[11] = null
+    bountyArrayEffects[11] = null
+    bountyArrayMoney[11] = null
+    leaderboard = []
+    stealingRiskMultiplier = 1.5
+    stealingRiskThreshold = 0.75
+    gameLootOrbAmount = 25
+    lootSpread = 15
+    baseUpgradeSphereActualSize = 0.4 * 0.985
+    sparkboltPickupPos = null
+    gameRulesGoldMinerInitialCost = 30
+    if gameRulesArray[3]:
+        goto lbl_1
+    gameRulesGoldMinerInitialCost = 100000
+    lbl_1:
+    gameGoldVictory = 2500
+    if not gameRulesArray[6]:
+        goto lbl_2
+    gameGoldVictory = 5000
+    lbl_2:
+    gameRulesMoveBaseInitialCost = 50
+    if not gameRulesArray[7]:
+        goto lbl_3
+    gameRulesMoveBaseInitialCost = 0
+    lbl_3:
+    gameRulesGoldMinerFrequency = 1
+    if not gameRulesArray[9]:
+        goto lbl_4
+    gameRulesGoldMinerFrequency = 2
+    lbl_4:
+    lootSpawnMax = 16
+    leaderboardMaxScore = gameGoldVictory * 2
+    gameHealingHeroes = ((((([i for i in getAllHeroes() if not i in getSupportHeroes()]).concat(Hero.ZENYATTA.concat(Hero.ANA).concat(Hero.BRIGITTE))).exclude(Hero.BASTION)).exclude(Hero.MEI)).exclude(Hero.ROADHOG)).exclude(Hero.SOLDIER)
+    bigMessage(getAllPlayers(), "GAME STARTED")
+    hasGameStarted = true
+    wait(0.25)
+    gameRulesHost.resetHeroAvailability()
+    gameRulesHost = null
+    wait(0.75)
+    pauseMatchTime()
+
+
+
+rule "GAME RULES HUD SHOW":
+    @Event eachPlayer
+    @Hero all
+    @Condition eventPlayer.isHoldingButton(Button.MELEE)
+    @Condition eventPlayer.isHoldingButton(Button.CROUCH)
+    @Condition hasGameStarted
+    @Condition gameRulesCustomized
+    
+    if eventPlayer in gameRulesVisibleTo:
+        gameRulesVisibleTo.remove(eventPlayer)
+    else:
+        gameRulesVisibleTo.append(eventPlayer)
+    wait(1)
