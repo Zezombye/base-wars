@@ -1,9 +1,11 @@
-- Fix "enemy in base" when unspawned
-- Add colors to leaderboard and fix percentages
-- Fix hero select
+
 - Fix end game scoreboard
 
 - Add workshop settings - DONE
+- Add colors to leaderboard - DONE
+- fix leaderboard percentages - DONE
+- Fix hero select - fixed?
+- Fix "enemy in base" when unspawned - fixed?
 
 Global effects: 16x loot orb
 Player effects (max 9):
@@ -19,6 +21,7 @@ Player effects (max 9):
 Global texts:
 - no base built
 - enemy in your base
+- scoreboard title
 - scoreboard 1
 - scoreboard 2
 - scoreboard 3

@@ -6,7 +6,7 @@
 #!define GAMEMODE_CODE "14WON"
 #!define BASE_RADIUS 3.5
 
-##!obfuscate noRuleFilling
+#!obfuscate noRuleFilling
 
 enum Upgrade:
     GOLD_MINER,
@@ -19,7 +19,7 @@ enum Upgrade:
 
 #Global variables
 
-globalvar powerLevelColors = [Color.WHITE, Color.WHITE, Color.WHITE, Color.WHITE, Color.AQUA, Color.AQUA, Color.AQUA, Color.BLUE, Color.PURPLE, Color.RED, Color.ROSE, Color.BLACK]
+globalvar powerLevelColors = [Color.WHITE, Color.WHITE, Color.WHITE, Color.WHITE, Color.AQUA, Color.AQUA, Color.AQUA, Color.BLUE, Color.PURPLE, Color.RED, Color.ROSE, rgb(20, 20, 20)]
 globalvar upgradeColors = [
     Color.BLUE,
     Color.RED,
@@ -47,10 +47,9 @@ globalvar upgradeIcons = [
     iconString(Icon.STOP),
     iconString(Icon.WARNING),
 ]
-globalvar upgradeTexts = [
-    
-]
 
+globalvar tmpTotalGoldCalc
+globalvar hudIterator
 globalvar antiCrashActivated
 globalvar lootArrayLocations
 globalvar isGameInitialized
@@ -98,11 +97,10 @@ globalvar stealingBaseOwnerIterator
 globalvar gameHealingHeroes
 globalvar tmpPlayerLeftBaseIterator
 globalvar tmpPlayerLeftIterator
-#globalvar disconnectedPlayers
 globalvar mapSize
 globalvar stealingRiskThreshold
 globalvar stealingRiskMultiplier
-globalvar leaderboardMaxScore
+globalvar totalGoldToWin
 globalvar sparkboltSpawnpointIndex
 globalvar sparkboltPickupPos
 globalvar tmpSparkboltClosestPlayer
@@ -138,7 +136,7 @@ globalvar enableGoldMinerUpgrade = createWorkshopSetting(bool, SETTINGS_TITLE, "
 globalvar enableLootOrbs = createWorkshopSetting(bool, SETTINGS_TITLE, "Spawn loot orbs", true, 4)
 globalvar lootOrbsGold = createWorkshopSetting(int[10:40], SETTINGS_TITLE, "Gold given by loot orbs", 25, 5)
 globalvar enableInvisibleLootPickup = createWorkshopSetting(bool, SETTINGS_TITLE, "Sombra can pick up orbs while invisible", false, 6)
-globalvar gameGoldVictory = createWorkshopSetting(int[1000:10000], SETTINGS_TITLE, "Amount of gold to win", 10000, 7)
+globalvar gameGoldVictory = createWorkshopSetting(int[1000:5000], SETTINGS_TITLE, "Amount of gold to win", 10000, 7)
 globalvar enableAlwaysFreeHeroSwitch = createWorkshopSetting(bool, SETTINGS_TITLE, "Hero switch is always free", false, 8)
 globalvar enableAlwaysFreeBaseMove = createWorkshopSetting(bool, SETTINGS_TITLE, "Base move is always free", false, 9)
 globalvar enableInefficientGoldMiner = createWorkshopSetting(bool, SETTINGS_TITLE, "Make gold miner less efficient", false, 10)
@@ -147,6 +145,7 @@ globalvar lootSpawnMax = createWorkshopSetting(int[5:16], SETTINGS_TITLE, "Maxim
 
 #Player variables
 
+playervar storedMoney
 playervar statsMoney
 playervar hasBase
 playervar statsUpgradeCost
@@ -212,7 +211,6 @@ subroutine settleBalance
 subroutine setBaseLocation
 subroutine playerBaseBuildEffects
 subroutine baseUpgradeFail
-#subroutine spawnBaseEffect
 subroutine checkUpgradeAvailability
 subroutine protectedBaseEffect
 subroutine gameStart
@@ -264,7 +262,13 @@ rule "init":
         gameRulesGoldMinerFrequency = 2
 
     lootSpawnMax = 16
-    leaderboardMaxScore = gameGoldVictory * 2
+    tmpTotalGoldCalc = 100
+    totalGoldToWin = 0
+    while tmpTotalGoldCalc < gameGoldVictory:
+        totalGoldToWin += tmpTotalGoldCalc
+        tmpTotalGoldCalc = ceil(tmpTotalGoldCalc * 1.5 / 10) * 10
+    totalGoldToWin += gameGoldVictory
+
     gameHealingHeroes = ((((([i for i in getAllHeroes() if not i in getSupportHeroes()]).concat(Hero.ZENYATTA.concat(Hero.ANA).concat(Hero.BRIGITTE))).exclude(Hero.BASTION)).exclude(Hero.MEI)).exclude(Hero.ROADHOG)).exclude(Hero.SOLDIER)
     bigMessage(getAllPlayers(), "GAME STARTED")
     hasGameStarted = true
@@ -579,23 +583,22 @@ rule "display scoreboard":
     #title + 1st player
     hudText(getAllPlayers(), null, 
         "            discord.gg/YP544CH | code: "GAMEMODE_CODE"\nScoreboard    -    Base Wars "VERSION" "CREATION_DATE, 
-        "FIRST TO {0} GOLD IN BASE WINS!\n \n{1}".format(gameGoldVictory, 
-            " · {0}% {1} {2} ".format(floor(((leaderboard[0].statsMoneyBase + leaderboard[0].statsMoneyStorage) / leaderboardMaxScore) * 100), heroIcon(leaderboard[0].getCurrentHero()), leaderboard[0])
-        ),
+        "FIRST TO {0} GOLD IN BASE WINS!\n".format(gameGoldVictory),
         HudPosition.RIGHT, 1, Color.WHITE, Color.ORANGE, powerLevelColors[leaderboard[0].statsUpgradeLevels[Upgrade.GOLD_STORAGE]], HudReeval.VISIBILITY_STRING_AND_COLOR, SpecVisibility.ALWAYS)
     
-    #2nd player
-    hudText(getAllPlayers(), null, "Scoreboard    -    Base Wars "VERSION" "CREATION_DATE, " · {0}% {1} {2} ".format(floor(((leaderboard[1].statsMoneyBase + leaderboard[1].statsMoneyStorage) / leaderboardMaxScore) * 100), heroIcon(leaderboard[1].getCurrentHero()), leaderboard[1]), HudPosition.RIGHT, 2, null, null, powerLevelColors[leaderboard[1].statsUpgradeLevels[Upgrade.GOLD_STORAGE]], HudReeval.VISIBILITY_STRING_AND_COLOR, SpecVisibility.ALWAYS)
-
-    #3rd player
-    hudText(getAllPlayers(), null, "Scoreboard    -    Base Wars "VERSION" "CREATION_DATE, " · {0}% {1} {2} ".format(floor(((leaderboard[2].statsMoneyBase + leaderboard[2].statsMoneyStorage) / leaderboardMaxScore) * 100), heroIcon(leaderboard[2].getCurrentHero()), leaderboard[2]), HudPosition.RIGHT, 3, null, null, powerLevelColors[leaderboard[2].statsUpgradeLevels[Upgrade.GOLD_STORAGE]], HudReeval.VISIBILITY_STRING_AND_COLOR, SpecVisibility.ALWAYS)
+    for hudIterator in range(3):
+        hudText(getAllPlayers(), null, "Scoreboard    -    Base Wars "VERSION" "CREATION_DATE, " · {0}% {1} {2} ".format(
+            floor(((leaderboard[evalOnce(hudIterator)].statsMoneyBase + leaderboard[evalOnce(hudIterator)].storedMoney) / totalGoldToWin) * 100),
+            heroIcon(leaderboard[evalOnce(hudIterator)].getCurrentHero()), 
+            leaderboard[evalOnce(hudIterator)]
+        ), HudPosition.RIGHT, evalOnce(hudIterator)+2, null, null, powerLevelColors[leaderboard[evalOnce(hudIterator)].statsUpgradeLevels[Upgrade.GOLD_STORAGE]], HudReeval.VISIBILITY_STRING_AND_COLOR, SpecVisibility.ALWAYS)
 
     #if gameRulesCustomized:
         #hudText(gameRulesVisibleTo, null, "Lobby Mods: {0}{1}{2}".format("{0}{1}{2}".format("{0}{1}{2}".format(["No Stealing, ", ""][enableStealing], ["Steal from empty base only, ", ""][enableOccupiedStealing], ["No Sparkbolt, ", ""][enableSparkbolts]), ["No Goldminer, ", ""][enableGoldMinerUpgrade], ["No Loot, ", ""][enableLootOrbs]), "{0}{1}{2}".format(["No Sombra Invis loot, ", ""][enableInvisibleLootPickup], ["", "5000 gold victory, "][enableAlwaysFreeHeroSwitch], ["", "Free Heroswitch, "][enableAlwaysFreeHeroSwitch]), "{0}{1}{2}".format(["", "Free Basemove, "][enableAlwaysFreeBaseMove], ["", "Slower Goldminer, "][enableInefficientGoldMiner], "")), "{0} + {1} to hide mods".format(buttonString(Button.CROUCH), buttonString(Button.MELEE)), HudPosition.LEFT, -1, Color.ORANGE, Color.WHITE, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.NEVER)
 
 
 
-rule "update leaderboard":
+rule "update scoreboard":
     @Condition hasGameStarted
     
     while true:
@@ -697,20 +700,20 @@ rule "BASE BUILD":
     playerBaseBuildEffects()
 
 
-rule "BASE ENTER":
+rule "player enters base":
     @Event eachPlayer
     @Hero all
     @Condition hasGameStarted
     @Condition eventPlayer.playerObjectInBase == null
     @Condition eventPlayer.hasBase
     @Condition distance(eventPlayer.playerBaseLocation, eventPlayer) <= 3.5
-    @Condition eventPlayer.hasStatusEffect(Status.ASLEEP) == false
-    @Condition eventPlayer.hasStatusEffect(Status.FROZEN) == false
-    @Condition eventPlayer.hasStatusEffect(Status.UNKILLABLE) == false
-    @Condition eventPlayer.hasStatusEffect(Status.INVINCIBLE) == false
-    @Condition eventPlayer.hasStatusEffect(Status.PHASED_OUT) == false
-    @Condition eventPlayer.isUsingUltimate() == false
-    @Condition eventPlayer.isCloaked == false
+    @Condition not eventPlayer.hasStatusEffect(Status.ASLEEP)
+    @Condition not eventPlayer.hasStatusEffect(Status.FROZEN)
+    @Condition not eventPlayer.hasStatusEffect(Status.UNKILLABLE)
+    @Condition not eventPlayer.hasStatusEffect(Status.INVINCIBLE)
+    @Condition not eventPlayer.hasStatusEffect(Status.PHASED_OUT)
+    @Condition not eventPlayer.isUsingUltimate()
+    @Condition not eventPlayer.isCloaked
     
     eventPlayer.playerObjectInBase = eventPlayer
     stopChasingVariable(eventPlayer.baseProtectionTimer)
@@ -762,7 +765,7 @@ rule "BASE EXIT":
     eventPlayer.upgradeRightArrow = null
 
 
-rule "BASE PROTECTED":
+rule "player finished entering base":
     @Event eachPlayer
     @Hero all
     @Condition eventPlayer.playerObjectInBase != null
@@ -794,10 +797,9 @@ rule "BASE PROTECTED":
     eventPlayer.upgradeLeftArrow = getLastCreatedEntity()
     createIcon(eventPlayer.showUpgradeText, normalize(vect(eventPlayer.getFacingDirection().z * -1, 0, eventPlayer.getFacingDirection().x)) * eventPlayer.upgradeOffsetLeft + (eventPlayer.playerBaseLocation - vect(0, 0.3, 0)), Icon.ARROW_RIGHT, IconReeval.VISIBILITY_AND_POSITION, Color.WHITE, false)
     eventPlayer.upgradeRightArrow = getLastCreatedEntity()
-    if eventPlayer.isInBase:
-        goto lbl_0
-    protectedBaseEffect()
-    lbl_0:
+    if not eventPlayer.isInBase:
+        playEffect(getAllPlayers(), DynamicEffect.GOOD_PICKUP_EFFECT, powerLevelColors[eventPlayer.statsUpgradeLevels[Upgrade.GOLD_STORAGE]], eventPlayer.getPosition(), 4)
+
     eventPlayer.isInBase = true
 
 
@@ -1036,7 +1038,7 @@ rule "player kill":
     bountyArrayNum += 1
 
 
-rule "UPGRADE BUY STORAGE":
+rule "upgrade storage capacity":
     @Event eachPlayer
     @Hero all
     @Condition eventPlayer.isInBase
@@ -1047,6 +1049,7 @@ rule "UPGRADE BUY STORAGE":
     
     if eventPlayer.statsMoneyBase >= eventPlayer.statsUpgradeCost[eventPlayer.upgradeCurrentSelection]:
         eventPlayer.scoreArray[6] += 1
+        eventPlayer.storedMoney += eventPlayer.statsMoneyStorage
         eventPlayer.statsMoneyBase = 0
         playEffect(eventPlayer, DynamicEffect.RING_EXPLOSION, Color.YELLOW, eventPlayer.playerBaseLocation, 4)
         playEffect(eventPlayer, DynamicEffect.BUFF_EXPLOSION_SOUND, Color.WHITE, eventPlayer, 200)
@@ -1072,7 +1075,6 @@ rule "UPGRADE BUY STORAGE":
         smallMessage(eventPlayer, "{1} +{0} GOLD CAPACITY {1}".format(ceil(eventPlayer.statsMoneyStorage / 2), iconString(Icon.ARROW_UP)))
         checkUpgradeAvailability()
         settleBalance()
-        #spawnBaseEffect()
     else:
         baseUpgradeFail()
 
@@ -1384,53 +1386,6 @@ def baseUpgradeFail():
     
     playEffect(eventPlayer, DynamicEffect.RING_EXPLOSION_SOUND, Color.WHITE, eventPlayer, 20)
     smallMessage(eventPlayer, "{0} NOT ENOUGH GOLD IN BASE {0}".format(iconString(Icon.NO)))
-
-/*
-def spawnBaseEffect():
-    @Name "SUB SPAWN BASE EFFECT"
-    
-    if entityExists(eventPlayer.baseEffectOrb):
-        destroyEffect(eventPlayer.baseEffectOrb)
-
-    if entityExists(eventPlayer.baseEffectRing):
-        destroyEffect(eventPlayer.baseEffectRing)
-
-    if eventPlayer.statsUpgradeLevels[Upgrade.GOLD_STORAGE] < 4:
-        createEffect([player for player in getAllPlayers() if player != eventPlayer.playerObjectInBase], Effect.SPHERE, Color.WHITE, eventPlayer.playerBaseLocation, 3.5, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
-        eventPlayer.baseEffectOrb = getLastCreatedEntity()
-        createEffect(eventPlayer.playerObjectInBase, Effect.RING, Color.WHITE, eventPlayer.playerBaseLocation, 3.5, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
-    elif eventPlayer.statsUpgradeLevels[Upgrade.GOLD_STORAGE] >= 4 and eventPlayer.statsUpgradeLevels[Upgrade.GOLD_STORAGE] < 7:
-        createEffect([player for player in getAllPlayers() if player != eventPlayer.playerObjectInBase], Effect.SPHERE, Color.AQUA, eventPlayer.playerBaseLocation, 3.5, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
-        eventPlayer.baseEffectOrb = getLastCreatedEntity()
-        createEffect(eventPlayer.playerObjectInBase, Effect.RING, Color.AQUA, eventPlayer.playerBaseLocation, 3.5, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
-    elif eventPlayer.statsUpgradeLevels[Upgrade.GOLD_STORAGE] == 7:
-        createEffect([player for player in getAllPlayers() if player != eventPlayer.playerObjectInBase], Effect.SPHERE, Color.BLUE, eventPlayer.playerBaseLocation, 3.5, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
-        eventPlayer.baseEffectOrb = getLastCreatedEntity()
-        createEffect(eventPlayer.playerObjectInBase, Effect.RING, Color.BLUE, eventPlayer.playerBaseLocation, 3.5, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
-    elif eventPlayer.statsUpgradeLevels[Upgrade.GOLD_STORAGE] == 8:
-        createEffect([player for player in getAllPlayers() if player != eventPlayer.playerObjectInBase], Effect.SPHERE, Color.PURPLE, eventPlayer.playerBaseLocation, 3.5, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
-        eventPlayer.baseEffectOrb = getLastCreatedEntity()
-        createEffect(eventPlayer.playerObjectInBase, Effect.RING, Color.PURPLE, eventPlayer.playerBaseLocation, 3.5, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
-    else:
-        createEffect([player for player in getAllPlayers() if player != eventPlayer.playerObjectInBase], Effect.SPHERE, Color.RED, eventPlayer.playerBaseLocation, 3.5, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
-        eventPlayer.baseEffectOrb = getLastCreatedEntity()
-        createEffect(eventPlayer.playerObjectInBase, Effect.RING, Color.RED, eventPlayer.playerBaseLocation, 3.5, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
-    eventPlayer.baseEffectRing = getLastCreatedEntity()
-*/
-
-def protectedBaseEffect():
-    @Name "SUB PROTECTED BASE EFFECT"
-    
-    if eventPlayer.statsUpgradeLevels[Upgrade.GOLD_STORAGE] < 4:
-        playEffect(getAllPlayers(), DynamicEffect.GOOD_PICKUP_EFFECT, Color.WHITE, eventPlayer.getPosition(), 4)
-    elif eventPlayer.statsUpgradeLevels[Upgrade.GOLD_STORAGE] >= 4 and eventPlayer.statsUpgradeLevels[Upgrade.GOLD_STORAGE] < 7:
-        playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.TURQUOISE, eventPlayer.getPosition(), 4)
-    elif eventPlayer.statsUpgradeLevels[Upgrade.GOLD_STORAGE] == 7:
-        playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.BLUE, eventPlayer.getPosition(), 4)
-    elif eventPlayer.statsUpgradeLevels[Upgrade.GOLD_STORAGE] == 8:
-        playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.PURPLE, eventPlayer.getPosition(), 4)
-    else:
-        playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.RED, eventPlayer.getPosition(), 4)
 
 
 def checkUpgradeAvailability():
