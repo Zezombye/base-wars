@@ -44,5 +44,5 @@ settings {
                 "ultGen%": 150
             }
         }
-    }
+    },
 }

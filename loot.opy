@@ -5,7 +5,7 @@ rule "LOOT UPDATE PLAYERS ADD":
     @Hero all
     @Condition hasGameStarted
     @Condition eventPlayer.isAlive()
-    @Condition eventPlayer.isProtected == false
+    @Condition eventPlayer.isInBase == false
     @Condition eventPlayer.hasSpawned()
     @Condition (enableInvisibleLootPickup or not eventPlayer.isCloaked)
     
@@ -18,7 +18,7 @@ rule "LOOT UPDATE PLAYERS REMOVE":
     @Event eachPlayer
     @Hero all
     @Condition hasGameStarted
-    @Condition (any([eventPlayer.isDead(), eventPlayer.isProtected, not eventPlayer.hasSpawned(), not enableInvisibleLootPickup and eventPlayer.isCloaked]))
+    @Condition (any([eventPlayer.isDead(), eventPlayer.isInBase, not eventPlayer.hasSpawned(), not enableInvisibleLootPickup and eventPlayer.isCloaked]))
     
     lootPossiblePlayers.remove(eventPlayer)
 

@@ -20,7 +20,7 @@ rule "GAME ENDED LATE JOIN":
     eventPlayer.setStatusEffect(null, Status.FROZEN, 9999)
     eventPlayer.setStatusEffect(null, Status.INVINCIBLE, 9999)
     eventPlayer.setInvisibility(Invis.ALL)
-    eventPlayer.isProtected = true
+    eventPlayer.isInBase = true
 
 
 rule "display scoreboard":
