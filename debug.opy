@@ -43,7 +43,7 @@ rule "debug money":
     @Event eachPlayer
     @Condition DEBUG_MODE
     wait(5)
-    eventPlayer.statsMoney = 10000
+    eventPlayer.statsMoney = 20000
 
 rule "DEBUG VARIABLES":
     @Event eachPlayer
@@ -85,6 +85,11 @@ rule "DEBUG COUNT EFFECTS":
         goto RULE_START
     eventPlayer.debugEffectCountArray = []
     eventPlayer.debugEffectCountIterator = 0
+
+
+rule "debug win":
+    @Condition hostPlayer.isHoldingButton(Button.INTERACT)
+    declareTeamVictory(0[0])
 
 
 rule "DEBUG FREECAM":

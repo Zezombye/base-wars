@@ -48,6 +48,7 @@ globalvar upgradeIcons = [
     iconString(Icon.WARNING),
 ]
 
+globalvar gameEndCamera
 globalvar tmpTotalGoldCalc
 globalvar hudIterator
 globalvar antiCrashActivated
@@ -118,7 +119,6 @@ globalvar gameRulesArraySaved
 globalvar gameEnded
 globalvar gameWinner
 globalvar gameEndingScreenPos
-globalvar gameLootOrbAmount
 globalvar gameScorePositions
 globalvar lootPossiblePlayers
 globalvar gameScoreTopPlayers
@@ -134,13 +134,13 @@ globalvar enableOccupiedStealing = createWorkshopSetting(bool, SETTINGS_TITLE, "
 globalvar enableSparkbolts = createWorkshopSetting(bool, SETTINGS_TITLE, "Spawn sparkbolts", true, 2)
 globalvar enableGoldMinerUpgrade = createWorkshopSetting(bool, SETTINGS_TITLE, "Players can upgrade gold miner", true, 3)
 globalvar enableLootOrbs = createWorkshopSetting(bool, SETTINGS_TITLE, "Spawn loot orbs", true, 4)
-globalvar lootOrbsGold = createWorkshopSetting(int[10:40], SETTINGS_TITLE, "Gold given by loot orbs", 25, 5)
-globalvar enableInvisibleLootPickup = createWorkshopSetting(bool, SETTINGS_TITLE, "Sombra can pick up orbs while invisible", false, 6)
-globalvar gameGoldVictory = createWorkshopSetting(int[1000:5000], SETTINGS_TITLE, "Amount of gold to win", 10000, 7)
-globalvar enableAlwaysFreeHeroSwitch = createWorkshopSetting(bool, SETTINGS_TITLE, "Hero switch is always free", false, 8)
-globalvar enableAlwaysFreeBaseMove = createWorkshopSetting(bool, SETTINGS_TITLE, "Base move is always free", false, 9)
-globalvar enableInefficientGoldMiner = createWorkshopSetting(bool, SETTINGS_TITLE, "Make gold miner less efficient", false, 10)
-globalvar lootSpawnMax = createWorkshopSetting(int[5:16], SETTINGS_TITLE, "Maximum number of loot orbs", 16, 11)
+globalvar lootSpawnMax = createWorkshopSetting(int[5:16], SETTINGS_TITLE, "Maximum number of loot orbs", 16, 5)
+globalvar gameLootOrbAmount = createWorkshopSetting(int[10:40], SETTINGS_TITLE, "Gold given by loot orbs", 25, 6)
+globalvar enableInvisibleLootPickup = createWorkshopSetting(bool, SETTINGS_TITLE, "Sombra can pick up orbs while invisible", false, 7)
+globalvar gameGoldVictory = createWorkshopSetting(int[1000:5000], SETTINGS_TITLE, "Amount of gold to win", 10000, 8)
+globalvar enableAlwaysFreeHeroSwitch = createWorkshopSetting(bool, SETTINGS_TITLE, "Hero switch is always free", false, 9)
+globalvar enableAlwaysFreeBaseMove = createWorkshopSetting(bool, SETTINGS_TITLE, "Base move is always free", false, 10)
+globalvar enableInefficientGoldMiner = createWorkshopSetting(bool, SETTINGS_TITLE, "Make gold miner less efficient", false, 11)
 
 
 #Player variables
@@ -244,7 +244,6 @@ rule "init":
     leaderboard = []
     stealingRiskMultiplier = 1.5
     stealingRiskThreshold = 0.75
-    gameLootOrbAmount = 25
     lootSpread = 15
     baseUpgradeSphereActualSize = 0.4 * 0.985
     sparkboltPickupPos = null
@@ -287,90 +286,147 @@ rule "GAME INIT MAP":
     lootBlockerVolumeRadius = 30
     if getCurrentMap() == Map.BLACK_FOREST or getCurrentMap() == Map.BLACK_FOREST_WINTER:
         mapInfo = vect(-64.026, 10.008, -63.027)
+        gameEndCamera = vect(-21.45, 13.18, 2.03)
+
     elif getCurrentMap() == Map.BLIZZ_WORLD or getCurrentMap() == Map.BLIZZ_WORLD_WINTER:
         mapNavMesh = vect(-92.816, -1.3, 119.946)
         mapInfo = vect(-93.084, 7, 68.06)
+        gameEndCamera = vect(-124.15, 1.20, 107.3)
+
     elif getCurrentMap() == Map.CASTILLO:
         mapInfo = vect(-60.13, 7.032, 52.027)
+        gameEndCamera = vect(-82.63, 43.36, 16.35)
+
     elif getCurrentMap() == Map.CHATEAU_GUILLARD or getCurrentMap() == Map.CHATEAU_GUILLARD_HALLOWEEN:
         mapInfo = vect(66.17, 13.001, 65.046)
+        gameEndCamera = vect(205.74, 1.28, 76.17)
+
     elif getCurrentMap() == Map.DORADO:
         mapInfo = vect(85.11, 14.007, -67.039)
         mapNavMesh = vect(69.636, 6.939, -13.709)
         mapRotationVector = angleToDirection(321, 0)
+        gameEndCamera = vect(131.25, 57.86, 34.46)
+
     elif getCurrentMap() == Map.ECOPOINT_ANTARCTICA or getCurrentMap() == Map.ECOPOINT_ANTARCTICA_WINTER:
         mapInfo = vect(-110.027, 10.003, -56.06)
+        gameEndCamera = vect(-5.46, 24.56, -55.57)
+
     elif getCurrentMap() == Map.EICHENWALDE or getCurrentMap() == Map.EICHENWALDE_HALLOWEEN:
         mapNavMesh = vect(21.479, 4.943, -61.208)
         mapInfo = vect(55.021, 18.004, -77.102)
         mapRotationVector = angleToDirection(15, 0)
+        gameEndCamera = vect(122.30, 9.66, -29.30)
+
     elif getCurrentMap() == Map.HANAMURA or getCurrentMap() == Map.HANAMURA_WINTER:
         mapNavMesh = vect(41.188, 0.478, 24.839)
         mapInfo = vect(-138.015, -14.005, -65.105)
         mapRotationVector = angleToDirection(348, 0)
+        gameEndCamera = vect(69.88, -2.14, 58.6)
+
     elif getCurrentMap() == Map.HAVANA:
         mapNavMesh = vect(-18.944, 6.062, -80.093)
         mapInfo = vect(44, 8.004, -61.103)
+        gameEndCamera = vect(-35.31, 8.03, 64.56)
+
     elif getCurrentMap() == Map.HOLLYWOOD or getCurrentMap() == Map.HOLLYWOOD_HALLOWEEN:
         mapNavMesh = vect(-18.025, 1.777, 14.081)
         mapInfo = vect(-82.041, 6.002, -87.072)
         mapRotationVector = angleToDirection(16, 0)
+        gameEndCamera = vect(-31.01, 7.16, -176.48)
+
     elif getCurrentMap() == Map.HORIZON_LUNAR_COLONY:
         mapNavMesh = vect(51.683, 6.129, -34.033)
         mapInfo = vect(-166.055, 11.003, -80.112)
         mapRotationVector = angleToDirection(48, 0)
         lootBlockerVolumePos = vect(73.442, 17.829, -98.474)
         lootBlockerVolumeRadius = 16
+        gameEndCamera = vect(-111.54, 4.77, -118.15)
+
     elif getCurrentMap() == Map.ILIOS_LIGHTHOUSE:
         mapInfo = vect(176.245, -12.03, -100.103)
         mapRotationVector = angleToDirection(23, 0)
+        gameEndCamera = vect(315.15, -23.06, 82.19)
+
     elif getCurrentMap() == Map.ILIOS_RUINS:
         mapInfo = vect(-45.081, 10.057, -219.184)
+        gameEndCamera = vect(36.57, 102.09, -130)
+
     elif getCurrentMap() == Map.ILIOS_WELL:
         mapInfo = vect(-157.179, -10.005, -51.094)
         mapRotationVector = angleToDirection(315, 0)
+        gameEndCamera = vect(-217.03, 1.35, -18.18)
+
     elif getCurrentMap() == Map.KINGS_ROW or getCurrentMap() == Map.KINGS_ROW_WINTER:
         mapNavMesh = vect(-122.712, -1.072, -1.493)
         mapInfo = vect(-74.12, -14.004, -102.068)
         mapRotationVector = angleToDirection(350, 0)
         lootBlockerVolumePos = vect(-127.119, 0.434, -57.126)
+        gameEndCamera = vect(-33.72, 40.35, -61.41)
+
     elif getCurrentMap() == Map.LIJIANG_CONTROL_CENTER or getCurrentMap() == Map.LIJIANG_CONTROL_CENTER_LNY:
         mapInfo = vect(-123.089, 14.265, 127.335)
         mapRotationVector = angleToDirection(45, 0)
+        gameEndCamera = vect(87.78, 265.71, 363.57)
+
     elif getCurrentMap() == Map.LIJIANG_GARDEN or getCurrentMap() == Map.LIJIANG_GARDEN_LNY:
         mapInfo = vect(-79.092, 4.094, 187.108)
+        gameEndCamera = vect(-1.28, 95.34, 179.78)
+
     elif getCurrentMap() == Map.LIJIANG_NIGHT_MARKET or getCurrentMap() == Map.LIJIANG_NIGHT_MARKET_LNY:
         mapInfo = vect(-83.084, -8.002, -185.081)
+        gameEndCamera = vect(-77.06, 245.24, 368.46)
+
     elif getCurrentMap() == Map.NECROPOLIS:
         mapInfo = vect(-65.048, -18.007, -80.036)
+        gameEndCamera = vect(0.92, 12.58, -18.32)
+
     elif getCurrentMap() == Map.NEPAL_SANCTUM:
         mapInfo = vect(194.041, 6.128, -74.097)
+        gameEndCamera = vect(81.96, 129.66, -2.54)
+
     elif getCurrentMap() == Map.NEPAL_SHRINE:
         mapInfo = vect(-183.073, 13.01, -54.09)
+        gameEndCamera = vect(50.13, 130.99, -2.66)
+
     elif getCurrentMap() == Map.NEPAL_VILLAGE or getCurrentMap() == Map.NEPAL_VILLAGE_WINTER:
         mapInfo = vect(-185.223, -14.102, -90.096)
+        gameEndCamera = vect(63.38, 16, -63.21)
+
     elif getCurrentMap() == Map.OASIS_GARDENS:
         mapInfo = vect(163.047, 11.001, -79.268)
         mapRotationVector = angleToDirection(45, 0)
+        gameEndCamera = vect(142.13, 46.81, -224.55)
+
     elif getCurrentMap() == Map.OASIS_UNIVERSITY:
         mapInfo = vect(-140.225, 11.008, -64.07)
+        gameEndCamera = vect(-197.81, 59.98, 43.73)
+
     elif getCurrentMap() == Map.PARIS:
         mapNavMesh = vect(-46.367, 10.098, -0.162)
         mapInfo = vect(-86.143, 8.008, -82.084)
         mapRotationVector = angleToDirection(26, 0)
+        gameEndCamera = vect(27.85, 12.88, -83.67)
+
     elif getCurrentMap() == Map.PETRA:
         mapInfo = vect(-83.044, -15.012, -83.015)
+        gameEndCamera = vect(1.02, -8.96, 7.02)
+
     elif getCurrentMap() == Map.TEMPLE_OF_ANUBIS:
         mapNavMesh = vect(-4.694, -2.336, -6.513)
         mapInfo = vect(80.016, 10, -130.004)
         mapRotationVector = angleToDirection(275, 0)
+        gameEndCamera = vect(15.08, 16.60, -18.58)
+
     elif getCurrentMap() == Map.VOLSKAYA:
         mapNavMesh = vect(14.482, -4.352, 44.386)
         mapInfo = vect(-73.094, -8.005, 145.01)
         mapRotationVector = angleToDirection(335, 0)
         lootBlockerVolumePos = vect(28.034, 27.621, 76.387)
-    elif getCurrentMap() == Map.WORKSHOP_EXPANSE:
+        gameEndCamera = vect(-41, -1.32, -85.31)
+
+    elif getCurrentMap() == Map.WORKSHOP_EXPANSE or getCurrentMap() == Map.WORKSHOP_EXPANSE_NIGHT:
         mapInfo = vect(-200.1, 1, -200.1)
+
     if mapInfo == null:
         return
     mapXYZ = mapInfo / vect(abs(mapInfo.x), abs(mapInfo.y), abs(mapInfo.z))
@@ -574,6 +630,12 @@ rule "init player hud":
     createInWorldText([player for player in getAllPlayers() if player.stealingFrom == eventPlayer], "HOLD F TO STEAL {1} GOLD: {0}".format(eventPlayer.statsMoneyBase, iconString(Icon.SKULL)), eventPlayer.playerBaseLocation, 1.5, Clip.NONE, WorldTextReeval.VISIBILITY_POSITION_AND_STRING, Color.RED, SpecVisibility.NEVER)
 
 
+rule "update outlines":
+    @Event eachPlayer
+    while true:
+        eventPlayer.startForcingOutlineFor(getAllPlayers(), true, powerLevelColors[eventPlayer.statsUpgradeLevels[Upgrade.GOLD_STORAGE]], OutlineVisibility.DEFAULT)
+        wait(1)
+
 
 rule "display scoreboard":
     @Condition hasGameStarted
@@ -584,7 +646,7 @@ rule "display scoreboard":
     hudText(getAllPlayers(), null, 
         "            discord.gg/YP544CH | code: "GAMEMODE_CODE"\nScoreboard    -    Base Wars "VERSION" "CREATION_DATE, 
         "FIRST TO {0} GOLD IN BASE WINS!\n".format(gameGoldVictory),
-        HudPosition.RIGHT, 1, Color.WHITE, Color.ORANGE, powerLevelColors[leaderboard[0].statsUpgradeLevels[Upgrade.GOLD_STORAGE]], HudReeval.VISIBILITY_STRING_AND_COLOR, SpecVisibility.ALWAYS)
+        HudPosition.RIGHT, 1, Color.WHITE, Color.ORANGE, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.ALWAYS)
     
     for hudIterator in range(3):
         hudText(getAllPlayers(), null, "Scoreboard    -    Base Wars "VERSION" "CREATION_DATE, " · {0}% {1} {2} ".format(
@@ -888,7 +950,7 @@ rule "ENEMY BASE STEAL LOOP":
             goto lbl_2
         eventPlayer.tmpStealingAmount += eventPlayer.tmpStealingRiskBonus
         eventPlayer.tmpStealingAmount = min(eventPlayer.tmpStealingAmount, eventPlayer.tmpMoneyDifference)
-        smallMessage(eventPlayer, "+{0} GOLD [{1} RISK BONUS]".format(eventPlayer.tmpStealingAmount, eventPlayer.tmpStealingRiskBonus))
+        smallMessage(eventPlayer, "+{0} GOLD ({1} RISK BONUS)".format(eventPlayer.tmpStealingAmount, eventPlayer.tmpStealingRiskBonus))
         goto lbl_3
         lbl_2:
         eventPlayer.tmpStealingAmount = min(eventPlayer.tmpStealingAmount, eventPlayer.tmpMoneyDifference)
@@ -1007,7 +1069,7 @@ rule "player kill":
     
     eventPlayer.scoreArray[1] += 1
     if attacker != victim:
-        smallMessage(attacker, "+ {0} PLAYER GOLD [BOUNTY]".format(attacker.statsMoneyKill))
+        smallMessage(attacker, "+ {0} GOLD (kill)".format(attacker.statsMoneyKill))
         attacker.statsMoney += attacker.statsMoneyKill
         attacker.scoreArray[2] += attacker.statsMoneyKill
         attacker.scoreArray[0] += 1

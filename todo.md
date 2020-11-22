@@ -1,5 +1,9 @@
 
 - Fix end game scoreboard
+- delete "game not started" hud when game starts
+- add invincibility at game end
+- fix end game scoreboard overlap (don't depend on eye pos)
+- add oasis university (but prevent building a base on the road)
 
 - Add workshop settings - DONE
 - Add colors to leaderboard - DONE

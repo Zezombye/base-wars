@@ -13,7 +13,7 @@ settings {
     "gamemodes": {
         "ffa": {
             "enabledMaps": [
-                "hanamura"
+                "blackForest"
             ]
         },
         "general": {

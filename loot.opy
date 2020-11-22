@@ -38,7 +38,7 @@ rule "LOOT BOUNTY COLLECT LOOP":
                 bountyArrayNum -= 1
                 bountyArrayEffects[bountyArrayIterator] = null
                 playEffect(tmpBountyClosestPlayer, DynamicEffect.BUFF_EXPLOSION_SOUND, Color.WHITE, tmpBountyLocation, 50)
-                smallMessage(tmpBountyClosestPlayer, "+{0} PLAYER GOLD [LOOT]".format(bountyArrayMoney[bountyArrayIterator]))
+                smallMessage(tmpBountyClosestPlayer, "+{0} PLAYER GOLD".format(bountyArrayMoney[bountyArrayIterator]))
                 if bountyArrayMoney[bountyArrayIterator] <= 25:
                     playEffect(tmpBountyClosestPlayer, DynamicEffect.GOOD_PICKUP_EFFECT, Color.GREEN, tmpBountyLocation, 1)
                 elif bountyArrayMoney[bountyArrayIterator] > 25 and bountyArrayMoney[bountyArrayIterator] <= 250:
@@ -193,7 +193,7 @@ rule "LOOT COLLECT LOOP":
                 tmpLootCollectClosestPlayer.statsMoney += gameLootOrbAmount
                 tmpLootCollectClosestPlayer.scoreArray[2] += gameLootOrbAmount
                 tmpLootCollectClosestPlayer.scoreArray[5] += 1
-                smallMessage(tmpLootCollectClosestPlayer, "+{0} PLAYER GOLD [LOOT]".format(gameLootOrbAmount))
+                smallMessage(tmpLootCollectClosestPlayer, "+{0} GOLD".format(gameLootOrbAmount))
         wait()
     wait(0.1)
     goto RULE_START
