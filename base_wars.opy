@@ -424,8 +424,8 @@ rule "GAME INIT MAP":
         lootBlockerVolumePos = vect(28.034, 27.621, 76.387)
         gameEndCamera = vect(-41, -1.32, -85.31)
 
-    elif getCurrentMap() == Map.WORKSHOP_EXPANSE or getCurrentMap() == Map.WORKSHOP_EXPANSE_NIGHT:
-        mapInfo = vect(-200.1, 1, -200.1)
+    #elif getCurrentMap() == Map.WORKSHOP_EXPANSE or getCurrentMap() == Map.WORKSHOP_EXPANSE_NIGHT:
+    #    mapInfo = vect(-200.1, 1, -200.1)
 
     if mapInfo == null:
         return
@@ -449,55 +449,6 @@ rule "skip assembling heroes":
     @Condition isAssemblingHeroes()
     setMatchTime(0)
 
-
-rule "GAME WIN CONDITION":
-    @Event eachPlayer
-    @Hero all
-    @Condition gameGoldVictory != 0
-    @Condition eventPlayer.statsMoneyBase >= gameGoldVictory
-    @Condition gameEnded == false
-    
-    #declarePlayerVictory(eventPlayer)
-    gameEnded = true
-    gameWinner = eventPlayer
-    setSlowMotion(33)
-    wait(0.5)
-    destroyAllHudTexts()
-    bigMessage(getAllPlayers(), "{0} HAS WON THE GAME".format(eventPlayer))
-    wait(0.8)
-    getDeadPlayers(Team.ALL).respawn()
-    getAllPlayers().setStatusEffect(null, Status.INVINCIBLE, 9999)
-    getAllPlayers().setStatusEffect(null, Status.ROOTED, 9999)
-    getAllPlayers().disallowButton(Button.PRIMARY_FIRE)
-    getAllPlayers().disallowButton(Button.SECONDARY_FIRE)
-    getAllPlayers().disallowButton(Button.ABILITY_1)
-    getAllPlayers().disallowButton(Button.ABILITY_2)
-    getAllPlayers().disallowButton(Button.ULTIMATE)
-    getAllPlayers().disallowButton(Button.INTERACT)
-    getAllPlayers().disallowButton(Button.JUMP)
-    getAllPlayers().disallowButton(Button.CROUCH)
-    getAllPlayers().disallowButton(Button.MELEE)
-    getAllPlayers().disallowButton(Button.RELOAD)
-    wait(0.1)
-    destroyAllEffects()
-    destroyAllIcons()
-    destroyAllInWorldTexts()
-    getAllPlayers().setInvisibility(Invis.ALL)
-    getAllPlayers().playerBaseLocation = vect(0, -10000, 0)
-    getAllPlayers().isInBase = true
-    getAllPlayers().hasBase = false
-    tmpLootSpawnpointRandomPointWP = getAllPlayers()
-    for tmpLootSpawnpoint in range(len(tmpLootSpawnpointRandomPointWP)):
-        tmpLootSpawnpointRandomPoint = tmpLootSpawnpointRandomPointWP[tmpLootSpawnpoint]
-        tmpLootSpawnpointRandomPoint.scoreArray = [tmpLootSpawnpointRandomPoint.scoreArray[0], tmpLootSpawnpointRandomPoint.scoreArray[0] / max(1, tmpLootSpawnpointRandomPoint.scoreArray[1]), tmpLootSpawnpointRandomPoint.scoreArray[8], tmpLootSpawnpointRandomPoint.scoreArray[2], tmpLootSpawnpointRandomPoint.scoreArray[3], tmpLootSpawnpointRandomPoint.scoreArray[2] / (getTotalTimeElapsed() - tmpLootSpawnpointRandomPoint.scoreArray[4]), tmpLootSpawnpointRandomPoint.scoreArray[2] / max(1, tmpLootSpawnpointRandomPoint.scoreArray[0]), tmpLootSpawnpointRandomPoint.scoreArray[5], tmpLootSpawnpointRandomPoint.scoreArray[6], tmpLootSpawnpointRandomPoint.scoreArray[7]]
-        wait()
-    gameScoreTopPlayers = []
-    for tmpLootSpawnpoint in range(10):
-        gameScoreTopPlayers.append(sorted(tmpLootSpawnpointRandomPointWP, lambda player: player.scoreArray[tmpLootSpawnpoint]).last())
-        wait()
-    gameScoreTopPlayersValues = []
-    for tmpLootSpawnpoint in range(10):
-        gameScoreTopPlayersValues.append(gameScoreTopPlayers[tmpLootSpawnpoint].scoreArray[tmpLootSpawnpoint])
 
 
 rule "GAME MEDKIT NERF":
@@ -537,7 +488,10 @@ rule "init player":
     eventPlayer.statsUpgradeHeroSwitchShadowCost = 75
     eventPlayer.statsMoneyKill = 5
     eventPlayer.statsStealingSpeed = 1
-    eventPlayer.statsBaseDelay = 4
+    if DEBUG_MODE:
+        eventPlayer.statsBaseDelay = 1
+    else:
+        eventPlayer.statsBaseDelay = 4
     eventPlayer.isStealingActive = false
     eventPlayer.playerBaseLocation = vect(0, -1000, 0)
     eventPlayer.playerObjectInBase = null
@@ -567,7 +521,6 @@ rule "unsupported map":
     @Event eachPlayer
     @Hero all
     @Condition eventPlayer.hasSpawned()
-    @Condition hasGameStarted == false
     @Condition mapInfo == null
     @Condition isGameInProgress()
     

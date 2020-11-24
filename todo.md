@@ -5,6 +5,7 @@
 - fix end game scoreboard overlap (don't depend on eye pos)
 - add oasis university (but prevent building a base on the road)
 
+- add end game scoreboard camera positions - DONE
 - Add workshop settings - DONE
 - Add colors to leaderboard - DONE
 - fix leaderboard percentages - DONE
