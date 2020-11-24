@@ -1,5 +1,5 @@
 
-#!define DEBUG_MODE true
+#!define DEBUG_MODE false
 
 #!define VERSION "1.6"
 #!define CREATION_DATE "21/11/2020"

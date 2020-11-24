@@ -46,6 +46,8 @@ rule "GAME WIN CONDITION":
     #gameWinner = getLastCreatedEntity()
     gameWinner.setFacing(Vector.BACKWARD, Relativity.TO_WORLD)
     gameWinner.teleport(gameScorePositions[0])
+    gameWinner.startModifyingVoicelinePitch(random.uniform(0.5, 1.5), false)
+    gameWinner.startScalingBarriers(0.1, false)
     gameWinner.startForcingPosition(gameScorePositions[0], false)
     gameScorePositions[1] = ((gameWinner.getEyePosition() - gameWinner.getPosition()) * 0.75).y
     gameEndCamera = gameScorePositions[0] + vect(gameScorePositions[1] * -1, gameScorePositions[1], gameScorePositions[1] * -2)
@@ -64,11 +66,28 @@ rule "GAME WIN CONDITION":
 
     createInWorldText(getAllPlayers(), b" \n\n\n\n\n\n\n\n\n\n\n\n\n{} \n\n{}\n\n{}\n\n{}\n\n{}\n\n{}\n\n{}\n\n{}\n\n{}\n\n{}\n\n\n".format(gameScoreTopPlayers[0], gameScoreTopPlayers[1], gameScoreTopPlayers[2], gameScoreTopPlayers[3], gameScoreTopPlayers[4], gameScoreTopPlayers[5], gameScoreTopPlayers[6], gameScoreTopPlayers[7], gameScoreTopPlayers[8], gameScoreTopPlayers[10]), gameScorePositions[2], 2.14, Clip.NONE, WorldTextReeval.VISIBILITY_AND_STRING, Color.WHITE, SpecVisibility.DEFAULT)
 
-    createInWorldText(getAllPlayers(), "{0}{1} \n\n \n\n \n\n \n".format("{0}\n\n{1}\n\n{2}\n\n".format("                                                                          {0} kills".format(gameScoreTopPlayersValues[0]), "                                                             {0} K/D".format(gameScoreTopPlayersValues[1]), "                                                        {0} gold stolen from".format(gameScoreTopPlayersValues[2])), "{0}\n\n{1}\n\n{2}\n\n".format("                                                                       {0} gold earned".format(gameScoreTopPlayersValues[3]), "                                                                  {0} gold stolen".format(gameScoreTopPlayersValues[4]), "                                                                  {0} gold/sec".format(gameScoreTopPlayersValues[5]))), gameScorePositions[2], 1.9, Clip.NONE, WorldTextReeval.VISIBILITY_AND_STRING, Color.WHITE, SpecVisibility.DEFAULT)
-    createInWorldText(getAllPlayers(), " \n\n \n\n \n\n \n\n \n\n \n\n{0}{1}".format("{0}\n\n{1}\n\n{2}\n\n".format("                                                                              {0} gold/kills".format(gameScoreTopPlayersValues[6]), "                                                                           {0} orbs collected".format(gameScoreTopPlayersValues[7]), "                                                                {0} upgrades".format(gameScoreTopPlayersValues[8])), "                                                                {0} bases moved\n ".format(gameScoreTopPlayersValues[9])), gameScorePositions[2], 1.9, Clip.NONE, WorldTextReeval.VISIBILITY_AND_STRING, Color.WHITE, SpecVisibility.DEFAULT)
+    createInWorldText(getAllPlayers(), p"{}\n\n\n\n\n\n\n\n\n\n\n\n\n".format(
+        "{}{}{}{}{}{}".format(
+            p"                                                                          ", "{} kills\n\n".format(gameScoreTopPlayersValues[0]),
+            p"                                                             ", "{} K/D\n\n".format(gameScoreTopPlayersValues[1]),
+            p"                                                        ", "{} gold stolen from\n\n".format(gameScoreTopPlayersValues[2])
+        )
+    ), gameScorePositions[2], 1.9, Clip.NONE, WorldTextReeval.VISIBILITY_AND_STRING, Color.WHITE, SpecVisibility.DEFAULT)
+    createInWorldText(getAllPlayers(), p" \n\n\n\n\n\n{}\n\n\n\n\n\n\n".format(
+        "{}{}{}{}{}{}".format(
+            p"                                                                       ", "{} gold earned\n\n".format(gameScoreTopPlayersValues[3]), p"                                                                  ", "{} gold stolen\n\n".format(gameScoreTopPlayersValues[4]), p"                                                                  ", "{} gold/sec\n\n".format(gameScoreTopPlayersValues[5])
+        )
+    ), gameScorePositions[2], 1.9, Clip.NONE, WorldTextReeval.VISIBILITY_AND_STRING, Color.WHITE, SpecVisibility.DEFAULT)
+    createInWorldText(getAllPlayers(), p" \n\n\n\n\n\n\n\n\n\n\n\n{}{}{}".format(
+        "{}{}\n\n{}{}\n\n{}{}\n\n".format(
+            p"                                                                              ", "{} gold/kills".format(gameScoreTopPlayersValues[6]), p"                                                                           ", "{} orbs collected".format(gameScoreTopPlayersValues[7]), p"                                                                ", "{} upgrades".format(gameScoreTopPlayersValues[8])
+        ),
+        p"                                                                ", "{} bases moved\n ".format(gameScoreTopPlayersValues[9])
+    ), gameScorePositions[2], 1.9, Clip.NONE, WorldTextReeval.VISIBILITY_AND_STRING, Color.WHITE, SpecVisibility.DEFAULT)
 
     wait()
     gameWinner.stopForcingPosition()
+    gameWinner.communicate(Comms.EMOTE_UP)
     #print("freecam: {}".format(eventPlayer.debugFreecam))
     #print("facing dir: {}".format(eventPlayer.getFacingDirection()))
 
@@ -80,15 +99,15 @@ rule "game ended - disable all buttons and HUDs":
     @Condition eventPlayer.hasSpawned()
     @Condition displayScoreboard
     
-    eventPlayer.disallowButton(Button.PRIMARY_FIRE)
-    eventPlayer.disallowButton(Button.SECONDARY_FIRE)
+    #eventPlayer.disallowButton(Button.PRIMARY_FIRE)
+    #eventPlayer.disallowButton(Button.SECONDARY_FIRE)
     eventPlayer.disallowButton(Button.ABILITY_1)
     eventPlayer.disallowButton(Button.ABILITY_2)
     eventPlayer.disallowButton(Button.ULTIMATE)
     eventPlayer.disallowButton(Button.INTERACT)
     eventPlayer.disallowButton(Button.JUMP)
     eventPlayer.disallowButton(Button.CROUCH)
-    eventPlayer.disallowButton(Button.MELEE)
+    #eventPlayer.disallowButton(Button.MELEE)
     eventPlayer.disallowButton(Button.RELOAD)
     #eventPlayer.setStatusEffect(null, Status.FROZEN, 9999)
     #eventPlayer.setStatusEffect(null, Status.INVINCIBLE, 9999)
