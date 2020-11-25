@@ -1,5 +1,6 @@
 #!mainFile "base_wars.opy"
 
+/*
 rule "DEBUG SPAWN DUMMY BOT BULK":
     @Event eachPlayer
     @Condition DEBUG_MODE
@@ -22,7 +23,7 @@ rule "DEBUG SPAWN DUMMY BOT BULK":
         createDummy(Hero.ANA, Team.ALL, -1, eventPlayer.getPosition(), vect(0, 0, 0))
         createDummy(Hero.ANA, Team.ALL, -1, eventPlayer.getPosition(), vect(0, 0, 0))
         debugDummyBot = getLastCreatedEntity()
-
+*/
 
 
 rule "DEBUG SPAWN DUMMY BOT AUTO":
@@ -187,7 +188,7 @@ rule "DEBUG MODIFY MAP BOUNDARIES":
     if RULE_CONDITION:
         goto RULE_START
 
-
+/*
 rule "DEBUG SPAWN DUMMY BOT":
     @Event eachPlayer
     @Hero all
@@ -225,3 +226,14 @@ rule "DEBUG SPAWN DUMMY BOT":
         [player for player in getAllPlayers() if player.isDummy()].forceButtonPress(Button.INTERACT)
         wait(10)
         [player for player in getAllPlayers() if player.isDummy()].forceButtonPress(Button.INTERACT)
+*/
+
+rule "make all dummies press interact":
+    @Event eachPlayer
+    @Hero all
+    @Condition DEBUG_MODE
+    @Condition eventPlayer == hostPlayer
+    @Condition eventPlayer.isHoldingButton(Button.ULTIMATE)
+    @Condition eventPlayer.isCrouching()
+    
+    [player for player in getAllPlayers() if player.isDummy()].forceButtonPress(Button.INTERACT)
