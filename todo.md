@@ -1,12 +1,14 @@
 
 - add oasis university (but prevent building a base on the road)
 
-- delete "game not started" hud when game starts
 - do not start the game immediately, but spawn 6 dummies when there are 6 players
-- fix base hud showing for other players
-- Fix "enemy in base"
-- fix loot not getting picked up
 
+- fix base hud showing for other players - fixed ?
+- fix loot not getting picked up - fixed ?
+- fix loot orb not spawning - fixed?
+
+- delete "game not started" hud when game starts - DONE
+- Fix "enemy in base" - DONE
 - Fix end game scoreboard - DONE
 - add invincibility at game end - DONE
 - fix end game scoreboard overlap (don't depend on eye pos) - DONE

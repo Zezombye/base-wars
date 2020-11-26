@@ -1,5 +1,5 @@
 
-#!define DEBUG_MODE true
+#!define DEBUG_MODE false
 
 #!define VERSION "1.6"
 #!define CREATION_DATE "21/11/2020"
@@ -67,25 +67,11 @@ globalvar gameEndCamera
 globalvar tmpTotalGoldCalc
 globalvar hudIterator
 globalvar antiCrashActivated
-globalvar lootArrayLocations
 globalvar isGameInitialized
 globalvar hasGameStarted
-globalvar lootSpawnPoints
-globalvar lootArrayLocationsStored
-globalvar lootSpread
-globalvar lootCollectIterator
-globalvar lootArraySpawned
-globalvar lootSpawnpointIterator
-globalvar lootSpawnerIterator
-globalvar lootSpawnerNumLoot
-globalvar lootSpawnerEffectIterator
 #globalvar gameRulesCurrentSelection
 #globalvar gameRulesArray
 #globalvar gameRulesHost
-globalvar tmpLootSpawnpointRandomPointWP
-globalvar tmpLootCollectClosestPlayer
-globalvar tmpLootSpawnpoint
-globalvar tmpLootSpawnpointProximity
 globalvar gameRulesGoldMinerInitialCost
 globalvar debugDummyBot
 globalvar mapNavMesh
@@ -121,8 +107,6 @@ globalvar sparkboltSpawnpointIndex
 globalvar sparkboltPickupPos
 globalvar tmpSparkboltClosestPlayer
 globalvar sparkboltEffects
-globalvar tmpLootSpawnpointRandomPoint
-globalvar lootBlockerVolumePos
 globalvar tmpPowerupSpawnpointRandomPoint
 globalvar tmpPowerupSpawnpointRandomPointW
 globalvar lootBlockerVolumeRadius
@@ -135,7 +119,6 @@ globalvar gameEnded
 globalvar gameWinner
 globalvar gameEndingScreenPos
 globalvar gameScorePositions
-globalvar lootPossiblePlayers
 globalvar gameScoreTopPlayers
 globalvar gameScoreTopPlayersValues
 globalvar baseUpgradeSphereActualSize
@@ -232,9 +215,9 @@ subroutine gameStart
 subroutine gameEndedScreenPos
 
 #!include "settings.opy"
+#!include "loot.opy"
 #!include "debug.opy"
 #!include "game_end.opy"
-#!include "loot.opy"
 
 
 rule "init":
@@ -252,9 +235,6 @@ rule "init":
     hudText([player.stealingFrom for player in getAllPlayers()], "{0} ENEMY IN YOUR BASE! {0}".format(iconString(Icon.WARNING)), null, "              ", HudPosition.TOP, -2, Color.RED, Color.WHITE, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.NEVER)
 
     #disconnectedPlayers = []
-    lootArrayLocations = []
-    lootSpawnPoints = []
-    lootPossiblePlayers = []
     bountyArrayLocations[11] = null
     bountyArrayEffects[11] = null
     bountyArrayMoney[11] = null
@@ -464,7 +444,10 @@ rule "GAME INIT MAP":
 
 rule "skip assembling heroes":
     @Condition isAssemblingHeroes()
-    setMatchTime(0)
+    if DEBUG_MODE:
+        setMatchTime(1)
+    else:
+        setMatchTime(10)
 
 
 
@@ -865,7 +848,7 @@ rule "check if player is in someone else's base":
         if eventPlayer.isAlive() and eventPlayer.hasSpawned() /*and eventPlayer.stealingFrom == null*/ and not eventPlayer.isCloaked:
             tmpBaseOwners = [player for player in getAllPlayers() if player != eventPlayer and player.hasBase and player.statsMoneyBase != 0 and not (player.isInBase and not enableOccupiedStealing)]
             for stealingBaseOwnerIterator in range(len(tmpBaseOwners)):
-                if distance(eventPlayer.getPosition(), tmpBaseOwners[stealingBaseOwnerIterator]) <= BASE_RADIUS:
+                if distance(eventPlayer.getPosition(), tmpBaseOwners[stealingBaseOwnerIterator].playerBaseLocation) <= BASE_RADIUS:
                     eventPlayer.stealingFrom = tmpBaseOwners[stealingBaseOwnerIterator]
                     goto found_steal
 
@@ -874,32 +857,6 @@ rule "check if player is in someone else's base":
         found_steal:
         wait(0.064)
 
-        
-/*
-rule "ENEMY BASE LOOP":
-    @Condition hasGameStarted
-    @Condition enableStealing
-    
-    tmpStealingAllPlayers = getAllPlayers()
-    tmpStealingAllPlayersFiltered = [player for player in getLivingPlayers(Team.ALL) if player.playerObjectInBase == null]
-    tmpStealingAllBaseOwners = [player for player in getAllPlayers() if player.hasBase + (player.statsMoneyBase != 0)]
-    for stealingPlayerIterator in range(len(tmpStealingAllPlayersFiltered)):
-        tmpStealingPlayer = tmpStealingAllPlayersFiltered[stealingPlayerIterator]
-        if tmpStealingPlayer.playerObjectInBase == null and tmpStealingPlayer.isAlive() and tmpStealingPlayer.hasSpawned() and tmpStealingPlayer.playerObjectInBase == null and not tmpStealingPlayer.isCloaked:
-            for stealingBaseOwnerIterator in range(len(tmpStealingAllBaseOwners)):
-                tmpStealingBaseOwner = tmpStealingAllBaseOwners[stealingBaseOwnerIterator]
-                if tmpStealingPlayer != tmpStealingBaseOwner and distance(tmpStealingPlayer.getPosition(), tmpStealingBaseOwner.playerBaseLocation) <= 3.5:
-                    if not enableOccupiedStealing and tmpStealingBaseOwner.isInBase:
-                        goto lbl_0
-                    tmpStealingPlayer.stealingFrom = tmpStealingBaseOwner
-                    tmpStealingAllPlayers.remove(tmpStealingPlayer)
-                    lbl_0:
-        wait()
-    for stealingPlayerIterator in range(len(tmpStealingAllPlayers)):
-        tmpStealingAllPlayers[stealingPlayerIterator].stealingFrom = null
-    wait(0.64)
-    goto RULE_START
-*/
 
 rule "ENEMY BASE STEAL LOOP":
     @Event eachPlayer
@@ -941,11 +898,13 @@ rule "ENEMY BASE STEAL LOOP":
         eventPlayer.scoreArray[Score.GOLD_STOLEN] += eventPlayer.tmpStealingAmount
         eventPlayer.stealingFrom.scoreArray[Score.GOLD_STOLEN_FROM] += eventPlayer.tmpStealingAmount
         eventPlayer.stealingFrom.statsMoneyBase -= eventPlayer.tmpStealingAmount
+        
+        #If the player is in the base, take from his money instead of from his base
         if eventPlayer.stealingFrom.isInBase and eventPlayer.stealingFrom.statsMoneyStorage != eventPlayer.stealingFrom.statsMoneyBase and eventPlayer.stealingFrom.statsMoney > 0:
             eventPlayer.stealingFrom.tmpMoneyDifference = min(eventPlayer.stealingFrom.statsMoneyStorage - eventPlayer.stealingFrom.statsMoneyBase, eventPlayer.stealingFrom.statsMoney)
             eventPlayer.stealingFrom.statsMoney -= eventPlayer.stealingFrom.tmpMoneyDifference
             eventPlayer.stealingFrom.statsMoneyBase += eventPlayer.stealingFrom.tmpMoneyDifference
-
+        
         playEffect(eventPlayer, DynamicEffect.EXPLOSION_SOUND, Color.WHITE, eventPlayer.stealingFrom.playerBaseLocation, 5)
         playEffect(eventPlayer, DynamicEffect.RING_EXPLOSION, Color.RED, eventPlayer.stealingFrom.playerBaseLocation, 2)
         wait(0.5)

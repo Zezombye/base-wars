@@ -12,10 +12,10 @@ settings {
     },
     "gamemodes": {
         "ffa": {
-            "enabledMaps": [
+            /*"enabledMaps": [
                 "blackForest"
-            ]
-            /*"disabledMaps": [
+            ]*/
+            "disabledMaps": [
                 "oasisCityCenter",
                 "workshopChamber",
                 "workshopExpanse",
@@ -23,12 +23,12 @@ settings {
                 "workshopGreenScreen",
                 "workshopIsland",
                 "workshopIslandNight"
-            ]*/
+            ]
         },
         "general": {
             "enableHeroSwitching": false,
             "gameLengthInMn": 15,
-            "gamemodeStartTrigger": "immediately",
+            "gamemodeStartTrigger": "allSlotsFilled",
             "heroLimit": "off",
             "enableKillCam": false,
             "enableKillFeed": false,

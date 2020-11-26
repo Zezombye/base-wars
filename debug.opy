@@ -25,6 +25,9 @@ rule "DEBUG SPAWN DUMMY BOT BULK":
         debugDummyBot = getLastCreatedEntity()
 */
 
+rule "debug each player":
+    for I in range(12):
+        print("{} stealing from {}".format(getAllPlayers()[evalOnce(I)], getAllPlayers()[evalOnce(I)].stealingFrom))
 
 rule "DEBUG SPAWN DUMMY BOT AUTO":
     @Condition DEBUG_MODE
@@ -44,7 +47,9 @@ rule "debug money":
     @Event eachPlayer
     @Condition DEBUG_MODE
     wait(5)
-    eventPlayer.statsMoney = 20000
+    eventPlayer.statsMoney = 110
+    if eventPlayer == hostPlayer:
+        eventPlayer.statsMoney = 9999
 
 rule "DEBUG VARIABLES":
     @Event eachPlayer

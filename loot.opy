@@ -1,5 +1,24 @@
 #!mainFile "base_wars.opy"
 
+globalvar lootArrayLocations = []
+globalvar lootSpawnPoints = []
+globalvar lootArrayLocationsStored
+globalvar lootSpread
+globalvar lootCollectIterator
+globalvar lootArraySpawned
+globalvar lootSpawnpointIterator
+globalvar lootSpawnerIterator
+globalvar lootSpawnerNumLoot
+globalvar lootSpawnerEffectIterator
+globalvar tmpLootSpawnpointRandomPointWP
+globalvar tmpLootCollectClosestPlayer
+globalvar tmpLootSpawnpoint
+globalvar tmpLootSpawnpointProximity
+globalvar tmpLootSpawnpointRandomPoint
+globalvar lootBlockerVolumePos
+#globalvar lootPossiblePlayers
+
+/*
 rule "LOOT UPDATE PLAYERS ADD":
     @Event eachPlayer
     @Hero all
@@ -18,18 +37,20 @@ rule "LOOT UPDATE PLAYERS REMOVE":
     @Event eachPlayer
     @Hero all
     @Condition hasGameStarted
-    @Condition (any([eventPlayer.isDead(), eventPlayer.isInBase, not eventPlayer.hasSpawned(), not enableInvisibleLootPickup and eventPlayer.isCloaked]))
+    @Condition (any([eventPlayer.isDead(), eventPlayer.isInBase, not eventPlayer.hasSpawned(), not (enableInvisibleLootPickup and eventPlayer.isCloaked)]))
     
     lootPossiblePlayers.remove(eventPlayer)
-
+*/
 
 rule "LOOT BOUNTY COLLECT LOOP":
+    @Condition hasGameStarted
     @Condition bountyArrayNum != 0
     
     for bountyArrayIterator in range(len(bountyArrayLocations)):
         if bountyArrayEffects[bountyArrayIterator] != null:
             tmpBountyLocation = bountyArrayLocations[bountyArrayIterator]
-            tmpBountyClosestPlayer = sorted(lootPossiblePlayers, lambda player: distance(player.getPosition(), tmpBountyLocation))[0]
+            tmpBountyClosestPlayer = sorted([player for player in getAllPlayers() if player.isAlive() and player.hasSpawned() and not player.isInBase and (enableInvisibleLootPickup or not player.isCloaked)], lambda player: distance(player.getPosition(), tmpBountyLocation))[0]
+
             if entityExists(tmpBountyClosestPlayer) and distance(tmpBountyClosestPlayer.getPosition(), tmpBountyLocation) <= 2.5:
                 tmpBountyClosestPlayer.statsMoney += bountyArrayMoney[bountyArrayIterator]
                 tmpBountyClosestPlayer.scoreArray[Score.GOLD_EARNED] += bountyArrayMoney[bountyArrayIterator]
@@ -39,6 +60,7 @@ rule "LOOT BOUNTY COLLECT LOOP":
                 bountyArrayEffects[bountyArrayIterator] = null
                 playEffect(tmpBountyClosestPlayer, DynamicEffect.BUFF_EXPLOSION_SOUND, Color.WHITE, tmpBountyLocation, 50)
                 smallMessage(tmpBountyClosestPlayer, "+{0} PLAYER GOLD".format(bountyArrayMoney[bountyArrayIterator]))
+
                 if bountyArrayMoney[bountyArrayIterator] <= 25:
                     playEffect(tmpBountyClosestPlayer, DynamicEffect.GOOD_PICKUP_EFFECT, Color.GREEN, tmpBountyLocation, 1)
                 elif bountyArrayMoney[bountyArrayIterator] > 25 and bountyArrayMoney[bountyArrayIterator] <= 250:
@@ -180,23 +202,24 @@ rule "LOOT COLLECT LOOP":
     @Condition hasGameStarted
     @Condition enableLootOrbs
     
-    for lootCollectIterator in range(len(lootArrayLocations)):
-        if lootArraySpawned[lootCollectIterator]:
-            tmpLootCollectClosestPlayer = sorted(lootPossiblePlayers, lambda player: distance(player.getPosition(), lootArrayLocations[lootCollectIterator]))[0]
-            if entityExists(tmpLootCollectClosestPlayer) and distance(tmpLootCollectClosestPlayer, lootArrayLocations[lootCollectIterator]) <= 2.5:
-                lootArrayLocationsStored[lootCollectIterator] = lootArrayLocations[lootCollectIterator]
-                lootSpawnerNumLoot -= 1
-                playEffect(getAllPlayers(), DynamicEffect.GOOD_PICKUP_EFFECT, Color.GREEN, lootArrayLocationsStored[lootCollectIterator], 1)
-                playEffect(tmpLootCollectClosestPlayer, DynamicEffect.BUFF_EXPLOSION_SOUND, Color.WHITE, lootArrayLocationsStored[lootCollectIterator], 50)
-                lootArrayLocations[lootCollectIterator] = vect(0, -9999, 0)
-                lootArraySpawned[lootCollectIterator] = false
-                tmpLootCollectClosestPlayer.statsMoney += gameLootOrbAmount
-                tmpLootCollectClosestPlayer.scoreArray[2] += gameLootOrbAmount
-                tmpLootCollectClosestPlayer.scoreArray[Score.NB_ORBS_COLLECTED] += 1
-                smallMessage(tmpLootCollectClosestPlayer, "+{0} GOLD".format(gameLootOrbAmount))
-        wait()
-    wait(0.1)
-    goto RULE_START
+    do:
+        for lootCollectIterator in range(len(lootArrayLocations)):
+            if lootArraySpawned[lootCollectIterator]:
+                tmpLootCollectClosestPlayer = sorted([player for player in getAllPlayers() if player.isAlive() and player.hasSpawned() and not player.isInBase and (enableInvisibleLootPickup or not player.isCloaked)], lambda player: distance(player.getPosition(), lootArrayLocations[lootCollectIterator]))[0]
+                if entityExists(tmpLootCollectClosestPlayer) and distance(tmpLootCollectClosestPlayer, lootArrayLocations[lootCollectIterator]) <= 2.5:
+                    lootArrayLocationsStored[lootCollectIterator] = lootArrayLocations[lootCollectIterator]
+                    lootSpawnerNumLoot -= 1
+                    playEffect(getAllPlayers(), DynamicEffect.GOOD_PICKUP_EFFECT, Color.GREEN, lootArrayLocationsStored[lootCollectIterator], 1)
+                    playEffect(tmpLootCollectClosestPlayer, DynamicEffect.BUFF_EXPLOSION_SOUND, Color.WHITE, lootArrayLocationsStored[lootCollectIterator], 50)
+                    lootArrayLocations[lootCollectIterator] = vect(0, -9999, 0)
+                    lootArraySpawned[lootCollectIterator] = false
+                    tmpLootCollectClosestPlayer.statsMoney += gameLootOrbAmount
+                    tmpLootCollectClosestPlayer.scoreArray[2] += gameLootOrbAmount
+                    tmpLootCollectClosestPlayer.scoreArray[Score.NB_ORBS_COLLECTED] += 1
+                    smallMessage(tmpLootCollectClosestPlayer, "+{0} GOLD".format(gameLootOrbAmount))
+            wait()
+        wait(0.1)
+    while true
 
 
 rule "LOOT LOSS1":
@@ -220,19 +243,19 @@ rule "LOOT POWERUP COLLECT LOOP":
     @Condition sparkboltPickupPos != null
     @Condition enableSparkbolts
     
-    tmpSparkboltClosestPlayer = sorted(lootPossiblePlayers, lambda player: distance(player.getPosition(), sparkboltPickupPos))[0]
-    if entityExists(tmpSparkboltClosestPlayer) and distance(tmpSparkboltClosestPlayer.getPosition(), sparkboltPickupPos) <= 2.5:
-        tmpSparkboltClosestPlayer.nbSparkbolts += 1
-        smallMessage(tmpSparkboltClosestPlayer, "+1 {0} SPARKBOLT".format(iconString(Icon.BOLT)))
-        destroyEffect(sparkboltEffects[0])
-        destroyEffect(sparkboltEffects[1])
-        playEffect(getAllPlayers(), DynamicEffect.GOOD_PICKUP_EFFECT, Color.WHITE, sparkboltPickupPos, 1)
-        playEffect(tmpSparkboltClosestPlayer, DynamicEffect.BUFF_EXPLOSION_SOUND, Color.WHITE, sparkboltPickupPos, 50)
-        sparkboltPickupPos = null
-        sparkboltSpawnpointIndex = (sparkboltSpawnpointIndex + 1) % len(lootSpawnPoints)
-    wait(0.25)
-    if RULE_CONDITION:
-        goto RULE_START
+    do:
+        tmpSparkboltClosestPlayer = sorted([player for player in getAllPlayers() if player.isAlive() and player.hasSpawned() and not player.isInBase and (enableInvisibleLootPickup or not player.isCloaked)], lambda player: distance(player.getPosition(), sparkboltPickupPos))[0]
+        if entityExists(tmpSparkboltClosestPlayer) and distance(tmpSparkboltClosestPlayer.getPosition(), sparkboltPickupPos) <= 2.5:
+            tmpSparkboltClosestPlayer.nbSparkbolts += 1
+            smallMessage(tmpSparkboltClosestPlayer, "+1 {0} SPARKBOLT".format(iconString(Icon.BOLT)))
+            destroyEffect(sparkboltEffects[0])
+            destroyEffect(sparkboltEffects[1])
+            playEffect(getAllPlayers(), DynamicEffect.GOOD_PICKUP_EFFECT, Color.WHITE, sparkboltPickupPos, 1)
+            playEffect(tmpSparkboltClosestPlayer, DynamicEffect.BUFF_EXPLOSION_SOUND, Color.WHITE, sparkboltPickupPos, 50)
+            sparkboltPickupPos = null
+            sparkboltSpawnpointIndex = (sparkboltSpawnpointIndex + 1) % len(lootSpawnPoints)
+        wait(0.25)
+    while RULE_CONDITION
 
 
 rule "LOOT POWERUP SPAWN":

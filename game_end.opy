@@ -92,12 +92,12 @@ rule "GAME WIN CONDITION":
     ), gameScorePositions[2], 1.9, Clip.NONE, WorldTextReeval.VISIBILITY_AND_STRING, Color.WHITE, SpecVisibility.DEFAULT)
     createInWorldText(getAllPlayers(), p" \n\n\n\n\n\n{}\n\n\n\n\n\n\n".format(
         "{}{}{}{}{}{}".format(
-            p"                                                                       ", "{} gold earned\n\n".format(gameScoreTopPlayersValues[3]), p"                                                                  ", "{} gold stolen\n\n".format(gameScoreTopPlayersValues[4]), p"                                                                  ", "{} gold/sec\n\n".format(gameScoreTopPlayersValues[5])
+            p"                                                                          ", "{} gold earned\n\n".format(gameScoreTopPlayersValues[3]), p"                                                                     ", "{} gold stolen\n\n".format(gameScoreTopPlayersValues[4]), p"                                                                     ", "{} gold/sec\n\n".format(gameScoreTopPlayersValues[5])
         )
     ), gameScorePositions[2], 1.9, Clip.NONE, WorldTextReeval.VISIBILITY_AND_STRING, Color.WHITE, SpecVisibility.DEFAULT)
     createInWorldText(getAllPlayers(), p" \n\n\n\n\n\n\n\n\n\n\n\n{}{}{}".format(
         "{}{}\n\n{}{}\n\n{}{}\n\n".format(
-            p"                                                                              ", "{} gold/kills".format(gameScoreTopPlayersValues[6]), p"                                                                           ", "{} orbs collected".format(gameScoreTopPlayersValues[7]), p"                                                                ", "{} upgrades".format(gameScoreTopPlayersValues[8])
+            p"                                                                               ", "{} gold/kills".format(gameScoreTopPlayersValues[6]), p"                                                                           ", "{} orbs collected".format(gameScoreTopPlayersValues[7]), p"                                                                ", "{} upgrades".format(gameScoreTopPlayersValues[8])
         ),
         p"                                                                ", "{} bases moved\n ".format(gameScoreTopPlayersValues[9])
     ), gameScorePositions[2], 1.9, Clip.NONE, WorldTextReeval.VISIBILITY_AND_STRING, Color.WHITE, SpecVisibility.DEFAULT)
