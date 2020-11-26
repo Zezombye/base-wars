@@ -1,6 +1,7 @@
 
-- delete "game not started" hud when game starts
 - add oasis university (but prevent building a base on the road)
+
+- delete "game not started" hud when game starts
 - do not start the game immediately, but spawn 6 dummies when there are 6 players
 - fix base hud showing for other players
 - Fix "enemy in base"

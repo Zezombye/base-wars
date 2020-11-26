@@ -17,6 +17,18 @@ enum Upgrade:
     STEAL_SPEED,
     ENTRY_TIME,
 
+enum Score:
+    NB_KILLS = 0,
+    NB_DEATHS = 1,
+    GOLD_EARNED = 2,
+    GOLD_STOLEN = 3,
+    START_TIME = 4,
+    NB_ORBS_COLLECTED = 5,
+    NB_UPGRADES = 6,
+    NB_BASE_MOVES = 7,
+    GOLD_STOLEN_FROM = 8,
+
+
 #Global variables
 
 globalvar powerLevelColors = [Color.WHITE, Color.WHITE, Color.WHITE, Color.WHITE, Color.AQUA, Color.AQUA, Color.AQUA, Color.BLUE, Color.PURPLE, Color.RED, Color.ROSE, rgb(20, 20, 20)]
@@ -510,7 +522,7 @@ rule "init player":
 
     eventPlayer.disableGamemodeHud()
     #eventPlayer.disableScoreboard()
-    eventPlayer.scoreArray[4] = getTotalTimeElapsed()
+    eventPlayer.scoreArray[Score.START_TIME] = getTotalTimeElapsed()
 
 
 rule "game not started":
@@ -923,11 +935,11 @@ rule "ENEMY BASE STEAL LOOP":
         else:
             eventPlayer.tmpStealingAmount = min(eventPlayer.tmpStealingAmount, eventPlayer.tmpMoneyDifference)
             smallMessage(eventPlayer, "+{0} GOLD".format(eventPlayer.tmpStealingAmount))
-            
+
         eventPlayer.statsMoney += eventPlayer.tmpStealingAmount
-        eventPlayer.scoreArray[2] += eventPlayer.tmpStealingAmount
-        eventPlayer.scoreArray[3] += eventPlayer.tmpStealingAmount
-        eventPlayer.stealingFrom.scoreArray[8] += eventPlayer.tmpStealingAmount
+        eventPlayer.scoreArray[Score.GOLD_EARNED] += eventPlayer.tmpStealingAmount
+        eventPlayer.scoreArray[Score.GOLD_STOLEN] += eventPlayer.tmpStealingAmount
+        eventPlayer.stealingFrom.scoreArray[Score.GOLD_STOLEN_FROM] += eventPlayer.tmpStealingAmount
         eventPlayer.stealingFrom.statsMoneyBase -= eventPlayer.tmpStealingAmount
         if eventPlayer.stealingFrom.isInBase and eventPlayer.stealingFrom.statsMoneyStorage != eventPlayer.stealingFrom.statsMoneyBase and eventPlayer.stealingFrom.statsMoney > 0:
             eventPlayer.stealingFrom.tmpMoneyDifference = min(eventPlayer.stealingFrom.statsMoneyStorage - eventPlayer.stealingFrom.statsMoneyBase, eventPlayer.stealingFrom.statsMoney)
@@ -975,7 +987,7 @@ rule "upgrade gold miner":
     @Condition eventPlayer.hasBase
     
     if eventPlayer.statsMoneyBase >= eventPlayer.statsUpgradeCost[eventPlayer.upgradeCurrentSelection]:
-        eventPlayer.scoreArray[6] += 1
+        eventPlayer.scoreArray[Score.NB_UPGRADES] += 1
         eventPlayer.statsMoneyBase -= eventPlayer.statsUpgradeCost[eventPlayer.upgradeCurrentSelection]
         playEffect(eventPlayer, DynamicEffect.RING_EXPLOSION, Color.BLUE, eventPlayer.playerBaseLocation, 4)
         playEffect(eventPlayer, DynamicEffect.BUFF_EXPLOSION_SOUND, Color.WHITE, eventPlayer, 200)
@@ -1000,7 +1012,7 @@ rule "gold miner loop":
         if eventPlayer.hasBase and not eventPlayer.isDead() and eventPlayer.stealingEffectsVisibleTo == [] and not eventPlayer.isMovingBase and not eventPlayer.isInBase:
 
             if eventPlayer.statsMoneyBase < eventPlayer.statsMoneyStorage:
-                eventPlayer.scoreArray[2] += eventPlayer.tmpMoneyDifference
+                eventPlayer.scoreArray[Score.GOLD_EARNED] += eventPlayer.tmpMoneyDifference
                 eventPlayer.statsMoneyBase += eventPlayer.statsMoneySec
                 eventPlayer.statsMoneyBase min= eventPlayer.statsMoneyStorage
 
@@ -1017,7 +1029,7 @@ rule "upgrade kill bounty":
     @Condition eventPlayer.hasBase
     
     if eventPlayer.statsMoneyBase >= eventPlayer.statsUpgradeCost[eventPlayer.upgradeCurrentSelection]:
-        eventPlayer.scoreArray[6] += 1
+        eventPlayer.scoreArray[Score.NB_UPGRADES] += 1
         eventPlayer.statsMoneyBase -= eventPlayer.statsUpgradeCost[eventPlayer.upgradeCurrentSelection]
         playEffect(eventPlayer, DynamicEffect.RING_EXPLOSION, Color.RED, eventPlayer.playerBaseLocation, 4)
         playEffect(eventPlayer, DynamicEffect.BUFF_EXPLOSION_SOUND, Color.WHITE, eventPlayer, 200)
@@ -1036,12 +1048,12 @@ rule "player kill":
     @Hero all
     @Condition hasGameStarted
     
-    eventPlayer.scoreArray[1] += 1
+    eventPlayer.scoreArray[Score.NB_DEATHS] += 1
     if attacker != victim:
         smallMessage(attacker, "+ {0} GOLD (kill)".format(attacker.statsMoneyKill))
         attacker.statsMoney += attacker.statsMoneyKill
-        attacker.scoreArray[2] += attacker.statsMoneyKill
-        attacker.scoreArray[0] += 1
+        attacker.scoreArray[Score.GOLD_EARNED] += attacker.statsMoneyKill
+        attacker.scoreArray[Score.NB_KILLS] += 1
 
     if victim.statsMoney <= 0:
         return
@@ -1079,7 +1091,7 @@ rule "upgrade storage capacity":
     @Condition eventPlayer.hasBase
     
     if eventPlayer.statsMoneyBase >= eventPlayer.statsUpgradeCost[eventPlayer.upgradeCurrentSelection]:
-        eventPlayer.scoreArray[6] += 1
+        eventPlayer.scoreArray[Score.NB_UPGRADES] += 1
         eventPlayer.storedMoney += eventPlayer.statsMoneyStorage
         eventPlayer.statsMoneyBase = 0
         playEffect(eventPlayer, DynamicEffect.RING_EXPLOSION, Color.YELLOW, eventPlayer.playerBaseLocation, 4)
@@ -1120,7 +1132,7 @@ rule "UPGRADE BUY MOVE BASE":
     @Condition eventPlayer.hasBase
     
     if eventPlayer.statsMoneyBase >= eventPlayer.statsUpgradeCost[eventPlayer.upgradeCurrentSelection]:
-        eventPlayer.scoreArray[7] += 1
+        eventPlayer.scoreArray[Score.NB_BASE_MOVES] += 1
         eventPlayer.statsMoneyBase -= eventPlayer.statsUpgradeCost[eventPlayer.upgradeCurrentSelection]
         playEffect(eventPlayer, DynamicEffect.RING_EXPLOSION, Color.GREEN, eventPlayer.playerBaseLocation, 2)
         playEffect(eventPlayer, DynamicEffect.BUFF_EXPLOSION_SOUND, Color.WHITE, eventPlayer, 200)
@@ -1213,7 +1225,7 @@ rule "UPGRADE BUY STEAL SPEED":
     @Condition eventPlayer.hasBase
     
     if eventPlayer.statsMoneyBase >= eventPlayer.statsUpgradeCost[eventPlayer.upgradeCurrentSelection]:
-        eventPlayer.scoreArray[6] += 1
+        eventPlayer.scoreArray[Score.NB_UPGRADES] += 1
         eventPlayer.statsMoneyBase -= eventPlayer.statsUpgradeCost[eventPlayer.upgradeCurrentSelection]
         playEffect(eventPlayer, DynamicEffect.RING_EXPLOSION, Color.PURPLE, eventPlayer.playerBaseLocation, 4)
         playEffect(eventPlayer, DynamicEffect.BUFF_EXPLOSION_SOUND, Color.WHITE, eventPlayer, 200)
@@ -1241,7 +1253,7 @@ rule "UPGRADE BUY DELAY":
     @Condition eventPlayer.hasBase
     
     if eventPlayer.statsMoneyBase >= eventPlayer.statsUpgradeCost[eventPlayer.upgradeCurrentSelection]:
-        eventPlayer.scoreArray[6] += 1
+        eventPlayer.scoreArray[Score.NB_UPGRADES] += 1
         eventPlayer.statsMoneyBase -= eventPlayer.statsUpgradeCost[eventPlayer.upgradeCurrentSelection]
         playEffect(eventPlayer, DynamicEffect.RING_EXPLOSION, Color.SKY_BLUE, eventPlayer.playerBaseLocation, 4)
         playEffect(eventPlayer, DynamicEffect.BUFF_EXPLOSION_SOUND, Color.WHITE, eventPlayer, 200)

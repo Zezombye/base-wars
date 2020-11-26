@@ -1,6 +1,9 @@
 #!mainFile "base_wars.opy"
 
 globalvar displayScoreboard = false
+globalvar tmpAllPlayers
+globalvar scoreboardIterator
+globalvar tmpPlayer
 
 rule "GAME WIN CONDITION":
     @Event eachPlayer
@@ -18,18 +21,32 @@ rule "GAME WIN CONDITION":
     wait(0.8)
     getDeadPlayers(Team.ALL).respawn()
     
-    tmpLootSpawnpointRandomPointWP = getAllPlayers()
-    for tmpLootSpawnpoint in range(len(tmpLootSpawnpointRandomPointWP)):
-        tmpLootSpawnpointRandomPoint = tmpLootSpawnpointRandomPointWP[tmpLootSpawnpoint]
-        tmpLootSpawnpointRandomPoint.scoreArray = [tmpLootSpawnpointRandomPoint.scoreArray[0], tmpLootSpawnpointRandomPoint.scoreArray[0] / max(1, tmpLootSpawnpointRandomPoint.scoreArray[1]), tmpLootSpawnpointRandomPoint.scoreArray[8], tmpLootSpawnpointRandomPoint.scoreArray[2], tmpLootSpawnpointRandomPoint.scoreArray[3], tmpLootSpawnpointRandomPoint.scoreArray[2] / (getTotalTimeElapsed() - tmpLootSpawnpointRandomPoint.scoreArray[4]), tmpLootSpawnpointRandomPoint.scoreArray[2] / max(1, tmpLootSpawnpointRandomPoint.scoreArray[0]), tmpLootSpawnpointRandomPoint.scoreArray[5], tmpLootSpawnpointRandomPoint.scoreArray[6], tmpLootSpawnpointRandomPoint.scoreArray[7]]
+    tmpAllPlayers = getAllPlayers()
+    for scoreboardIterator in range(len(tmpAllPlayers)):
+        tmpPlayer = tmpAllPlayers[scoreboardIterator]
+        tmpPlayer.scoreArray = [
+            tmpPlayer.scoreArray[Score.NB_KILLS],
+            #k/d ratio
+            tmpPlayer.scoreArray[Score.NB_KILLS] / max(1, tmpPlayer.scoreArray[Score.NB_DEATHS]),
+            tmpPlayer.scoreArray[Score.GOLD_STOLEN_FROM],
+            tmpPlayer.scoreArray[Score.GOLD_EARNED],
+            tmpPlayer.scoreArray[Score.GOLD_STOLEN],
+            #gold/second (total)
+            tmpPlayer.scoreArray[Score.GOLD_EARNED] / (getTotalTimeElapsed() - tmpPlayer.scoreArray[Score.START_TIME]),
+            #gold/kills
+            tmpPlayer.scoreArray[Score.GOLD_EARNED] / max(1, tmpPlayer.scoreArray[Score.NB_KILLS]),
+            tmpPlayer.scoreArray[Score.NB_ORBS_COLLECTED],
+            tmpPlayer.scoreArray[Score.NB_UPGRADES],
+            tmpPlayer.scoreArray[Score.NB_BASE_MOVES]
+        ]
         wait()
     gameScoreTopPlayers = []
-    for tmpLootSpawnpoint in range(10):
-        gameScoreTopPlayers.append(sorted(tmpLootSpawnpointRandomPointWP, lambda player: player.scoreArray[tmpLootSpawnpoint]).last())
+    for scoreboardIterator in range(10):
+        gameScoreTopPlayers.append(sorted(tmpAllPlayers, lambda player: player.scoreArray[scoreboardIterator]).last())
         wait()
     gameScoreTopPlayersValues = []
-    for tmpLootSpawnpoint in range(10):
-        gameScoreTopPlayersValues.append(gameScoreTopPlayers[tmpLootSpawnpoint].scoreArray[tmpLootSpawnpoint])
+    for scoreboardIterator in range(10):
+        gameScoreTopPlayersValues.append(gameScoreTopPlayers[scoreboardIterator].scoreArray[scoreboardIterator])
 
     #display scoreboard
     displayScoreboard = true
@@ -64,7 +81,7 @@ rule "GAME WIN CONDITION":
     createInWorldText(getAllPlayers(), " \n\n \n\n \n\n \n\n \n\n \n\n{0} FRIENDLY FARMER\n\n{1} COOKIE CLICKER\n\n{2} ENGINEER\n\n \n ".format(iconString(Icon.HEART), abilityIconString(Hero.SIGMA, Button.ABILITY_1), abilityIconString(Hero.BASTION, Button.SECONDARY_FIRE)), gameScorePositions[2], 1.9, Clip.NONE, WorldTextReeval.VISIBILITY_AND_STRING, Color.ORANGE, SpecVisibility.DEFAULT)
     createInWorldText(getAllPlayers(), " \n\n \n\n \n\n \n\n \n\n \n\n \n\n \n\n \n\n{0} TRAVELER              \n ".format(abilityIconString(Hero.SOLDIER, Button.ABILITY_1)), gameScorePositions[2], 1.9, Clip.NONE, WorldTextReeval.VISIBILITY_AND_STRING, Color.ORANGE, SpecVisibility.DEFAULT)
 
-    createInWorldText(getAllPlayers(), b" \n\n\n\n\n\n\n\n\n\n\n\n\n{} \n\n{}\n\n{}\n\n{}\n\n{}\n\n{}\n\n{}\n\n{}\n\n{}\n\n{}\n\n\n".format(gameScoreTopPlayers[0], gameScoreTopPlayers[1], gameScoreTopPlayers[2], gameScoreTopPlayers[3], gameScoreTopPlayers[4], gameScoreTopPlayers[5], gameScoreTopPlayers[6], gameScoreTopPlayers[7], gameScoreTopPlayers[8], gameScoreTopPlayers[10]), gameScorePositions[2], 2.14, Clip.NONE, WorldTextReeval.VISIBILITY_AND_STRING, Color.WHITE, SpecVisibility.DEFAULT)
+    createInWorldText(getAllPlayers(), b" \n\n\n\n\n\n\n\n\n\n\n\n\n{} \n\n{}\n\n{}\n\n{}\n\n{}\n\n{}\n\n{}\n\n{}\n\n{}\n\n{}\n\n\n".format(gameScoreTopPlayers[0], gameScoreTopPlayers[1], gameScoreTopPlayers[2], gameScoreTopPlayers[3], gameScoreTopPlayers[4], gameScoreTopPlayers[5], gameScoreTopPlayers[6], gameScoreTopPlayers[7], gameScoreTopPlayers[8], gameScoreTopPlayers[9]), gameScorePositions[2], 2.14, Clip.NONE, WorldTextReeval.VISIBILITY_AND_STRING, Color.WHITE, SpecVisibility.DEFAULT)
 
     createInWorldText(getAllPlayers(), p"{}\n\n\n\n\n\n\n\n\n\n\n\n\n".format(
         "{}{}{}{}{}{}".format(

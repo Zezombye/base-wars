@@ -32,8 +32,8 @@ rule "LOOT BOUNTY COLLECT LOOP":
             tmpBountyClosestPlayer = sorted(lootPossiblePlayers, lambda player: distance(player.getPosition(), tmpBountyLocation))[0]
             if entityExists(tmpBountyClosestPlayer) and distance(tmpBountyClosestPlayer.getPosition(), tmpBountyLocation) <= 2.5:
                 tmpBountyClosestPlayer.statsMoney += bountyArrayMoney[bountyArrayIterator]
-                tmpBountyClosestPlayer.scoreArray[2] += bountyArrayMoney[bountyArrayIterator]
-                tmpBountyClosestPlayer.scoreArray[5] += 1
+                tmpBountyClosestPlayer.scoreArray[Score.GOLD_EARNED] += bountyArrayMoney[bountyArrayIterator]
+                tmpBountyClosestPlayer.scoreArray[Score.NB_ORBS_COLLECTED]++
                 destroyEffect(bountyArrayEffects[bountyArrayIterator])
                 bountyArrayNum -= 1
                 bountyArrayEffects[bountyArrayIterator] = null
@@ -192,7 +192,7 @@ rule "LOOT COLLECT LOOP":
                 lootArraySpawned[lootCollectIterator] = false
                 tmpLootCollectClosestPlayer.statsMoney += gameLootOrbAmount
                 tmpLootCollectClosestPlayer.scoreArray[2] += gameLootOrbAmount
-                tmpLootCollectClosestPlayer.scoreArray[5] += 1
+                tmpLootCollectClosestPlayer.scoreArray[Score.NB_ORBS_COLLECTED] += 1
                 smallMessage(tmpLootCollectClosestPlayer, "+{0} GOLD".format(gameLootOrbAmount))
         wait()
     wait(0.1)
