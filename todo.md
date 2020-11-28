@@ -3,11 +3,11 @@
 
 - do not start the game immediately, but spawn 6 dummies when there are 6 players
 
-- fix base hud showing for other players - fixed ?
 - fix loot not getting picked up - fixed ?
 - fix loot orb not spawning - fixed?
+- delete "game not started" hud when game starts - fixed?
 
-- delete "game not started" hud when game starts - DONE
+- fix base hud showing for other players - DONE
 - Fix "enemy in base" - DONE
 - Fix end game scoreboard - DONE
 - add invincibility at game end - DONE
@@ -30,6 +30,8 @@ Player effects (max 9):
 - gold drop orb when dead
 
 Global texts:
+- waiting for game to start
+- waiting for navmesh to generate
 - no base built
 - enemy in your base
 - scoreboard title

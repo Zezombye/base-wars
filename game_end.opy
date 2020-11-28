@@ -109,12 +109,17 @@ rule "GAME WIN CONDITION":
     #print("facing dir: {}".format(eventPlayer.getFacingDirection()))
 
 
+rule "game ended - resurrect players":
+    @Event eachPlayer
+    @Condition displayScoreboard
+    @Condition eventPlayer.isDead()
+    eventPlayer.respawn()
 
 rule "game ended - disable all buttons and HUDs":
     @Event eachPlayer
-    @Hero all
-    @Condition eventPlayer.hasSpawned()
     @Condition displayScoreboard
+    @Condition eventPlayer.hasSpawned()
+    @Condition eventPlayer.isAlive()
     
     #eventPlayer.disallowButton(Button.PRIMARY_FIRE)
     #eventPlayer.disallowButton(Button.SECONDARY_FIRE)
@@ -126,6 +131,7 @@ rule "game ended - disable all buttons and HUDs":
     eventPlayer.disallowButton(Button.CROUCH)
     #eventPlayer.disallowButton(Button.MELEE)
     eventPlayer.disallowButton(Button.RELOAD)
+    eventPlayer.setStatusEffect(null, Status.PHASED_OUT, 9999)
     #eventPlayer.setStatusEffect(null, Status.FROZEN, 9999)
     #eventPlayer.setStatusEffect(null, Status.INVINCIBLE, 9999)
     eventPlayer.setMoveSpeed(0)

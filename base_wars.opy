@@ -2,11 +2,11 @@
 #!define DEBUG_MODE false
 
 #!define VERSION "1.6"
-#!define CREATION_DATE "21/11/2020"
+#!define CREATION_DATE "29/11/2020"
 #!define GAMEMODE_CODE "14WON"
 #!define BASE_RADIUS 3.5
 
-#!obfuscate noRuleFilling
+#!obfuscate
 
 enum Upgrade:
     GOLD_MINER,
@@ -188,7 +188,7 @@ playervar stealingFrom
 playervar stealingSoundEffect
 playervar tmpStealingAmount
 playervar stealingOnCooldown
-playervar stealingEffectsVisibleTo
+#playervar stealingEffectsVisibleTo
 playervar upgradeTextDescription
 playervar statsUpgradeLevels
 playervar baseEffectRing
@@ -227,7 +227,6 @@ rule "init":
     disableGamemodeCompletion()
     disableAnnouncer()
     disableScoring()
-    destroyHudText(waitingNavmeshHud)
     destroyHudText(waitingStartGameHud)
 
     hudHeader([player for player in getAllPlayers() if not player.hasBase], "{0} NO BASE BUILT {0}\n  PRESS [{1}] TO BUILD".format(iconString(Icon.WARNING), buttonString(Button.INTERACT)), HudPosition.TOP, -4, Color.RED, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
@@ -438,6 +437,7 @@ rule "GAME INIT MAP":
         wait(0.25)
     lbl_0:
     isGameInitialized = true
+    destroyHudText(waitingNavmeshHud)
     setMatchTime(62)
     gameEndingScreenPos = vect(0, 0, 0)
 
@@ -495,7 +495,6 @@ rule "init player":
     eventPlayer.isStealingActive = false
     eventPlayer.playerBaseLocation = vect(0, -1000, 0)
     eventPlayer.playerObjectInBase = null
-    eventPlayer.stealingEffectsVisibleTo = []
     eventPlayer.isInFriendlyZone = false
     eventPlayer.debugEffectCountArray = []
 
@@ -509,34 +508,25 @@ rule "init player":
 
 
 rule "game not started":
-    @Event eachPlayer
-    @Hero all
-    @Condition eventPlayer.hasSpawned()
-    @Condition isGameInProgress() == false
+    @Condition isWaitingForPlayers()
     
-    hudHeader(eventPlayer, "WAITING FOR HOST ({0}) TO START THE GAME".format(hostPlayer), HudPosition.TOP, 3, Color.RED, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    hudHeader(getAllPlayers(), "WAITING FOR HOST ({0}) TO START THE GAME".format(hostPlayer), HudPosition.TOP, 3, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
     waitingStartGameHud = getLastCreatedText()
 
 
 rule "unsupported map":
-    @Event eachPlayer
-    @Hero all
-    @Condition eventPlayer.hasSpawned()
     @Condition mapInfo == null
     @Condition isGameInProgress()
     
-    hudHeader(eventPlayer, "The map {0} IS NOT SUPPORTED".format(getCurrentMap()), HudPosition.TOP, 3, Color.RED, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    hudHeader(getAllPlayers(), "The map {0} IS NOT SUPPORTED".format(getCurrentMap()), HudPosition.TOP, 3, Color.RED, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
 
 
 rule "waiting for navmesh to generate":
-    @Event eachPlayer
-    @Hero all
-    @Condition eventPlayer.hasSpawned()
     @Condition hasGameStarted == false
     @Condition isGameInitialized == false
     @Condition mapInfo != null
     
-    hudHeader(eventPlayer, "Building the navmesh, please wait", HudPosition.TOP, 3, Color.ORANGE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    hudHeader(getAllPlayers(), "Building the navmesh, please wait", HudPosition.TOP, 3, Color.ORANGE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
     waitingNavmeshHud = getLastCreatedText()
 
 
@@ -916,25 +906,6 @@ rule "ENEMY BASE STEAL LOOP":
     wait(1)
     eventPlayer.stealingOnCooldown = false
 
-/*
-rule "ENEMY BASE ENTER":
-    @Event eachPlayer
-    @Hero all
-    @Condition eventPlayer.stealingFrom != null
-    
-    eventPlayer.stealingFromBackup = eventPlayer.stealingFrom
-    eventPlayer.stealingFrom.stealingEffectsVisibleTo.append(eventPlayer)
-
-
-rule "check if player is not in someone else's base anymore":
-    @Event eachPlayer
-    @Hero all
-    @Condition eventPlayer.stealingFrom != null
-    @Condition distance(eventPlayer.getPosition(), tmpBaseOwners[stealingBaseOwnerIterator]) <= BASE_RADIUS:
-    
-    eventPlayer.stealingFromBackup.stealingEffectsVisibleTo.remove(eventPlayer)
-*/
-
 
 rule "upgrade gold miner":
     @Event eachPlayer
@@ -968,7 +939,7 @@ rule "gold miner loop":
     @Condition eventPlayer.statsMoneySec != 0
     
     while true:
-        if eventPlayer.hasBase and not eventPlayer.isDead() and eventPlayer.stealingEffectsVisibleTo == [] and not eventPlayer.isMovingBase and not eventPlayer.isInBase:
+        if eventPlayer.hasBase and not eventPlayer.isDead() and eventPlayer not in [player.stealingFrom for player in getAllPlayers()] and not eventPlayer.isMovingBase and not eventPlayer.isInBase:
 
             if eventPlayer.statsMoneyBase < eventPlayer.statsMoneyStorage:
                 eventPlayer.scoreArray[Score.GOLD_EARNED] += eventPlayer.tmpMoneyDifference

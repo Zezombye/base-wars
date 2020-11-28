@@ -26,6 +26,7 @@ rule "DEBUG SPAWN DUMMY BOT BULK":
 */
 
 rule "debug each player":
+    @Condition DEBUG_MODE
     for I in range(12):
         print("{} stealing from {}".format(getAllPlayers()[evalOnce(I)], getAllPlayers()[evalOnce(I)].stealingFrom))
 
