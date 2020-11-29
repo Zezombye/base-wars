@@ -16,8 +16,6 @@ settings {
                 "blackForest"
             ]*/
             "disabledMaps": [
-                "lijiangNightMarket",
-                "lijiangNightMarketLny",
                 "oasisCityCenter",
                 "workshopChamber",
                 "workshopExpanse",

@@ -877,7 +877,7 @@ rule "ENEMY BASE STEAL LOOP":
         if eventPlayer.tmpStealingRiskBonus > 0:
             eventPlayer.tmpStealingAmount += eventPlayer.tmpStealingRiskBonus
             eventPlayer.tmpStealingAmount = min(eventPlayer.tmpStealingAmount, eventPlayer.tmpMoneyDifference)
-            smallMessage(eventPlayer, "+{0} GOLD ({1} RISK BONUS)".format(eventPlayer.tmpStealingAmount, eventPlayer.tmpStealingRiskBonus))
+            smallMessage(eventPlayer, "+{0} GOLD ({1} distance BONUS)".format(eventPlayer.tmpStealingAmount, eventPlayer.tmpStealingRiskBonus))
 
         else:
             eventPlayer.tmpStealingAmount = min(eventPlayer.tmpStealingAmount, eventPlayer.tmpMoneyDifference)
