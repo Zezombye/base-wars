@@ -43,6 +43,8 @@ rule "DEBUG SPAWN DUMMY BOT AUTO":
     createDummy(Hero.ANA, Team.ALL, -1, lootSpawnPoints[8], vect(0, 0, 0))
     createDummy(Hero.ANA, Team.ALL, -1, lootSpawnPoints[9], vect(0, 0, 0))
 
+rule "debug end position":
+    createEffect(getAllPlayers(), Effect.LIGHT_SHAFT, Color.RED, raycast(gameEndCamera+Vector.FORWARD*2, gameEndCamera+Vector.FORWARD*2 - vect(0, 10, 0), [], [], false).getHitPosition(), 0.5, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
 
 rule "debug money":
     @Event eachPlayer

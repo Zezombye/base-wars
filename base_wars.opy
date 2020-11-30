@@ -1,8 +1,8 @@
 
 #!define DEBUG_MODE false
 
-#!define VERSION "1.6"
-#!define CREATION_DATE "29/11/2020"
+#!define VERSION "1.7"
+#!define CREATION_DATE "30/11/2020"
 #!define GAMEMODE_CODE "14WON"
 #!define BASE_RADIUS 3.5
 
@@ -31,7 +31,7 @@ enum Score:
 
 #Global variables
 
-globalvar powerLevelColors = [Color.WHITE, Color.WHITE, Color.WHITE, Color.WHITE, Color.AQUA, Color.AQUA, Color.AQUA, Color.BLUE, Color.PURPLE, Color.RED, Color.ROSE, rgb(20, 20, 20)]
+globalvar powerLevelColors = [Color.WHITE, Color.WHITE, Color.WHITE, Color.WHITE, Color.AQUA, Color.AQUA, Color.AQUA, Color.BLUE, Color.PURPLE, Color.RED, Color.ORANGE, rgb(20, 20, 20)]
 globalvar upgradeColors = [
     Color.BLUE,
     Color.RED,
@@ -227,6 +227,7 @@ rule "init":
     disableGamemodeCompletion()
     disableAnnouncer()
     disableScoring()
+    destroyAllDummies()
     destroyHudText(waitingStartGameHud)
 
     hudHeader([player for player in getAllPlayers() if not player.hasBase], "{0} NO BASE BUILT {0}\n  PRESS [{1}] TO BUILD".format(iconString(Icon.WARNING), buttonString(Button.INTERACT)), HudPosition.TOP, -4, Color.RED, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
@@ -370,7 +371,7 @@ rule "GAME INIT MAP":
 
     elif getCurrentMap() == Map.LIJIANG_NIGHT_MARKET or getCurrentMap() == Map.LIJIANG_NIGHT_MARKET_LNY:
         mapInfo = vect(-83.084, -8.002, -185.081)
-        gameEndCamera = vect(-77.06, 245.24, 368.46)
+        gameEndCamera = vect(-77.06, 245.24, 369.46)
 
     elif getCurrentMap() == Map.NECROPOLIS:
         mapInfo = vect(-65.048, -18.007, -80.036)
@@ -510,8 +511,14 @@ rule "init player":
 rule "game not started":
     @Condition isWaitingForPlayers()
     
-    hudHeader(getAllPlayers(), "WAITING FOR HOST ({0}) TO START THE GAME".format(hostPlayer), HudPosition.TOP, 3, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    hudHeader(getAllPlayers(), "WAITING FOR players to start ({}/{})".format(getNumberOfPlayers(Team.ALL), 6), HudPosition.TOP, 3, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
     waitingStartGameHud = getLastCreatedText()
+
+rule "enough players - start game":
+    @Condition isWaitingForPlayers()
+    @Condition getNumberOfPlayers(Team.ALL) >= (6 if not DEBUG_MODE else 1)
+    for I in range(12):
+        createDummy(Hero.ANA, Team.ALL, -1, null, null)
 
 
 rule "unsupported map":

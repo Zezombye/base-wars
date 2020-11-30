@@ -58,7 +58,7 @@ rule "GAME WIN CONDITION":
     destroyAllIcons()
     destroyAllDummies()
     wait()
-    gameScorePositions[0] = raycast(gameEndCamera, gameEndCamera - vect(0, 10, 0), [], [], false).getHitPosition()
+    gameScorePositions[0] = raycast(gameEndCamera+Vector.FORWARD*2, gameEndCamera+Vector.FORWARD*2 - vect(0, 10, 0), [], [], false).getHitPosition()
     #createDummy(random.choice(getAllHeroes()), Team.ALL, -1, gameScorePositions[0], Vector.BACKWARD)
     #gameWinner = getLastCreatedEntity()
     gameWinner.setFacing(Vector.BACKWARD, Relativity.TO_WORLD)
@@ -66,7 +66,8 @@ rule "GAME WIN CONDITION":
     gameWinner.startModifyingVoicelinePitch(random.uniform(0.5, 1.5), false)
     gameWinner.startScalingBarriers(0.1, false)
     gameWinner.startForcingPosition(gameScorePositions[0], false)
-    gameScorePositions[1] = ((gameWinner.getEyePosition() - gameWinner.getPosition()) * 0.75).y
+    #gameScorePositions[1] = ((gameWinner.getEyePosition() - gameWinner.getPosition()) * 0.75).y
+    gameScorePositions[1] = (vect(0,2,0) * 0.75).y
     gameEndCamera = gameScorePositions[0] + vect(gameScorePositions[1] * -1, gameScorePositions[1], gameScorePositions[1] * -2)
     gameWinner.setFacing(directionTowards(gameWinner.getEyePosition(), gameEndCamera), Relativity.TO_WORLD)
 
@@ -120,7 +121,7 @@ rule "game ended - disable all buttons and HUDs":
     @Condition displayScoreboard
     @Condition eventPlayer.hasSpawned()
     @Condition eventPlayer.isAlive()
-    
+    wait()
     #eventPlayer.disallowButton(Button.PRIMARY_FIRE)
     #eventPlayer.disallowButton(Button.SECONDARY_FIRE)
     eventPlayer.disallowButton(Button.ABILITY_1)
@@ -146,4 +147,8 @@ rule "game ended - disable all buttons and HUDs":
     eventPlayer.startCamera(gameEndCamera, gameEndCamera + Vector.FORWARD, 0)
     if eventPlayer != gameWinner:
         eventPlayer.startForcingPosition(vect(1000, 1000, 1000), false)
+    else:
+        eventPlayer.startForcingPosition(gameScorePositions[0], false)
+        wait()
+        eventPlayer.stopForcingPosition()
 

@@ -12,9 +12,9 @@ settings {
     },
     "gamemodes": {
         "ffa": {
-            /*"enabledMaps": [
-                "blackForest"
-            ]*/
+            "enabledMaps": [
+                "lijiangNightMarket"
+            ]/*
             "disabledMaps": [
                 "oasisCityCenter",
                 "workshopChamber",
@@ -23,7 +23,7 @@ settings {
                 "workshopGreenScreen",
                 "workshopIsland",
                 "workshopIslandNight"
-            ]
+            ]*/
         },
         "general": {
             "enableHeroSwitching": false,
