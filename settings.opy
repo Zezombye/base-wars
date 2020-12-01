@@ -11,10 +11,10 @@ settings {
         "swapTeamsAfterMatch": false
     },
     "gamemodes": {
-        "ffa": {
+        "ffa": {/*
             "enabledMaps": [
                 "lijiangNightMarket"
-            ]/*
+            ]*/
             "disabledMaps": [
                 "oasisCityCenter",
                 "workshopChamber",
@@ -23,7 +23,7 @@ settings {
                 "workshopGreenScreen",
                 "workshopIsland",
                 "workshopIslandNight"
-            ]*/
+            ]
         },
         "general": {
             "enableHeroSwitching": false,

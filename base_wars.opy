@@ -133,7 +133,7 @@ globalvar enableSparkbolts = createWorkshopSetting(bool, SETTINGS_TITLE, "Spawn 
 globalvar enableGoldMinerUpgrade = createWorkshopSetting(bool, SETTINGS_TITLE, "Players can upgrade gold miner", true, 3)
 globalvar enableLootOrbs = createWorkshopSetting(bool, SETTINGS_TITLE, "Spawn loot orbs", true, 4)
 globalvar lootSpawnMax = createWorkshopSetting(int[5:16], SETTINGS_TITLE, "Maximum number of loot orbs", 16, 5)
-globalvar gameLootOrbAmount = createWorkshopSetting(int[10:40], SETTINGS_TITLE, "Gold given by loot orbs", 25, 6)
+globalvar gameLootOrbAmount = createWorkshopSetting(int[5:30], SETTINGS_TITLE, "Gold given by loot orbs", 10, 6)
 globalvar enableInvisibleLootPickup = createWorkshopSetting(bool, SETTINGS_TITLE, "Sombra can pick up orbs while invisible", false, 7)
 globalvar gameGoldVictory = createWorkshopSetting(int[1000:5000], SETTINGS_TITLE, "Amount of gold to win", 2500, 8)
 globalvar enableAlwaysFreeHeroSwitch = createWorkshopSetting(bool, SETTINGS_TITLE, "Hero switch is always free", false, 9)
@@ -511,12 +511,12 @@ rule "init player":
 rule "game not started":
     @Condition isWaitingForPlayers()
     
-    hudHeader(getAllPlayers(), "WAITING FOR players to start ({}/{})".format(getNumberOfPlayers(Team.ALL), 6), HudPosition.TOP, 3, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    hudHeader(getAllPlayers(), "WAITING FOR players to start ({}/{})".format(getNumberOfPlayers(Team.ALL), 4), HudPosition.TOP, 3, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
     waitingStartGameHud = getLastCreatedText()
 
 rule "enough players - start game":
     @Condition isWaitingForPlayers()
-    @Condition getNumberOfPlayers(Team.ALL) >= (6 if not DEBUG_MODE else 1)
+    @Condition getNumberOfPlayers(Team.ALL) >= (4 if not DEBUG_MODE else 1)
     for I in range(12):
         createDummy(Hero.ANA, Team.ALL, -1, null, null)
 
