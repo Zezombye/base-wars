@@ -520,8 +520,11 @@ rule "game not started":
 rule "enough players - start game":
     @Condition isWaitingForPlayers()
     @Condition getNumberOfPlayers(Team.ALL) >= (NB_PLAYERS_AUTO_START if not DEBUG_MODE else 1)
-    for I in range(12):
-        createDummy(Hero.ANA, Team.ALL, -1, null, null)
+    do:
+        for I in range(12):
+            createDummy(Hero.ANA, Team.ALL, -1, null, null)
+        wait(3)
+    while RULE_CONDITION
 
 
 rule "unsupported map":
