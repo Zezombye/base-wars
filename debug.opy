@@ -32,6 +32,8 @@ rule "debug each player":
 
 rule "DEBUG SPAWN DUMMY BOT AUTO":
     @Condition DEBUG_MODE
+    @Condition isGameInProgress()
+    wait(5)
     createDummy(Hero.ANA, Team.ALL, -1, lootSpawnPoints[0], vect(0, 0, 0))
     createDummy(Hero.ANA, Team.ALL, -1, lootSpawnPoints[1], vect(0, 0, 0))
     createDummy(Hero.ANA, Team.ALL, -1, lootSpawnPoints[2], vect(0, 0, 0))
@@ -50,6 +52,7 @@ rule "debug end position":
 rule "debug money":
     @Event eachPlayer
     @Condition DEBUG_MODE
+    @Condition isGameInProgress()
     wait(5)
     eventPlayer.statsMoney = 110
     if eventPlayer == hostPlayer:

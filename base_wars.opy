@@ -1,10 +1,13 @@
 
 #!define DEBUG_MODE false
 
-#!define VERSION "1.7"
-#!define CREATION_DATE "30/11/2020"
+#!define VERSION "1.8"
+#!define CREATION_DATE "02/12/2020"
 #!define GAMEMODE_CODE "14WON"
+
 #!define BASE_RADIUS 3.5
+#!define STEALING_RISK_MULTIPLIER 1.5
+#!define NB_PLAYERS_AUTO_START 4
 
 #!obfuscate
 
@@ -100,8 +103,8 @@ globalvar gameHealingHeroes
 globalvar tmpPlayerLeftBaseIterator
 globalvar tmpPlayerLeftIterator
 globalvar mapSize
-globalvar stealingRiskThreshold
-globalvar stealingRiskMultiplier
+globalvar stealingDistanceThreshold
+globalvar stealingDistanceMultiplier
 globalvar totalGoldToWin
 globalvar sparkboltSpawnpointIndex
 globalvar sparkboltPickupPos
@@ -188,12 +191,12 @@ playervar stealingFrom
 playervar stealingSoundEffect
 playervar tmpStealingAmount
 playervar stealingOnCooldown
-#playervar stealingEffectsVisibleTo
 playervar upgradeTextDescription
 playervar statsUpgradeLevels
 playervar baseEffectRing
 playervar statsUpgradeHeroSwitchUsed
 playervar statsUpgradeHeroSwitchShadowCost
+playervar tmpStealingDistanceBonus
 playervar tmpStealingRiskBonus
 playervar statsBaseDelay
 playervar isSparkboltOnCooldown
@@ -239,8 +242,8 @@ rule "init":
     bountyArrayEffects[11] = null
     bountyArrayMoney[11] = null
     leaderboard = []
-    stealingRiskMultiplier = 1.5
-    stealingRiskThreshold = 0.75
+    stealingDistanceMultiplier = 1.5
+    stealingDistanceThreshold = 0.75
     lootSpread = 15
     baseUpgradeSphereActualSize = 0.4 * 0.985
     sparkboltPickupPos = null
@@ -511,12 +514,12 @@ rule "init player":
 rule "game not started":
     @Condition isWaitingForPlayers()
     
-    hudHeader(getAllPlayers(), "WAITING FOR players to start ({}/{})".format(getNumberOfPlayers(Team.ALL), 4), HudPosition.TOP, 3, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    hudHeader(getAllPlayers(), "WAITING FOR players to start ({}/{})".format(getNumberOfPlayers(Team.ALL), NB_PLAYERS_AUTO_START) if getNumberOfPlayers(Team.ALL) < NB_PLAYERS_AUTO_START else "Starting the game...", HudPosition.TOP, 3, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
     waitingStartGameHud = getLastCreatedText()
 
 rule "enough players - start game":
     @Condition isWaitingForPlayers()
-    @Condition getNumberOfPlayers(Team.ALL) >= (4 if not DEBUG_MODE else 1)
+    @Condition getNumberOfPlayers(Team.ALL) >= (NB_PLAYERS_AUTO_START if not DEBUG_MODE else 1)
     for I in range(12):
         createDummy(Hero.ANA, Team.ALL, -1, null, null)
 
@@ -878,17 +881,38 @@ rule "ENEMY BASE STEAL LOOP":
         eventPlayer.tmpMoneyDifference = eventPlayer.stealingFrom.statsMoneyBase
         if eventPlayer.stealingFrom.isInBase:
             eventPlayer.tmpMoneyDifference += eventPlayer.stealingFrom.statsMoney
+        
 
         eventPlayer.tmpStealingAmount = ceil(eventPlayer.stealingFrom.statsMoneySec / 2) + eventPlayer.statsStealingSpeed
-        eventPlayer.tmpStealingRiskBonus = round(eventPlayer.statsStealingSpeed * ((stealingRiskMultiplier + stealingRiskThreshold) * (min(1, distance(eventPlayer.playerBaseLocation, eventPlayer.stealingFrom.playerBaseLocation) / mapSize)) - stealingRiskThreshold))
-        if eventPlayer.tmpStealingRiskBonus > 0:
+
+        #Risk bonus (if player is in base)
+        if eventPlayer.stealingFrom.isInBase or eventPlayer.stealingFrom.isDead():
+            eventPlayer.tmpStealingRiskBonus = ceil(eventPlayer.tmpStealingAmount * (STEALING_RISK_MULTIPLIER-1))
             eventPlayer.tmpStealingAmount += eventPlayer.tmpStealingRiskBonus
-            eventPlayer.tmpStealingAmount = min(eventPlayer.tmpStealingAmount, eventPlayer.tmpMoneyDifference)
-            smallMessage(eventPlayer, "+{0} GOLD ({1} distance BONUS)".format(eventPlayer.tmpStealingAmount, eventPlayer.tmpStealingRiskBonus))
+        else:
+            eventPlayer.tmpStealingRiskBonus = 0
+
+        #Distance bonus
+        eventPlayer.tmpStealingDistanceBonus = round(eventPlayer.statsStealingSpeed * ((stealingDistanceMultiplier + stealingDistanceThreshold) * (min(1, distance(eventPlayer.playerBaseLocation, eventPlayer.stealingFrom.playerBaseLocation) / mapSize)) - stealingDistanceThreshold))
+        if not eventPlayer.hasBase:
+            eventPlayer.tmpStealingDistanceBonus = 0
+
+        if eventPlayer.tmpStealingDistanceBonus > 0:
+            eventPlayer.tmpStealingAmount += eventPlayer.tmpStealingDistanceBonus
+
+        eventPlayer.tmpStealingAmount = min(eventPlayer.tmpStealingAmount, eventPlayer.tmpMoneyDifference)
+
+        if eventPlayer.tmpStealingDistanceBonus > 0:
+            if eventPlayer.tmpStealingRiskBonus > 0:
+                smallMessage(eventPlayer, "+{} GOLD ({} distance bonus, {} risk bonus)".format(eventPlayer.tmpStealingAmount, eventPlayer.tmpStealingDistanceBonus, eventPlayer.tmpStealingRiskBonus))
+            else:
+                smallMessage(eventPlayer, "+{} GOLD ({} distance bonus)".format(eventPlayer.tmpStealingAmount, eventPlayer.tmpStealingDistanceBonus))
 
         else:
-            eventPlayer.tmpStealingAmount = min(eventPlayer.tmpStealingAmount, eventPlayer.tmpMoneyDifference)
-            smallMessage(eventPlayer, "+{0} GOLD".format(eventPlayer.tmpStealingAmount))
+            if eventPlayer.tmpStealingRiskBonus > 0:
+                smallMessage(eventPlayer, "+{} GOLD ({} risk bonus)".format(eventPlayer.tmpStealingAmount, eventPlayer.tmpStealingRiskBonus))
+            else:
+                smallMessage(eventPlayer, "+{} GOLD".format(eventPlayer.tmpStealingAmount))
 
         eventPlayer.statsMoney += eventPlayer.tmpStealingAmount
         eventPlayer.scoreArray[Score.GOLD_EARNED] += eventPlayer.tmpStealingAmount
