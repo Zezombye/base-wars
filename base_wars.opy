@@ -523,8 +523,9 @@ rule "enough players - start game":
     do:
         for I in range(12):
             createDummy(Hero.ANA, Team.ALL, -1, null, null)
-        wait(3)
+        wait(1)
     while RULE_CONDITION
+    destroyAllDummies()
 
 
 rule "unsupported map":

@@ -133,6 +133,7 @@ rule "game ended - disable all buttons and HUDs":
     #eventPlayer.disallowButton(Button.MELEE)
     eventPlayer.disallowButton(Button.RELOAD)
     eventPlayer.setStatusEffect(null, Status.PHASED_OUT, 9999)
+    eventPlayer.setDamageReceived(0)
     #eventPlayer.setStatusEffect(null, Status.FROZEN, 9999)
     #eventPlayer.setStatusEffect(null, Status.INVINCIBLE, 9999)
     eventPlayer.setMoveSpeed(0)
