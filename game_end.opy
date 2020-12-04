@@ -116,6 +116,12 @@ rule "game ended - resurrect players":
     @Condition eventPlayer.isDead()
     eventPlayer.respawn()
 
+rule "game ended and host afk - finish game":
+    @Event global
+    @Condition displayScoreboard
+    wait(30)
+    declarePlayerVictory(gameWinner)
+
 rule "game ended - disable all buttons and HUDs":
     @Event eachPlayer
     @Condition displayScoreboard
