@@ -103,8 +103,9 @@ rule "GAME WIN CONDITION":
         p"                                                                ", "{} bases moved\n ".format(gameScoreTopPlayersValues[9])
     ), gameScorePositions[2], 1.9, Clip.NONE, WorldTextReeval.VISIBILITY_AND_STRING, Color.WHITE, SpecVisibility.DEFAULT)
 
-    wait()
+    wait(0.1)
     gameWinner.stopForcingPosition()
+    wait(0.1)
     gameWinner.communicate(Comms.EMOTE_UP)
     #print("freecam: {}".format(eventPlayer.debugFreecam))
     #print("facing dir: {}".format(eventPlayer.getFacingDirection()))
@@ -138,6 +139,7 @@ rule "game ended - disable all buttons and HUDs":
     eventPlayer.disallowButton(Button.CROUCH)
     #eventPlayer.disallowButton(Button.MELEE)
     eventPlayer.disallowButton(Button.RELOAD)
+    eventPlayer.cancelPrimaryAction()
     eventPlayer.setStatusEffect(null, Status.PHASED_OUT, 9999)
     eventPlayer.setDamageReceived(0)
     #eventPlayer.setStatusEffect(null, Status.FROZEN, 9999)
@@ -156,6 +158,6 @@ rule "game ended - disable all buttons and HUDs":
         eventPlayer.startForcingPosition(vect(1000, 1000, 1000), false)
     else:
         eventPlayer.startForcingPosition(gameScorePositions[0], false)
-        wait()
+        wait(0.1)
         eventPlayer.stopForcingPosition()
 

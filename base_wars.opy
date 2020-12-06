@@ -1,7 +1,7 @@
 
 #!define DEBUG_MODE false
 
-#!define VERSION "1.8"
+#!define VERSION "1.9"
 #!define CREATION_DATE "02/12/2020"
 #!define GAMEMODE_CODE "14WON"
 
@@ -1415,7 +1415,7 @@ def checkUpgradeAvailability():
 
 rule "anti crash":
 	@Event global
-	@Condition not antiCrashActivated and getServerLoad() > 200
+	@Condition not antiCrashActivated and getServerLoad() > 230
     wait(1, Wait.ABORT_WHEN_FALSE)
     smallMessage(getAllPlayers(), "Anti crash system activated")
     setSlowMotion(10)
@@ -1423,6 +1423,6 @@ rule "anti crash":
 
 rule "disable anti crash":
 	@Event global
-	@Condition antiCrashActivated and getServerLoad() < 175
+	@Condition antiCrashActivated and getServerLoad() < 210
     setSlowMotion(100)
     antiCrashActivated = false
