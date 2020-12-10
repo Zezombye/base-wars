@@ -2,7 +2,7 @@
 #!define DEBUG_MODE false
 
 #!define VERSION "1.9"
-#!define CREATION_DATE "02/12/2020"
+#!define CREATION_DATE "08/12/2020"
 #!define GAMEMODE_CODE "14WON"
 
 #!define BASE_RADIUS 3.5
@@ -260,7 +260,6 @@ rule "init":
     if enableInefficientGoldMiner:
         gameRulesGoldMinerFrequency = 2
 
-    lootSpawnMax = 16
     tmpTotalGoldCalc = 100
     totalGoldToWin = 0
     while tmpTotalGoldCalc < gameGoldVictory:
@@ -269,7 +268,6 @@ rule "init":
     totalGoldToWin += gameGoldVictory
 
     gameHealingHeroes = ((((([i for i in getAllHeroes() if not i in getSupportHeroes()]).concat(Hero.ZENYATTA.concat(Hero.ANA).concat(Hero.BRIGITTE))).exclude(Hero.BASTION)).exclude(Hero.MEI)).exclude(Hero.ROADHOG)).exclude(Hero.SOLDIER)
-    bigMessage(getAllPlayers(), "GAME STARTED")
     hasGameStarted = true
     wait(1)
     pauseMatchTime()
@@ -1417,7 +1415,7 @@ rule "anti crash":
 	@Event global
 	@Condition not antiCrashActivated and getServerLoad() > 230
     wait(1, Wait.ABORT_WHEN_FALSE)
-    smallMessage(getAllPlayers(), "Anti crash system activated")
+    smallMessage(getAllPlayers(), "Anti-crash system activated")
     setSlowMotion(10)
     antiCrashActivated = true
 
