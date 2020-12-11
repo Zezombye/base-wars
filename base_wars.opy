@@ -45,13 +45,13 @@ globalvar upgradeColors = [
     Color.AQUA,
 ]
 globalvar upgradeHeaders = [
-    ["             ", "AUTO GOLD MINER"],
-    ["             ", "KILL GOLD BOUNTY"],
-    ["               ", "BASE GOLD STORAGE"],
-    ["            ", "MOVE YOUR BASE"],
-    ["              ", "SWITCH YOUR HERO"],
-    ["            ", "GOLD STEAL SPEED"],
-    ["           ", "BASE ENTRY TIME"],
+    [STR_AUTO_GOLD_MINER_WHITESPACE, STR_AUTO_GOLD_MINER],
+    [STR_KILL_GOLD_BOUNTY_WHITESPACE, STR_KILL_GOLD_BOUNTY],
+    [STR_BASE_GOLD_STORAGE_WHITESPACE, STR_BASE_GOLD_STORAGE],
+    [STR_MOVE_YOUR_BASE_WHITESPACE, STR_MOVE_YOUR_BASE],
+    [STR_SWITCH_YOUR_HERO_WHITESPACE, STR_SWITCH_YOUR_HERO],
+    [STR_GOLD_STEAL_SPEED_WHITESPACE, STR_GOLD_STEAL_SPEED],
+    [STR_BASE_ENTRY_TIME_WHITESPACE, STR_BASE_ENTRY_TIME],
 ]
 globalvar upgradeIcons = [
     iconString(Icon.DIAMOND),
@@ -233,9 +233,9 @@ rule "init":
     destroyAllDummies()
     destroyHudText(waitingStartGameHud)
 
-    hudHeader([player for player in getAllPlayers() if not player.hasBase], "{0} NO BASE BUILT {0}\n  PRESS [{1}] TO BUILD".format(iconString(Icon.WARNING), buttonString(Button.INTERACT)), HudPosition.TOP, -4, Color.RED, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    hudHeader([player for player in getAllPlayers() if not player.hasBase], STR_NO_BASE_BUILT, HudPosition.TOP, -4, Color.RED, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
 
-    hudText([player.stealingFrom for player in getAllPlayers()], "{0} ENEMY IN YOUR BASE! {0}".format(iconString(Icon.WARNING)), null, "              ", HudPosition.TOP, -2, Color.RED, Color.WHITE, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.NEVER)
+    hudText([player.stealingFrom for player in getAllPlayers()], STR_ENEMY_IN_BASE, null, "              ", HudPosition.TOP, -2, Color.RED, Color.WHITE, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.NEVER)
 
     #disconnectedPlayers = []
     bountyArrayLocations[11] = null
@@ -512,7 +512,7 @@ rule "init player":
 rule "game not started":
     @Condition isWaitingForPlayers()
     
-    hudHeader(getAllPlayers(), "WAITING FOR players to start ({}/{})".format(getNumberOfPlayers(Team.ALL), NB_PLAYERS_AUTO_START) if getNumberOfPlayers(Team.ALL) < NB_PLAYERS_AUTO_START else "Starting the game...", HudPosition.TOP, 3, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    hudHeader(getAllPlayers(), STR_WAITING_FOR_PLAYERS if getNumberOfPlayers(Team.ALL) < NB_PLAYERS_AUTO_START else STR_STARTING_GAME, HudPosition.TOP, 3, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
     waitingStartGameHud = getLastCreatedText()
 
 rule "enough players - start game":
@@ -530,7 +530,7 @@ rule "unsupported map":
     @Condition mapInfo == null
     @Condition isGameInProgress()
     
-    hudHeader(getAllPlayers(), "The map {0} IS NOT SUPPORTED".format(getCurrentMap()), HudPosition.TOP, 3, Color.RED, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    hudHeader(getAllPlayers(), STR_MAP_NOT_SUPPORTED, HudPosition.TOP, 3, Color.RED, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
 
 
 rule "waiting for navmesh to generate":
@@ -538,7 +538,7 @@ rule "waiting for navmesh to generate":
     @Condition isGameInitialized == false
     @Condition mapInfo != null
     
-    hudHeader(getAllPlayers(), "Building the navmesh, please wait", HudPosition.TOP, 3, Color.ORANGE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    hudHeader(getAllPlayers(), STR_BUILDING_NAVMESH, HudPosition.TOP, 3, Color.ORANGE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
     waitingNavmeshHud = getLastCreatedText()
 
 
@@ -553,23 +553,23 @@ rule "init player hud":
     eventPlayer.isInitialized = true
     
     #gold in base
-    hudText(eventPlayer, iconString(Icon.CIRCLE), "GOLD IN BASE", "{0}/{1} ({2})".format(eventPlayer.statsMoneyBase, eventPlayer.statsMoneyStorage, "+{0}/sec".format(eventPlayer.statsMoneySec) if eventPlayer.statsMoneyBase < eventPlayer.statsMoneyStorage else "FULL!"), HudPosition.LEFT, 0, Color.ORANGE, Color.ORANGE, Color.WHITE if eventPlayer.statsMoneyBase < eventPlayer.statsMoneyStorage else Color.RED, HudReeval.VISIBILITY_STRING_AND_COLOR, SpecVisibility.DEFAULT)
+    hudText(eventPlayer, iconString(Icon.CIRCLE), STR_GOLD_IN_BASE, "{0}/{1} ({2})".format(eventPlayer.statsMoneyBase, eventPlayer.statsMoneyStorage, STR_GOLD_PER_SEC if eventPlayer.statsMoneyBase < eventPlayer.statsMoneyStorage else STR_FULL), HudPosition.LEFT, 0, Color.ORANGE, Color.ORANGE, Color.WHITE if eventPlayer.statsMoneyBase < eventPlayer.statsMoneyStorage else Color.RED, HudReeval.VISIBILITY_STRING_AND_COLOR, SpecVisibility.DEFAULT)
 
     #gold on player
-    hudText(eventPlayer, iconString(Icon.POISON), "GOLD ON PLAYER", eventPlayer.statsMoney, HudPosition.LEFT, 1, Color.ORANGE, Color.ORANGE, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    hudText(eventPlayer, iconString(Icon.POISON), STR_GOLD_ON_PLAYER, eventPlayer.statsMoney, HudPosition.LEFT, 1, Color.ORANGE, Color.ORANGE, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
 
     #upgrade header
     createInWorldText(eventPlayer if eventPlayer.showUpgradeText else [], "{}{}\n{}\n\n\n\n".format(upgradeHeaders[eventPlayer.upgradeCurrentSelection][0], upgradeIcons[eventPlayer.upgradeCurrentSelection], upgradeHeaders[eventPlayer.upgradeCurrentSelection][1]), eventPlayer.playerBaseLocation, 2, Clip.NONE, WorldTextReeval.VISIBILITY_POSITION_AND_STRING, upgradeColors[eventPlayer.upgradeCurrentSelection], SpecVisibility.DEFAULT)
 
     #upgrade description
     createInWorldText(eventPlayer if eventPlayer.showUpgradeText else [], [
-        "    [LVL {0}]\n\n  Upgrades your gold generation\n    to {1} per second. Can't generate\nwhen there are players in your base\n ".format(eventPlayer.statsUpgradeLevels[eventPlayer.upgradeCurrentSelection], eventPlayer.statsMoneySec + 1),
-        "     [LVL {0}]\n\n    Increases bounty from {2} to {1}\nAwarded by dealing finishing blow\n  Doesn't affect dropped loot orbs\n ".format(eventPlayer.statsUpgradeLevels[eventPlayer.upgradeCurrentSelection], eventPlayer.statsMoneyKill + 15, eventPlayer.statsMoneyKill),
-        "[LVL {0}]\n\nIncreases the maximum amount \n  of gold your base can store.\n  Upgraded storage: {1} gold\n ".format(eventPlayer.statsUpgradeLevels[eventPlayer.upgradeCurrentSelection], ceil(eventPlayer.statsMoneyStorage * 1.5)),
-        "   [NO LVL]\n \n           Packs up your base. \nYou keep your gold & upgrades. \nPrice depends on gold storage.\n ",
-        " [NO LVL]\n \n     Takes you to hero selection.\n  Bug: If only one hero shows up\nWait 5 seconds until they appear.\n ",
-        "     [LVL {0}]\n \n    Steal +2 gold/sec from bases.\nSame upgrade price as gold miner.\n  Total {1} + enemy gold miner/sec.\n ".format(eventPlayer.statsUpgradeLevels[eventPlayer.upgradeCurrentSelection], (eventPlayer.statsStealingSpeed + 1) * 2),
-        "  [LVL {0}]\n \n      Reduces the time it takes\nto enter your base by 0.5 sec.\n    The current delay is {1} sec.\n ".format(eventPlayer.statsUpgradeLevels[eventPlayer.upgradeCurrentSelection], eventPlayer.statsBaseDelay),
+        STR_AUTO_GOLD_MINER_DESCRIPTION,
+        STR_KILL_GOLD_BOUNTY_DESCRIPTION,
+        STR_BASE_GOLD_STORAGE_DESCRIPTION,
+        STR_MOVE_YOUR_BASE_DESCRIPTION,
+        STR_SWITCH_YOUR_HERO_DESCRIPTION,
+        STR_GOLD_STEAL_SPEED_DESCRIPTION,
+        STR_BASE_ENTRY_TIME_DESCRIPTION,
     ][eventPlayer.upgradeCurrentSelection], eventPlayer.playerBaseLocation, 1.1, Clip.NONE, WorldTextReeval.VISIBILITY_POSITION_AND_STRING, Color.WHITE, SpecVisibility.DEFAULT)
 
     #base sphere
@@ -587,7 +587,7 @@ rule "init player hud":
     #stealing sphere
     createEffect([player for player in getAllPlayers() if player.stealingFrom == eventPlayer], Effect.SPHERE, Color.RED, eventPlayer.playerBaseLocation, 0.4, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
     #stealing hud
-    createInWorldText([player for player in getAllPlayers() if player.stealingFrom == eventPlayer], "HOLD F TO STEAL {1} GOLD: {0}".format(eventPlayer.statsMoneyBase, iconString(Icon.SKULL)), eventPlayer.playerBaseLocation, 1.5, Clip.NONE, WorldTextReeval.VISIBILITY_POSITION_AND_STRING, Color.RED, SpecVisibility.NEVER)
+    createInWorldText([player for player in getAllPlayers() if player.stealingFrom == eventPlayer], STR_HOLD_TO_STEAL, eventPlayer.playerBaseLocation, 1.5, Clip.NONE, WorldTextReeval.VISIBILITY_POSITION_AND_STRING, Color.RED, SpecVisibility.NEVER)
 
 
 rule "update outlines":
@@ -604,12 +604,12 @@ rule "display scoreboard":
 
     #title + 1st player
     hudText(getAllPlayers(), null, 
-        "            discord.gg/YP544CH | code: "GAMEMODE_CODE"\nScoreboard    -    Base Wars "VERSION" "CREATION_DATE, 
-        "FIRST TO {0} GOLD IN BASE WINS!\n".format(gameGoldVictory),
+        STR_SCOREBOARD_TITLE, 
+        STR_SCOREBOARD_SUBTITLE,
         HudPosition.RIGHT, 1, Color.WHITE, Color.ORANGE, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.ALWAYS)
     
     for hudIterator in range(3):
-        hudText(getAllPlayers(), null, "Scoreboard    -    Base Wars "VERSION" "CREATION_DATE, " · {0}% {1} {2} ".format(
+        hudText(getAllPlayers(), null, STR_SCOREBOARD_TITLE_HIDDEN, " · {0}% {1} {2} ".format(
             floor(((leaderboard[evalOnce(hudIterator)].statsMoneyBase + leaderboard[evalOnce(hudIterator)].storedMoney) / totalGoldToWin) * 100),
             heroIcon(leaderboard[evalOnce(hudIterator)].getCurrentHero()), 
             leaderboard[evalOnce(hudIterator)]
@@ -718,7 +718,7 @@ rule "BASE BUILD":
     #createIcon(eventPlayer, eventPlayer.playerBaseLocation + vect(0, 2.8, 0), Icon.HALO, IconReeval.POSITION, Color.WHITE, false)
     createInWorldText([player for player in getAllPlayers() if player != eventPlayer], "{1} {0} {2}".format(eventPlayer, heroIcon(eventPlayer.getCurrentHero()), eventPlayer.statsMoneyBase), eventPlayer.playerBaseLocation + vect(0, 2, 0), 0.8, Clip.SURFACES, WorldTextReeval.VISIBILITY_POSITION_AND_STRING, Color.WHITE, SpecVisibility.ALWAYS)
     createInWorldText(eventPlayer, "{0} YOUR BASE".format(heroIcon(eventPlayer.getCurrentHero())), eventPlayer.playerBaseLocation + vect(0, 2.5, 0), 1, Clip.NONE, WorldTextReeval.VISIBILITY_POSITION_AND_STRING, Color.WHITE, SpecVisibility.NEVER)
-    createInWorldText(eventPlayer if eventPlayer.showUpgradeText else [], " \n \n \n \n \n{0} GOLD".format(eventPlayer.statsUpgradeCost[eventPlayer.upgradeCurrentSelection]), eventPlayer.playerBaseLocation, 2, Clip.NONE, WorldTextReeval.VISIBILITY_POSITION_AND_STRING, Color.ORANGE, SpecVisibility.DEFAULT)
+    createInWorldText(eventPlayer if eventPlayer.showUpgradeText else [], " \n \n \n \n \n{}{}".format(eventPlayer.statsUpgradeCost[eventPlayer.upgradeCurrentSelection], STR_XXX_GOLD), eventPlayer.playerBaseLocation, 2, Clip.NONE, WorldTextReeval.VISIBILITY_POSITION_AND_STRING, Color.ORANGE, SpecVisibility.DEFAULT)
     playerBaseBuildEffects()
 
 
@@ -740,7 +740,7 @@ rule "player enters base":
     eventPlayer.playerObjectInBase = eventPlayer
     stopChasingVariable(eventPlayer.baseProtectionTimer)
     eventPlayer.baseProtectionTimer = eventPlayer.statsBaseDelay
-    hudHeader(eventPlayer, "{0} ENTERING BASE {0} \n           IN {1} SEC".format(iconString(Icon.WARNING), eventPlayer.baseProtectionTimer), HudPosition.TOP, -3, Color.ORANGE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    hudHeader(eventPlayer, STR_ENTERING_BASE, HudPosition.TOP, -3, Color.ORANGE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
     eventPlayer.hudBaseProtection = getLastCreatedText()
     chase(eventPlayer.baseProtectionTimer, 0, rate=1, ChaseReeval.NONE)
 
@@ -810,7 +810,7 @@ rule "player finished entering base":
     eventPlayer.regenID = null
     stopChasingVariable(eventPlayer.baseProtectionTimer)
     destroyHudText(eventPlayer.hudBaseProtection)
-    hudText(eventPlayer, "           {0} PROTECTED AND INVISIBLE {0}\n\nTo upgrade, look at white center orb".format(iconString(Icon.CHECKMARK)), "Controls:", "{0}\n{1}".format("{0}{1} : navigate menu\n[{2}]    : buy upgrade".format(buttonString(Button.PRIMARY_FIRE), buttonString(Button.SECONDARY_FIRE), buttonString(Button.INTERACT)), "[{2}]   : use sparkbolt\n[{0} {1} remaining]".format(eventPlayer.nbSparkbolts, iconString(Icon.BOLT), buttonString(Button.ULTIMATE))), HudPosition.TOP, -3, Color.GREEN, Color.GREEN, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    hudText(eventPlayer, STR_PROTECTED_AND_INVISIBLE, STR_CONTROLS, "{0}\n{1}".format(STR_CONTROLS_CONTENT_1, STR_CONTROLS_CONTENT_2), HudPosition.TOP, -3, Color.GREEN, Color.GREEN, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
     eventPlayer.hudBaseProtection = getLastCreatedText()
     settleBalance()
     #createEffect(eventPlayer, Effect.SPHERE, Color.WHITE, eventPlayer.playerBaseLocation, 0.4, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
@@ -906,15 +906,15 @@ rule "ENEMY BASE STEAL LOOP":
 
         if eventPlayer.tmpStealingDistanceBonus > 0:
             if eventPlayer.tmpStealingRiskBonus > 0:
-                smallMessage(eventPlayer, "+{} GOLD ({} distance bonus, {} risk bonus)".format(eventPlayer.tmpStealingAmount, eventPlayer.tmpStealingDistanceBonus, eventPlayer.tmpStealingRiskBonus))
+                smallMessage(eventPlayer, STR_STEAL_RISK_DISTANCE_BONUS)
             else:
-                smallMessage(eventPlayer, "+{} GOLD ({} distance bonus)".format(eventPlayer.tmpStealingAmount, eventPlayer.tmpStealingDistanceBonus))
+                smallMessage(eventPlayer, STR_STEAL_DISTANCE_BONUS)
 
         else:
             if eventPlayer.tmpStealingRiskBonus > 0:
-                smallMessage(eventPlayer, "+{} GOLD ({} risk bonus)".format(eventPlayer.tmpStealingAmount, eventPlayer.tmpStealingRiskBonus))
+                smallMessage(eventPlayer, STR_STEAL_RISK_BONUS)
             else:
-                smallMessage(eventPlayer, "+{} GOLD".format(eventPlayer.tmpStealingAmount))
+                smallMessage(eventPlayer, "+{}{}".format(eventPlayer.tmpStealingAmount, STR_XXX_GOLD))
 
         eventPlayer.statsMoney += eventPlayer.tmpStealingAmount
         eventPlayer.scoreArray[Score.GOLD_EARNED] += eventPlayer.tmpStealingAmount
@@ -958,7 +958,7 @@ rule "upgrade gold miner":
         eventPlayer.statsUpgradeCost[Upgrade.STEAL_SPEED] = eventPlayer.statsUpgradeCost[eventPlayer.upgradeCurrentSelection]
         eventPlayer.statsMoneySec += 1
         eventPlayer.statsUpgradeLevels[eventPlayer.upgradeCurrentSelection] += 1
-        smallMessage(eventPlayer, "{0} +1 GOLD/SEC {0}".format(iconString(Icon.ARROW_UP)))
+        smallMessage(eventPlayer, "{0}{1}{0}".format(iconString(Icon.ARROW_UP), STR_MORE_GOLD_SEC))
         checkUpgradeAvailability()
         settleBalance()
     else:
@@ -999,7 +999,7 @@ rule "upgrade kill bounty":
         eventPlayer.statsUpgradeCost[eventPlayer.upgradeCurrentSelection] = round(eventPlayer.statsUpgradeCost[eventPlayer.upgradeCurrentSelection] * 1.5 / 10) * 10
         eventPlayer.statsMoneyKill += 15
         eventPlayer.statsUpgradeLevels[eventPlayer.upgradeCurrentSelection] += 1
-        smallMessage(eventPlayer, "{0} +15 KILL BOUNTY {0}".format(iconString(Icon.ARROW_UP)))
+        smallMessage(eventPlayer, "{0}{1}{0}".format(iconString(Icon.ARROW_UP), STR_MORE_KILL_BOUNTY))
         checkUpgradeAvailability()
         settleBalance()
     else:
@@ -1013,7 +1013,7 @@ rule "player kill":
     
     eventPlayer.scoreArray[Score.NB_DEATHS] += 1
     if attacker != victim:
-        smallMessage(attacker, "+ {0} GOLD (kill)".format(attacker.statsMoneyKill))
+        smallMessage(attacker, "+ {}{}".format(attacker.statsMoneyKill, STR_XXX_GOLD_KILL))
         attacker.statsMoney += attacker.statsMoneyKill
         attacker.scoreArray[Score.GOLD_EARNED] += attacker.statsMoneyKill
         attacker.scoreArray[Score.NB_KILLS] += 1
@@ -1078,7 +1078,7 @@ rule "upgrade storage capacity":
         eventPlayer.statsUpgradeCost[Upgrade.BASE_MOVE] = max(ceil(eventPlayer.statsMoneyStorage / 5), 50)
         lbl_2:
         eventPlayer.statsUpgradeLevels[eventPlayer.upgradeCurrentSelection] += 1
-        smallMessage(eventPlayer, "{1} +{0} GOLD CAPACITY {1}".format(ceil(eventPlayer.statsMoneyStorage / 2), iconString(Icon.ARROW_UP)))
+        smallMessage(eventPlayer, "{1} +{0}{2}{1}".format(ceil(eventPlayer.statsMoneyStorage / 2), iconString(Icon.ARROW_UP), STR_XXX_GOLD_CAPACITY))
         checkUpgradeAvailability()
         settleBalance()
     else:
@@ -1100,7 +1100,7 @@ rule "UPGRADE BUY MOVE BASE":
         playEffect(eventPlayer, DynamicEffect.RING_EXPLOSION, Color.GREEN, eventPlayer.playerBaseLocation, 2)
         playEffect(eventPlayer, DynamicEffect.BUFF_EXPLOSION_SOUND, Color.WHITE, eventPlayer, 200)
         eventPlayer.playerBaseLocation = vect(0, -10000, 0)
-        smallMessage(eventPlayer, "{0} PACKED UP BASE {0}".format(iconString(Icon.TRASHCAN)))
+        smallMessage(eventPlayer, "{0}{1}{0}".format(iconString(Icon.TRASHCAN), STR_PACKED_UP_BASE))
         wait(1)
         eventPlayer.isMovingBase = true
     else:
@@ -1199,7 +1199,7 @@ rule "UPGRADE BUY STEAL SPEED":
         lbl_0:
         eventPlayer.statsStealingSpeed += 1
         eventPlayer.statsUpgradeLevels[eventPlayer.upgradeCurrentSelection] += 1
-        smallMessage(eventPlayer, "{0} +2 GOLD STEAL/SEC  {0}".format(iconString(Icon.ARROW_UP)))
+        smallMessage(eventPlayer, "{0}{1}{0}".format(iconString(Icon.ARROW_UP), STR_MORE_GOLD_STEAL_SEC))
         checkUpgradeAvailability()
         settleBalance()
     else:
@@ -1226,7 +1226,7 @@ rule "UPGRADE BUY DELAY":
         else:
             eventPlayer.statsUpgradeCost[eventPlayer.upgradeCurrentSelection] *= 2
         eventPlayer.statsUpgradeLevels[eventPlayer.upgradeCurrentSelection] += 1
-        smallMessage(eventPlayer, "{0} -0.5 SEC DELAY {0}".format(iconString(Icon.ARROW_UP)))
+        smallMessage(eventPlayer, "{0}{1}{0}".format(iconString(Icon.ARROW_UP), STR_LESS_ENTER_DELAY))
         checkUpgradeAvailability()
         settleBalance()
     else:
@@ -1258,9 +1258,9 @@ rule "upgrade - use sparkbolt":
             wait(0.64)
             destroyEffect(eventPlayer.sparkboltEffect)
         else:
-            smallMessage(eventPlayer, "TOO FAR AWAY")
+            smallMessage(eventPlayer, STR_TOO_FAR_AWAY)
     else:
-        smallMessage(eventPlayer, "AIM AT ENEMY")
+        smallMessage(eventPlayer, STR_AIM_AT_ENEMY)
     wait(0.5)
     eventPlayer.isSparkboltOnCooldown = false
 
@@ -1348,14 +1348,14 @@ def settleBalance():
         eventPlayer.tmpMoneyDifference = min(eventPlayer.statsMoneyStorage - eventPlayer.statsMoneyBase, eventPlayer.statsMoney)
         eventPlayer.statsMoney -= eventPlayer.tmpMoneyDifference
         eventPlayer.statsMoneyBase += eventPlayer.tmpMoneyDifference
-        smallMessage(eventPlayer, "STORED {0} GOLD IN BASE".format(eventPlayer.tmpMoneyDifference))
+        smallMessage(eventPlayer, STR_STORED_GOLD_IN_BASE)
 
 
 def setBaseLocation():
     @Name "place player base if location is good"
     
     if distance(eventPlayer.getPosition(), getAllPlayers()[eventPlayer.playerBaseProximityIterator].playerBaseLocation) < 14:
-        smallMessage(eventPlayer, "{0} ENEMY BASE TOO CLOSE {0}".format(iconString(Icon.STOP)))
+        smallMessage(eventPlayer, "{0}{1}{0}".format(iconString(Icon.STOP), STR_ENEMY_BASE_TOO_CLOSE))
         eventPlayer.playerBaseProximityIterator = 0
         return
 
@@ -1376,7 +1376,7 @@ def setBaseLocation():
     eventPlayer.playerBaseLocation = eventPlayer.getPosition()
     return
     badLocation:
-    smallMessage(eventPlayer, "{0} BAD BASE LOCATION {0}".format(iconString(Icon.STOP)))
+    smallMessage(eventPlayer, "{0}{1}{0}".format(iconString(Icon.STOP), STR_BAD_BASE_LOCATION))
 
 
 def playerBaseBuildEffects():
@@ -1391,7 +1391,7 @@ def baseUpgradeFail():
     @Name "SUB UPGRADE FAIL"
     
     playEffect(eventPlayer, DynamicEffect.RING_EXPLOSION_SOUND, Color.WHITE, eventPlayer, 20)
-    smallMessage(eventPlayer, "{0} NOT ENOUGH GOLD IN BASE {0}".format(iconString(Icon.NO)))
+    smallMessage(eventPlayer, "{0}{1}{0}".format(iconString(Icon.NO), STR_NOT_ENOUGH_GOLD))
 
 
 def checkUpgradeAvailability():
@@ -1415,7 +1415,7 @@ rule "anti crash":
 	@Event global
 	@Condition not antiCrashActivated and getServerLoad() > 230
     wait(1, Wait.ABORT_WHEN_FALSE)
-    smallMessage(getAllPlayers(), "Anti-crash system activated")
+    smallMessage(getAllPlayers(), STR_ANTI_CRASH_ACTIVATED)
     setSlowMotion(10)
     antiCrashActivated = true
 

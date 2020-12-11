@@ -59,7 +59,7 @@ rule "LOOT BOUNTY COLLECT LOOP":
                 bountyArrayNum -= 1
                 bountyArrayEffects[bountyArrayIterator] = null
                 playEffect(tmpBountyClosestPlayer, DynamicEffect.BUFF_EXPLOSION_SOUND, Color.WHITE, tmpBountyLocation, 50)
-                smallMessage(tmpBountyClosestPlayer, "+{0} PLAYER GOLD".format(evalOnce(bountyArrayMoney[bountyArrayIterator])))
+                smallMessage(tmpBountyClosestPlayer, "+{}{}".format(evalOnce(bountyArrayMoney[bountyArrayIterator]), STR_XXX_PLAYER_GOLD))
 
                 if bountyArrayMoney[bountyArrayIterator] <= 25:
                     playEffect(tmpBountyClosestPlayer, DynamicEffect.GOOD_PICKUP_EFFECT, Color.GREEN, tmpBountyLocation, 1)
@@ -69,6 +69,7 @@ rule "LOOT BOUNTY COLLECT LOOP":
                     playEffect(tmpBountyClosestPlayer, DynamicEffect.GOOD_PICKUP_EFFECT, Color.BLUE, tmpBountyLocation, 1)
                 else:
                     playEffect(tmpBountyClosestPlayer, DynamicEffect.GOOD_PICKUP_EFFECT, Color.PURPLE, tmpBountyLocation, 1)
+                wait(0.032)
             wait(0.032)
     wait(0.1)
     if RULE_CONDITION:
@@ -216,7 +217,7 @@ rule "LOOT COLLECT LOOP":
                     tmpLootCollectClosestPlayer.statsMoney += gameLootOrbAmount
                     tmpLootCollectClosestPlayer.scoreArray[2] += gameLootOrbAmount
                     tmpLootCollectClosestPlayer.scoreArray[Score.NB_ORBS_COLLECTED] += 1
-                    smallMessage(tmpLootCollectClosestPlayer, "+{0} GOLD".format(gameLootOrbAmount))
+                    smallMessage(tmpLootCollectClosestPlayer, "+{}{}".format(gameLootOrbAmount, STR_XXX_GOLD))
             wait()
         wait(0.1)
     while true
@@ -247,7 +248,7 @@ rule "LOOT POWERUP COLLECT LOOP":
         tmpSparkboltClosestPlayer = sorted([player for player in getAllPlayers() if player.isAlive() and player.hasSpawned() and not player.isInBase and (enableInvisibleLootPickup or not player.isCloaked)], lambda player: distance(player.getPosition(), sparkboltPickupPos))[0]
         if entityExists(tmpSparkboltClosestPlayer) and distance(tmpSparkboltClosestPlayer.getPosition(), sparkboltPickupPos) <= 2.5:
             tmpSparkboltClosestPlayer.nbSparkbolts += 1
-            smallMessage(tmpSparkboltClosestPlayer, "+1 {0} SPARKBOLT".format(iconString(Icon.BOLT)))
+            smallMessage(tmpSparkboltClosestPlayer, "+1 {}{}".format(iconString(Icon.BOLT), STR_XXX_SPARKBOLT))
             destroyEffect(sparkboltEffects[0])
             destroyEffect(sparkboltEffects[1])
             playEffect(getAllPlayers(), DynamicEffect.GOOD_PICKUP_EFFECT, Color.WHITE, sparkboltPickupPos, 1)
