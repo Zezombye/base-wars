@@ -1,3 +1,8 @@
+
+/*console.log(VERSION);
+console.log(GAMEMODE_CODE);
+console.log(CREATION_DATE);*/
+
 const translations = {
 
     AUTO_GOLD_MINER: {
@@ -49,7 +54,7 @@ const translations = {
     },
     SWITCH_YOUR_HERO_DESCRIPTION: {
         "en-US": " [NO LVL]\n \n     Takes you to hero selection.\n  Bug: If only one hero shows up\nWait 5 seconds until they appear.\n ",
-        "pt-BR": "",
+        "pt-BR": "　　   [sem nv]\n\n　　　   Leva à seleção de heróis.\n        Bug: se apenas um herói aparecer\naguarde 5 segundos até o resto surgir.\n ",
     },
     GOLD_STEAL_SPEED_DESCRIPTION: {
         "en-US": "     [LVL {}]\n \n    Steal +2 gold/sec from bases.\nSame upgrade price as gold miner.\n  Total {} + enemy gold miner/sec.\n ",
@@ -87,11 +92,11 @@ const translations = {
     },
     BASE_ENTRY_TIME_WHITESPACE: {
         "en-US": "           ",
-        "pt-BR": "             ",
+        "pt-BR": "　　　　　  ",
     },
     NO_BASE_BUILT: {
         "en-US": "{0} NO BASE BUILT {0}\n  PRESS [{1}] TO BUILD",
-        "pt-BR": "   {0} Base não construída {0}\nPressione {button} para construir",
+        "pt-BR": "   {0} Base não construída {0}\nPressione [{1}] para construir",
         format: "iconString(Icon.WARNING), buttonString(Button.INTERACT)",
     },
     ENEMY_IN_BASE: {
@@ -140,12 +145,12 @@ const translations = {
         format: "buttonString(Button.INTERACT), iconString(Icon.SKULL), eventPlayer.statsMoneyBase",
     },
     SCOREBOARD_TITLE: {
-        "en-US": "            discord.gg/YP544CH | code: "+GAMEMODE_CODE+"\nScoreboard    -    Base Wars "+VERSION+" "+CREATION_DATE,
-        "pt-BR": "        discord.gg/YP544CH | código: "+GAMEMODE_CODE+"\nPlacar    -    Guerra de Bases "+VERSION+" "+CREATION_DATE,
+        "en-US": "            discord.gg/YP544CH | code: ##GAMEMODE_CODE##\nScoreboard    -    Base Wars ##VERSION## ##CREATION_DATE##",
+        "pt-BR": "　　　　　 discord.gg/YP544CH | código: ##GAMEMODE_CODE##\n　　　 Placar    -    Guerra de Bases ##VERSION## ##CREATION_DATE##",
     },
     SCOREBOARD_TITLE_HIDDEN: {
-        "en-US": "Scoreboard    -    Base Wars "+VERSION+" "+CREATION_DATE,
-        "pt-BR": "Placar    -    Guerra de Bases "+VERSION+" "+CREATION_DATE,
+        "en-US": "Scoreboard    -    Base Wars ##VERSION## ##CREATION_DATE##",
+        "pt-BR": "　　　 Placar    -    Guerra de Bases ##VERSION## ##CREATION_DATE##",
     },
     SCOREBOARD_SUBTITLE: {
         "en-US": "FIRST TO {0} GOLD IN BASE WINS!\n",
@@ -183,6 +188,7 @@ const translations = {
     STEAL_RISK_BONUS: {
         "en-US": "+{} GOLD ({} risk bonus)",
         "pt-BR": "+{} de ouro ({} bônus de risco)",
+        format: "eventPlayer.tmpStealingAmount, eventPlayer.tmpStealingRiskBonus",
     },
     STEAL_DISTANCE_BONUS: {
         "en-US": "+{} GOLD ({} distance bonus)",
@@ -355,146 +361,6 @@ const translations = {
         "en-US": "",
         "pt-BR": "",
     },
-    XXXX: {
-        "en-US": "",
-        "pt-BR": "",
-    },
-    XXXX: {
-        "en-US": "",
-        "pt-BR": "",
-    },
-    XXXX: {
-        "en-US": "",
-        "pt-BR": "",
-    },
-    XXXX: {
-        "en-US": "",
-        "pt-BR": "",
-    },
-    XXXX: {
-        "en-US": "",
-        "pt-BR": "",
-    },
-    XXXX: {
-        "en-US": "",
-        "pt-BR": "",
-    },
-    XXXX: {
-        "en-US": "",
-        "pt-BR": "",
-    },
-    XXXX: {
-        "en-US": "",
-        "pt-BR": "",
-    },
-    XXXX: {
-        "en-US": "",
-        "pt-BR": "",
-    },
-    XXXX: {
-        "en-US": "",
-        "pt-BR": "",
-    },
-    XXXX: {
-        "en-US": "",
-        "pt-BR": "",
-    },
-    XXXX: {
-        "en-US": "",
-        "pt-BR": "",
-    },
-    XXXX: {
-        "en-US": "",
-        "pt-BR": "",
-    },
-    XXXX: {
-        "en-US": "",
-        "pt-BR": "",
-    },
-    XXXX: {
-        "en-US": "",
-        "pt-BR": "",
-    },
-    XXXX: {
-        "en-US": "",
-        "pt-BR": "",
-    },
-    XXXX: {
-        "en-US": "",
-        "pt-BR": "",
-    },
-    XXXX: {
-        "en-US": "",
-        "pt-BR": "",
-    },
-    XXXX: {
-        "en-US": "",
-        "pt-BR": "",
-    },
-    XXXX: {
-        "en-US": "",
-        "pt-BR": "",
-    },
-    XXXX: {
-        "en-US": "",
-        "pt-BR": "",
-    },
-    XXXX: {
-        "en-US": "",
-        "pt-BR": "",
-    },
-    XXXX: {
-        "en-US": "",
-        "pt-BR": "",
-    },
-    XXXX: {
-        "en-US": "",
-        "pt-BR": "",
-    },
-    XXXX: {
-        "en-US": "",
-        "pt-BR": "",
-    },
-    XXXX: {
-        "en-US": "",
-        "pt-BR": "",
-    },
-    XXXX: {
-        "en-US": "",
-        "pt-BR": "",
-    },
-    XXXX: {
-        "en-US": "",
-        "pt-BR": "",
-    },
-    XXXX: {
-        "en-US": "",
-        "pt-BR": "",
-    },
-    XXXX: {
-        "en-US": "",
-        "pt-BR": "",
-    },
-    XXXX: {
-        "en-US": "",
-        "pt-BR": "",
-    },
-    XXXX: {
-        "en-US": "",
-        "pt-BR": "",
-    },
-    XXXX: {
-        "en-US": "",
-        "pt-BR": "",
-    },
-    XXXX: {
-        "en-US": "",
-        "pt-BR": "",
-    },
-    XXXX: {
-        "en-US": "",
-        "pt-BR": "",
-    },
     /*XXXXX: {
         "en-US": "",
         "fr-FR": ""
@@ -502,7 +368,7 @@ const translations = {
 
 }
 
-const availableLanguages = ["en-US", "fr-FR"]
+const availableLanguages = ["en-US", "pt-BR"]
 
 
 //check if we put a language that isn't available
@@ -522,5 +388,8 @@ for (var translation in translations) {
         }
     }
 
-    result += "#!define STR_"+translation+" "+JSON.stringify(availableLanguages.map(x => translations[translation][x]))+'[max(false, practiceRangeTranslations.index("{0}".format(Map.PRACTICE_RANGE)))]\n';
+    console.log(translations[translation].format)
+    result += "#!define STR_"+translation+" ["+availableLanguages.map(x => JSON.stringify(translations[translation][x]).replace(/##(\w+)##/g, '"$1"') + (translations[translation].format ? ".format("+translations[translation].format+")" : ""))+'][max(false, practiceRangeTranslations.index("{0}".format(Map.PRACTICE_RANGE)))]\n';
 }
+
+result

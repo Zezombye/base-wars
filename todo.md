@@ -1,8 +1,10 @@
 
 - add oasis city center (but prevent building a base on the road)
-- fix loot orb not spawning - fixed?
-- fix upgrade sometimes not appearing (you have to look away and back)
+
 - fix total gold earned calculation (seems to be 2x-3x reality)
+
+- fix loot orb not spawning - fixed?
+- fix upgrade sometimes not appearing (you have to look away and back) - fixed?
 
 - do not start the game immediately, but spawn 6 dummies when there are 6 players - DONE
 - fix loot not getting picked up - DONE

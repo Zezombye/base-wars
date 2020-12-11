@@ -1,9 +1,13 @@
 
-#!define DEBUG_MODE false
+#!define DEBUG_MODE true
 
 #!define VERSION "1.9"
 #!define CREATION_DATE "08/12/2020"
 #!define GAMEMODE_CODE "14WON"
+
+#!define i18n() __script__("i18n.js")
+i18n()
+globalvar practiceRangeTranslations = [p"Practice Range", p"Campo de Treinamento"]
 
 #!define BASE_RADIUS 3.5
 #!define STEALING_RISK_MULTIPLIER 1.5
@@ -338,7 +342,7 @@ rule "GAME INIT MAP":
         mapRotationVector = angleToDirection(48, 0)
         lootBlockerVolumePos = vect(73.442, 17.829, -98.474)
         lootBlockerVolumeRadius = 16
-        gameEndCamera = vect(-111.54, 4.77, -118.15)
+        gameEndCamera = vect(-109, 4.77, -118.15)
 
     elif getCurrentMap() == Map.ILIOS_LIGHTHOUSE:
         mapInfo = vect(176.245, -12.03, -100.103)
@@ -581,8 +585,8 @@ rule "init player hud":
     #upgrade sphere
     createEffect(eventPlayer if eventPlayer.isInBase else [], Effect.SPHERE, upgradeColors[eventPlayer.upgradeCurrentSelection] if eventPlayer.showUpgradeText else Color.WHITE, eventPlayer.playerBaseLocation, 0.4, EffectReeval.VISIBILITY_POSITION_RADIUS_AND_COLOR)
 
-    createIcon(eventPlayer if eventPlayer.showUpgradeText else [], normalize(vect(eventPlayer.getFacingDirection().z * -1, 0, eventPlayer.getFacingDirection().x)) * eventPlayer.upgradeOffsetRight + (eventPlayer.playerBaseLocation - vect(0, 0.3, 0)), Icon.ARROW_LEFT, IconReeval.VISIBILITY_AND_POSITION, Color.WHITE, false)
-    createIcon(eventPlayer if eventPlayer.showUpgradeText else [], normalize(vect(eventPlayer.getFacingDirection().z * -1, 0, eventPlayer.getFacingDirection().x)) * eventPlayer.upgradeOffsetLeft + (eventPlayer.playerBaseLocation - vect(0, 0.3, 0)), Icon.ARROW_RIGHT, IconReeval.VISIBILITY_AND_POSITION, Color.WHITE, false)
+    createIcon(eventPlayer if eventPlayer.showUpgradeText else [], updateEveryTick(normalize(vect(eventPlayer.getFacingDirection().z * -1, 0, eventPlayer.getFacingDirection().x)) * eventPlayer.upgradeOffsetRight + (eventPlayer.playerBaseLocation - vect(0, 0.3, 0))), Icon.ARROW_LEFT, IconReeval.VISIBILITY_AND_POSITION, Color.WHITE, false)
+    createIcon(eventPlayer if eventPlayer.showUpgradeText else [], updateEveryTick(normalize(vect(eventPlayer.getFacingDirection().z * -1, 0, eventPlayer.getFacingDirection().x)) * eventPlayer.upgradeOffsetLeft + (eventPlayer.playerBaseLocation - vect(0, 0.3, 0))), Icon.ARROW_RIGHT, IconReeval.VISIBILITY_AND_POSITION, Color.WHITE, false)
 
     #stealing sphere
     createEffect([player for player in getAllPlayers() if player.stealingFrom == eventPlayer], Effect.SPHERE, Color.RED, eventPlayer.playerBaseLocation, 0.4, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
@@ -1330,6 +1334,9 @@ rule "show upgrade menu":
     wait(0.25)
     if eventPlayer.showUpgradeText != null:
         eventPlayer.isUpgradeInputOnCooldown = false
+
+    if RULE_CONDITION:
+        goto RULE_START
 
 
 rule "hide upgrade menu":
