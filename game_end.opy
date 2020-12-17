@@ -5,6 +5,9 @@ globalvar tmpAllPlayers
 globalvar scoreboardIterator
 globalvar tmpPlayer
 
+#!define createIwtScoreboardTitle(text) createInWorldText(getAllPlayers(), text, gameScorePositions[2], 1.9, Clip.NONE, WorldTextReeval.VISIBILITY_AND_STRING, Color.ORANGE, SpecVisibility.DEFAULT)
+#!define createIwtScoreboardDesc(text) createInWorldText(getAllPlayers(), text, gameScorePositions[2], 1.9, Clip.NONE, WorldTextReeval.VISIBILITY_AND_STRING, Color.WHITE, SpecVisibility.DEFAULT)
+
 rule "GAME WIN CONDITION":
     @Event eachPlayer
     @Hero all
@@ -17,7 +20,7 @@ rule "GAME WIN CONDITION":
     gameWinner = eventPlayer
     setSlowMotion(33)
     wait(0.5)
-    bigMessage(getAllPlayers(), "{0} HAS WON THE GAME".format(eventPlayer))
+    bigMessage(getAllPlayers(), "{}{}".format(eventPlayer, STR_HAS_WON_GAME))
     wait(0.8)
     getDeadPlayers(Team.ALL).respawn()
     
@@ -74,34 +77,32 @@ rule "GAME WIN CONDITION":
     gameScorePositions[2] = gameScorePositions[0] + vect(gameScorePositions[1] * -1.5, gameScorePositions[1] * 0.06, gameScorePositions[1] * 0)
     gameScorePositions[3] = gameScorePositions[2] + vect(0, gameScorePositions[1] * 0.075, 0)
 
-    createInWorldText(getAllPlayers(), "Winner\n ", gameWinner.getEyePosition() + vect(0, gameScorePositions[1] * 0.55, 0), 2, Clip.NONE, WorldTextReeval.VISIBILITY_POSITION_AND_STRING, Color.ORANGE, SpecVisibility.DEFAULT)
-    createInWorldText(getAllPlayers(), " \n{0}".format(gameWinner), gameWinner.getEyePosition() + vect(0, gameScorePositions[1] * 0.55, 0), 2, Clip.NONE, WorldTextReeval.VISIBILITY_POSITION_AND_STRING, Color.WHITE, SpecVisibility.DEFAULT)
+    createInWorldText(getAllPlayers(), "{}\n ".format(STR_WINNER), gameWinner.getEyePosition() + vect(0, gameScorePositions[1] * 0.55, 0), 2, Clip.NONE, WorldTextReeval.VISIBILITY_POSITION_AND_STRING, Color.ORANGE, SpecVisibility.DEFAULT)
+    createInWorldText(getAllPlayers(), " \n{}".format(gameWinner), gameWinner.getEyePosition() + vect(0, gameScorePositions[1] * 0.55, 0), 2, Clip.NONE, WorldTextReeval.VISIBILITY_POSITION_AND_STRING, Color.WHITE, SpecVisibility.DEFAULT)
 
-    createInWorldText(getAllPlayers(), "{0} BOUNTY HUNTER \n\n{1} ASSASSIN\n\n{2} VICTIM\n\n \n\n \n\n \n\n \n\n \n\n \n\n \n".format(iconString(Icon.SKULL), abilityIconString(Hero.MCCREE, Button.ULTIMATE), iconString(Icon.SAD)), gameScorePositions[2], 1.9, Clip.NONE, WorldTextReeval.VISIBILITY_AND_STRING, Color.ORANGE, SpecVisibility.DEFAULT)
-    createInWorldText(getAllPlayers(), " \n\n \n\n \n\n{0} GOLD HOARDER    \n\n{1} MASTER THIEF\n\n{2} FAST EARNER\n\n \n\n \n\n \n\n \n ".format(abilityIconString(Hero.SIGMA, Button.PRIMARY_FIRE), abilityIconString(Hero.MOIRA, Button.SECONDARY_FIRE), abilityIconString(Hero.TRACER, Button.ABILITY_1)), gameScorePositions[2], 1.9, Clip.NONE, WorldTextReeval.VISIBILITY_AND_STRING, Color.ORANGE, SpecVisibility.DEFAULT)
-    createInWorldText(getAllPlayers(), " \n\n \n\n \n\n \n\n \n\n \n\n{0} FRIENDLY FARMER\n\n{1} COOKIE CLICKER\n\n{2} ENGINEER\n\n \n ".format(iconString(Icon.HEART), abilityIconString(Hero.SIGMA, Button.ABILITY_1), abilityIconString(Hero.BASTION, Button.SECONDARY_FIRE)), gameScorePositions[2], 1.9, Clip.NONE, WorldTextReeval.VISIBILITY_AND_STRING, Color.ORANGE, SpecVisibility.DEFAULT)
-    createInWorldText(getAllPlayers(), " \n\n \n\n \n\n \n\n \n\n \n\n \n\n \n\n \n\n{0} TRAVELER              \n ".format(abilityIconString(Hero.SOLDIER, Button.ABILITY_1)), gameScorePositions[2], 1.9, Clip.NONE, WorldTextReeval.VISIBILITY_AND_STRING, Color.ORANGE, SpecVisibility.DEFAULT)
+    createIwtScoreboardTitle("{}{}\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n".format(Icon.SKULL, STR_BOUNTY_HUNTER))
+    createIwtScoreboardTitle(" \n\n{}{}\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n".format(abilityIconString(Hero.MCCREE, Button.ULTIMATE), STR_ASSASSIN))
+    createIwtScoreboardTitle(" \n\n\n\n{}{}\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n".format(Icon.SAD, STR_VICTIM))
+    createIwtScoreboardTitle(" \n\n\n\n\n\n{}{}\n\n\n\n\n\n\n\n\n\n\n\n\n".format(abilityIconString(Hero.SIGMA, Button.PRIMARY_FIRE), STR_GOLD_HOARDER))
+    createIwtScoreboardTitle(" \n\n\n\n\n\n\n\n{}{}\n\n\n\n\n\n\n\n\n\n\n".format(abilityIconString(Hero.MOIRA, Button.SECONDARY_FIRE), STR_MASTER_THIEF))
+    createIwtScoreboardTitle(" \n\n\n\n\n\n\n\n\n\n{}{}\n\n\n\n\n\n\n\n\n".format(abilityIconString(Hero.TRACER, Button.ABILITY_1), STR_FAST_EARNER))
+    createIwtScoreboardTitle(" \n\n\n\n\n\n\n\n\n\n\n\n{}{}\n\n\n\n\n\n\n".format(Icon.HEART, STR_FRIENDLY_FARMER))
+    createIwtScoreboardTitle(" \n\n\n\n\n\n\n\n\n\n\n\n\n\n{}{}\n\n\n\n\n".format(abilityIconString(Hero.SIGMA, Button.ABILITY_1), STR_COOKIE_CLICKER))
+    createIwtScoreboardTitle(" \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n{}{}\n\n\n".format(abilityIconString(Hero.BASTION, Button.SECONDARY_FIRE), STR_ENGINEER))
+    createIwtScoreboardTitle(" \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n{}{}\n".format(abilityIconString(Hero.SOLDIER, Button.ABILITY_1), STR_TRAVELER))
 
     createInWorldText(getAllPlayers(), b" \n\n\n\n\n\n\n\n\n\n\n\n\n{} \n\n{}\n\n{}\n\n{}\n\n{}\n\n{}\n\n{}\n\n{}\n\n{}\n\n{}\n\n\n".format(gameScoreTopPlayers[0], gameScoreTopPlayers[1], gameScoreTopPlayers[2], gameScoreTopPlayers[3], gameScoreTopPlayers[4], gameScoreTopPlayers[5], gameScoreTopPlayers[6], gameScoreTopPlayers[7], gameScoreTopPlayers[8], gameScoreTopPlayers[9]), gameScorePositions[2], 2.14, Clip.NONE, WorldTextReeval.VISIBILITY_AND_STRING, Color.WHITE, SpecVisibility.DEFAULT)
 
-    createInWorldText(getAllPlayers(), p"{}\n\n\n\n\n\n\n\n\n\n\n\n\n".format(
-        "{}{}{}{}{}{}".format(
-            p"                                                                          ", "{} kills\n\n".format(gameScoreTopPlayersValues[0]),
-            p"                                                             ", "{} K/D\n\n".format(gameScoreTopPlayersValues[1]),
-            p"                                                        ", "{} gold stolen from\n\n".format(gameScoreTopPlayersValues[2])
-        )
-    ), gameScorePositions[2], 1.9, Clip.NONE, WorldTextReeval.VISIBILITY_AND_STRING, Color.WHITE, SpecVisibility.DEFAULT)
-    createInWorldText(getAllPlayers(), p" \n\n\n\n\n\n{}\n\n\n\n\n\n\n".format(
-        "{}{}{}{}{}{}".format(
-            p"                                                                          ", "{} gold earned\n\n".format(gameScoreTopPlayersValues[3]), p"                                                                     ", "{} gold stolen\n\n".format(gameScoreTopPlayersValues[4]), p"                                                                     ", "{} gold/sec\n\n".format(gameScoreTopPlayersValues[5])
-        )
-    ), gameScorePositions[2], 1.9, Clip.NONE, WorldTextReeval.VISIBILITY_AND_STRING, Color.WHITE, SpecVisibility.DEFAULT)
-    createInWorldText(getAllPlayers(), p" \n\n\n\n\n\n\n\n\n\n\n\n{}{}{}".format(
-        "{}{}\n\n{}{}\n\n{}{}\n\n".format(
-            p"                                                                               ", "{} gold/kills".format(gameScoreTopPlayersValues[6]), p"                                                                           ", "{} orbs collected".format(gameScoreTopPlayersValues[7]), p"                                                                ", "{} upgrades".format(gameScoreTopPlayersValues[8])
-        ),
-        p"                                                                ", "{} bases moved\n ".format(gameScoreTopPlayersValues[9])
-    ), gameScorePositions[2], 1.9, Clip.NONE, WorldTextReeval.VISIBILITY_AND_STRING, Color.WHITE, SpecVisibility.DEFAULT)
+    createIwtScoreboardDesc("{}{}{}\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n".format(STR_BOUNTY_HUNTER_WHITESPACE, gameScoreTopPlayersValues[0], STR_BOUNTY_HUNTER_DESC))
+    createIwtScoreboardDesc(" \n\n{}{}{}\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n".format(STR_ASSASSIN_WHITESPACE, gameScoreTopPlayersValues[1], STR_ASSASSIN_DESC))
+    createIwtScoreboardDesc(" \n\n\n\n{}{}{}\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n".format(STR_VICTIM_WHITESPACE, gameScoreTopPlayersValues[2], STR_VICTIM_DESC))
+    createIwtScoreboardDesc(" \n\n\n\n\n\n{}{}{}\n\n\n\n\n\n\n\n\n\n\n\n\n".format(STR_GOLD_HOARDER_WHITESPACE, gameScoreTopPlayersValues[3], STR_GOLD_HOARDER_DESC))
+    createIwtScoreboardDesc(" \n\n\n\n\n\n\n\n{}{}{}\n\n\n\n\n\n\n\n\n\n\n".format(STR_MASTER_THIEF_WHITESPACE, gameScoreTopPlayersValues[4], STR_MASTER_THIEF_DESC))
+    createIwtScoreboardDesc(" \n\n\n\n\n\n\n\n\n\n{}{}{}\n\n\n\n\n\n\n\n\n".format(STR_FAST_EARNER_WHITESPACE, gameScoreTopPlayersValues[5], STR_FAST_EARNER_DESC))
+    createIwtScoreboardDesc(" \n\n\n\n\n\n\n\n\n\n\n\n{}{}{}\n\n\n\n\n\n\n".format(STR_FRIENDLY_FARMER_WHITESPACE, gameScoreTopPlayersValues[6], STR_FRIENDLY_FARMER_DESC))
+    createIwtScoreboardDesc(" \n\n\n\n\n\n\n\n\n\n\n\n\n\n{}{}{}\n\n\n\n\n".format(STR_COOKIE_CLICKER_WHITESPACE, gameScoreTopPlayersValues[7], STR_COOKIE_CLICKER_DESC))
+    createIwtScoreboardDesc(" \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n{}{}{}\n\n\n".format(STR_ENGINEER_WHITESPACE, gameScoreTopPlayersValues[8], STR_ENGINEER_DESC))
+    createIwtScoreboardDesc(" \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n{}{}{}\n".format(STR_TRAVELER_WHITESPACE, gameScoreTopPlayersValues[9], STR_TRAVELER_DESC))
 
     wait(0.1)
     gameWinner.stopForcingPosition()

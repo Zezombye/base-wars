@@ -265,52 +265,132 @@ const translations = {
         "en-US": " SPARKBOLT",
         "pt-BR": " faísca",
     },
-    XXXX: {
-        "en-US": "",
+    HAS_WON_GAME: {
+        "en-US": " has won the game",
         "pt-BR": "",
     },
-    XXXX: {
-        "en-US": "",
+    WINNER: {
+        "en-US": "Winner",
         "pt-BR": "",
     },
-    XXXX: {
-        "en-US": "",
+    BOUNTY_HUNTER: {
+        "en-US": " Bounty Hunter",
         "pt-BR": "",
     },
-    XXXX: {
-        "en-US": "",
+    ASSASSIN: {
+        "en-US": " Assassin",
         "pt-BR": "",
     },
-    XXXX: {
-        "en-US": "",
+    VICTIM: {
+        "en-US": " Victim",
         "pt-BR": "",
     },
-    XXXX: {
-        "en-US": "",
+    GOLD_HOARDER: {
+        "en-US": " Gold Hoarder",
         "pt-BR": "",
     },
-    XXXX: {
-        "en-US": "",
+    MASTER_THIEF: {
+        "en-US": " Master Thief",
         "pt-BR": "",
     },
-    XXXX: {
-        "en-US": "",
+    FAST_EARNER: {
+        "en-US": " Fast Earner",
         "pt-BR": "",
     },
-    XXXX: {
-        "en-US": "",
+    FRIENDLY_FARMER: {
+        "en-US": " Friendly Farmer",
         "pt-BR": "",
     },
-    XXXX: {
-        "en-US": "",
+    COOKIE_CLICKER: {
+        "en-US": " Cookie Clicker",
         "pt-BR": "",
     },
-    XXXX: {
-        "en-US": "",
+    ENGINEER: {
+        "en-US": " Engineer",
         "pt-BR": "",
     },
-    XXXX: {
-        "en-US": "",
+    TRAVELER: {
+        "en-US": " Traveler",
+        "pt-BR": "",
+    },
+    BOUNTY_HUNTER_WHITESPACE: {
+        "en-US": "                                                                          ",
+        "pt-BR": "",
+    },
+    ASSASSIN_WHITESPACE: {
+        "en-US": "                                                             ",
+        "pt-BR": "",
+    },
+    VICTIM_WHITESPACE: {
+        "en-US": "                                                        ",
+        "pt-BR": "",
+    },
+    GOLD_HOARDER_WHITESPACE: {
+        "en-US": "                                                                          ",
+        "pt-BR": "",
+    },
+    MASTER_THIEF_WHITESPACE: {
+        "en-US": "                                                                     ",
+        "pt-BR": "",
+    },
+    FAST_EARNER_WHITESPACE: {
+        "en-US": "                                                                     ",
+        "pt-BR": "",
+    },
+    FRIENDLY_FARMER_WHITESPACE: {
+        "en-US": "                                                                               ",
+        "pt-BR": "",
+    },
+    COOKIE_CLICKER_WHITESPACE: {
+        "en-US": "                                                                           ",
+        "pt-BR": "",
+    },
+    ENGINEER_WHITESPACE: {
+        "en-US": "                                                                ",
+        "pt-BR": "",
+    },
+    TRAVELER_WHITESPACE: {
+        "en-US": "                                                                ",
+        "pt-BR": "",
+    },
+    BOUNTY_HUNTER_DESC: {
+        "en-US": " kills",
+        "pt-BR": "",
+    },
+    ASSASSIN_DESC: {
+        "en-US": " K/D",
+        "pt-BR": "",
+    },
+    VICTIM_DESC: {
+        "en-US": " gold stolen from",
+        "pt-BR": "",
+    },
+    GOLD_HOARDER_DESC: {
+        "en-US": " gold earned",
+        "pt-BR": "",
+    },
+    MASTER_THIEF_DESC: {
+        "en-US": " gold stolen",
+        "pt-BR": "",
+    },
+    FAST_EARNER_DESC: {
+        "en-US": " gold/sec",
+        "pt-BR": "",
+    },
+    FRIENDLY_FARMER_DESC: {
+        "en-US": " gold/kills",
+        "pt-BR": "",
+    },
+    COOKIE_CLICKER_DESC: {
+        "en-US": " orbs collected",
+        "pt-BR": "",
+    },
+    ENGINEER_DESC: {
+        "en-US": " upgrades",
+        "pt-BR": "",
+    },
+    TRAVELER_DESC: {
+        "en-US": " bases moved",
         "pt-BR": "",
     },
     XXXX: {

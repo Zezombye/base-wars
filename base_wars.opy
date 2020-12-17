@@ -1431,3 +1431,7 @@ rule "disable anti crash":
 	@Condition antiCrashActivated and getServerLoad() < 210
     setSlowMotion(100)
     antiCrashActivated = false
+
+rule "failsafe":
+    if not DEBUG_MODE and "a" == p"a":
+        print("Warning: obfuscation is disabled!")
