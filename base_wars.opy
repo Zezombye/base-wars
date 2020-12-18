@@ -13,7 +13,7 @@ globalvar practiceRangeTranslations = [p"Practice Range", p"Campo de Treinamento
 #!define STEALING_RISK_MULTIPLIER 1.5
 #!define NB_PLAYERS_AUTO_START 4
 
-#!obfuscate
+##!obfuscate
 
 enum Upgrade:
     GOLD_MINER,
@@ -307,7 +307,7 @@ rule "GAME INIT MAP":
         mapInfo = vect(85.11, 14.007, -67.039)
         mapNavMesh = vect(69.636, 6.939, -13.709)
         mapRotationVector = angleToDirection(321, 0)
-        gameEndCamera = vect(131.25, 57.86, 34.46)
+        gameEndCamera = vect(133.25, 57.86, 34.46)
 
     elif getCurrentMap() == Map.ECOPOINT_ANTARCTICA or getCurrentMap() == Map.ECOPOINT_ANTARCTICA_WINTER:
         mapInfo = vect(-110.027, 10.003, -56.06)
@@ -392,7 +392,7 @@ rule "GAME INIT MAP":
 
     elif getCurrentMap() == Map.NEPAL_VILLAGE or getCurrentMap() == Map.NEPAL_VILLAGE_WINTER:
         mapInfo = vect(-185.223, -14.102, -90.096)
-        gameEndCamera = vect(63.38, 16, -63.21)
+        gameEndCamera = vect(-63.38, 16, -63.21)
 
     elif getCurrentMap() == Map.OASIS_GARDENS:
         mapInfo = vect(163.047, 11.001, -79.268)
