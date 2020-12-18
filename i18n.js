@@ -40,7 +40,7 @@ const translations = {
     },
     KILL_GOLD_BOUNTY_DESCRIPTION: {
         "en-US": "     [LVL {}]\n\n    Increases bounty from {} to {}\nAwarded by dealing finishing blow\n  Doesn't affect dropped loot orbs\n ",
-        "pt-BR": "         [NV {}]\n\nAUMENTA A RECOMPENSA DE {} PARA {}\n          OBTIDO AO EFETUAR UM ABATE\n           NÃO AFETA ORBES DEIXADOS\n ",
+        "pt-BR": "       [NV {}]\n\nAUMENTA A RECOMPENSA DE {} PARA {}\n          OBTIDO AO EFETUAR UM ABATE\n           NÃO AFETA ORBES DEIXADOS\n ",
         format: "eventPlayer.statsUpgradeLevels[eventPlayer.upgradeCurrentSelection], eventPlayer.statsMoneyKill, eventPlayer.statsMoneyKill + 15",
     },
     BASE_GOLD_STORAGE_DESCRIPTION: {
@@ -159,7 +159,7 @@ const translations = {
     },
     XXX_GOLD: {
         "en-US": " GOLD",
-        "pt-BR": " ouro",
+        "pt-BR": " de ouro",
     },
     ENTERING_BASE: {
         "en-US": "{0} ENTERING BASE {0} \n           IN {1} SEC",
@@ -267,51 +267,51 @@ const translations = {
     },
     HAS_WON_GAME: {
         "en-US": " has won the game",
-        "pt-BR": "",
+        "pt-BR": " venceu o jogo",
     },
     WINNER: {
         "en-US": "Winner",
-        "pt-BR": "",
+        "pt-BR": "Vencedor",
     },
     BOUNTY_HUNTER: {
         "en-US": " Bounty Hunter",
-        "pt-BR": "",
+        "pt-BR": " Caçador de recompensas",
     },
     ASSASSIN: {
         "en-US": " Assassin",
-        "pt-BR": "",
+        "pt-BR": " Assassino",
     },
     VICTIM: {
         "en-US": " Victim",
-        "pt-BR": "",
+        "pt-BR": " Vítima",
     },
     GOLD_HOARDER: {
         "en-US": " Gold Hoarder",
-        "pt-BR": "",
+        "pt-BR": " Acumulador de ouro",
     },
     MASTER_THIEF: {
         "en-US": " Master Thief",
-        "pt-BR": "",
+        "pt-BR": " Ladrão mestre",
     },
     FAST_EARNER: {
         "en-US": " Fast Earner",
-        "pt-BR": "",
+        "pt-BR": " Acumulador rápido",
     },
     FRIENDLY_FARMER: {
         "en-US": " Friendly Farmer",
-        "pt-BR": "",
+        "pt-BR": " Acumulador amigável",
     },
     COOKIE_CLICKER: {
         "en-US": " Cookie Clicker",
-        "pt-BR": "",
+        "pt-BR": " Cookie clicker",
     },
     ENGINEER: {
         "en-US": " Engineer",
-        "pt-BR": "",
+        "pt-BR": " Engenheiro",
     },
     TRAVELER: {
         "en-US": " Traveler",
-        "pt-BR": "",
+        "pt-BR": " Nômade",
     },
     BOUNTY_HUNTER_WHITESPACE: {
         "en-US": "                                                                          ",
@@ -355,91 +355,43 @@ const translations = {
     },
     BOUNTY_HUNTER_DESC: {
         "en-US": " kills",
-        "pt-BR": "",
+        "pt-BR": " abates",
     },
     ASSASSIN_DESC: {
         "en-US": " K/D",
-        "pt-BR": "",
+        "pt-BR": " A/M",
     },
     VICTIM_DESC: {
         "en-US": " gold stolen from",
-        "pt-BR": "",
+        "pt-BR": " ouro roubado de",
     },
     GOLD_HOARDER_DESC: {
         "en-US": " gold earned",
-        "pt-BR": "",
+        "pt-BR": " ouro obtido",
     },
     MASTER_THIEF_DESC: {
         "en-US": " gold stolen",
-        "pt-BR": "",
+        "pt-BR": " ouro roubado",
     },
     FAST_EARNER_DESC: {
         "en-US": " gold/sec",
-        "pt-BR": "",
+        "pt-BR": " ouro/seg",
     },
     FRIENDLY_FARMER_DESC: {
         "en-US": " gold/kills",
-        "pt-BR": "",
+        "pt-BR": " ouro/abates",
     },
     COOKIE_CLICKER_DESC: {
         "en-US": " orbs collected",
-        "pt-BR": "",
+        "pt-BR": " orbes coletados",
     },
     ENGINEER_DESC: {
         "en-US": " upgrades",
-        "pt-BR": "",
+        "pt-BR": " melhorias",
     },
     TRAVELER_DESC: {
         "en-US": " bases moved",
-        "pt-BR": "",
-    },
-    XXXX: {
-        "en-US": "",
-        "pt-BR": "",
-    },
-    XXXX: {
-        "en-US": "",
-        "pt-BR": "",
-    },
-    XXXX: {
-        "en-US": "",
-        "pt-BR": "",
-    },
-    XXXX: {
-        "en-US": "",
-        "pt-BR": "",
-    },
-    XXXX: {
-        "en-US": "",
-        "pt-BR": "",
-    },
-    XXXX: {
-        "en-US": "",
-        "pt-BR": "",
-    },
-    XXXX: {
-        "en-US": "",
-        "pt-BR": "",
-    },
-    XXXX: {
-        "en-US": "",
-        "pt-BR": "",
-    },
-    XXXX: {
-        "en-US": "",
-        "pt-BR": "",
-    },
-    XXXX: {
-        "en-US": "",
-        "pt-BR": "",
-    },
-    XXXX: {
-        "en-US": "",
-        "pt-BR": "",
-    },
-    XXXX: {
-        "en-US": "",
-        "pt-BR": "",
+        "pt-BR": " bases movidas",
     },
     /*XXXXX: {
         "en-US": "",

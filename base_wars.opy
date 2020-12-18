@@ -8,12 +8,13 @@
 #!define i18n() __script__("i18n.js")
 i18n()
 globalvar practiceRangeTranslations = [p"Practice Range", p"Campo de Treinamento"]
+#globalvar practiceRangeTranslations = [p"Campo de Treinamento", p"Practice Range"]
 
 #!define BASE_RADIUS 3.5
 #!define STEALING_RISK_MULTIPLIER 1.5
 #!define NB_PLAYERS_AUTO_START 4
 
-##!obfuscate
+#!obfuscate
 
 enum Upgrade:
     GOLD_MINER,
