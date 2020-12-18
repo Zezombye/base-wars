@@ -1,5 +1,5 @@
 
-#!define DEBUG_MODE true
+#!define DEBUG_MODE false
 
 #!define VERSION "1.9"
 #!define CREATION_DATE "08/12/2020"
@@ -48,15 +48,6 @@ globalvar upgradeColors = [
     Color.TURQUOISE,
     Color.PURPLE,
     Color.AQUA,
-]
-globalvar upgradeHeaders = [
-    [STR_AUTO_GOLD_MINER_WHITESPACE, STR_AUTO_GOLD_MINER],
-    [STR_KILL_GOLD_BOUNTY_WHITESPACE, STR_KILL_GOLD_BOUNTY],
-    [STR_BASE_GOLD_STORAGE_WHITESPACE, STR_BASE_GOLD_STORAGE],
-    [STR_MOVE_YOUR_BASE_WHITESPACE, STR_MOVE_YOUR_BASE],
-    [STR_SWITCH_YOUR_HERO_WHITESPACE, STR_SWITCH_YOUR_HERO],
-    [STR_GOLD_STEAL_SPEED_WHITESPACE, STR_GOLD_STEAL_SPEED],
-    [STR_BASE_ENTRY_TIME_WHITESPACE, STR_BASE_ENTRY_TIME],
 ]
 globalvar upgradeIcons = [
     iconString(Icon.DIAMOND),
@@ -276,7 +267,6 @@ rule "init":
     hasGameStarted = true
     wait(1)
     pauseMatchTime()
-
 
 rule "GAME INIT MAP":
     @Condition isGameInProgress()
@@ -564,7 +554,23 @@ rule "init player hud":
     hudText(eventPlayer, iconString(Icon.POISON), STR_GOLD_ON_PLAYER, eventPlayer.statsMoney, HudPosition.LEFT, 1, Color.ORANGE, Color.ORANGE, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
 
     #upgrade header
-    createInWorldText(eventPlayer if eventPlayer.showUpgradeText else [], "{}{}\n{}\n\n\n\n".format(upgradeHeaders[eventPlayer.upgradeCurrentSelection][0], upgradeIcons[eventPlayer.upgradeCurrentSelection], upgradeHeaders[eventPlayer.upgradeCurrentSelection][1]), eventPlayer.playerBaseLocation, 2, Clip.NONE, WorldTextReeval.VISIBILITY_POSITION_AND_STRING, upgradeColors[eventPlayer.upgradeCurrentSelection], SpecVisibility.DEFAULT)
+    createInWorldText(eventPlayer if eventPlayer.showUpgradeText else [], "{}{}\n{}\n\n\n\n".format([
+        STR_AUTO_GOLD_MINER_WHITESPACE,
+        STR_KILL_GOLD_BOUNTY_WHITESPACE,
+        STR_BASE_GOLD_STORAGE_WHITESPACE,
+        STR_MOVE_YOUR_BASE_WHITESPACE,
+        STR_SWITCH_YOUR_HERO_WHITESPACE,
+        STR_GOLD_STEAL_SPEED_WHITESPACE,
+        STR_BASE_ENTRY_TIME_WHITESPACE,
+    ][eventPlayer.upgradeCurrentSelection], upgradeIcons[eventPlayer.upgradeCurrentSelection], [
+        STR_AUTO_GOLD_MINER,
+        STR_KILL_GOLD_BOUNTY,
+        STR_BASE_GOLD_STORAGE,
+        STR_MOVE_YOUR_BASE,
+        STR_SWITCH_YOUR_HERO,
+        STR_GOLD_STEAL_SPEED,
+        STR_BASE_ENTRY_TIME,
+    ][eventPlayer.upgradeCurrentSelection]), eventPlayer.playerBaseLocation, 2, Clip.NONE, WorldTextReeval.VISIBILITY_POSITION_AND_STRING, upgradeColors[eventPlayer.upgradeCurrentSelection], SpecVisibility.DEFAULT)
 
     #upgrade description
     createInWorldText(eventPlayer if eventPlayer.showUpgradeText else [], [
@@ -722,7 +728,7 @@ rule "BASE BUILD":
     #spawnBaseEffect()
     #createIcon(eventPlayer, eventPlayer.playerBaseLocation + vect(0, 2.8, 0), Icon.HALO, IconReeval.POSITION, Color.WHITE, false)
     createInWorldText([player for player in getAllPlayers() if player != eventPlayer], "{1} {0} {2}".format(eventPlayer, heroIcon(eventPlayer.getCurrentHero()), eventPlayer.statsMoneyBase), eventPlayer.playerBaseLocation + vect(0, 2, 0), 0.8, Clip.SURFACES, WorldTextReeval.VISIBILITY_POSITION_AND_STRING, Color.WHITE, SpecVisibility.ALWAYS)
-    createInWorldText(eventPlayer, "{0} YOUR BASE".format(heroIcon(eventPlayer.getCurrentHero())), eventPlayer.playerBaseLocation + vect(0, 2.5, 0), 1, Clip.NONE, WorldTextReeval.VISIBILITY_POSITION_AND_STRING, Color.WHITE, SpecVisibility.NEVER)
+    createInWorldText(eventPlayer, "{}{}".format(heroIcon(eventPlayer.getCurrentHero()), STR_YOUR_BASE), eventPlayer.playerBaseLocation + vect(0, 2.5, 0), 1, Clip.NONE, WorldTextReeval.VISIBILITY_POSITION_AND_STRING, Color.WHITE, SpecVisibility.NEVER)
     createInWorldText(eventPlayer if eventPlayer.showUpgradeText else [], " \n \n \n \n \n{}{}".format(eventPlayer.statsUpgradeCost[eventPlayer.upgradeCurrentSelection], STR_XXX_GOLD), eventPlayer.playerBaseLocation, 2, Clip.NONE, WorldTextReeval.VISIBILITY_POSITION_AND_STRING, Color.ORANGE, SpecVisibility.DEFAULT)
     playerBaseBuildEffects()
 

@@ -393,6 +393,10 @@ const translations = {
         "en-US": " bases moved",
         "pt-BR": " bases movidas",
     },
+    YOUR_BASE: {
+        "en-US": " Your base",
+        "pt-BR": " Sua base",
+    },
     /*XXXXX: {
         "en-US": "",
         "fr-FR": ""
