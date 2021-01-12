@@ -1,7 +1,7 @@
 
-#!define DEBUG_MODE false
+#!define DEBUG_MODE true
 
-#!define VERSION "1.9"
+#!define VERSION "2.0"
 #!define CREATION_DATE "08/12/2020"
 #!define GAMEMODE_CODE "14WON"
 
@@ -126,18 +126,18 @@ globalvar tmpBaseOwners
 
 #settings
 #!define SETTINGS_TITLE "BASE WARS BY DURKHAZ#2629\nCONCEPT: PYROCREEP#2665\nTHANKS: CUDDLYFLOWER#2892, HuKuTa94#2589, Kevin#26140\nRemaster: Zezombye#2627"
-globalvar enableStealing = createWorkshopSetting(bool, SETTINGS_TITLE, "Enable Stealing", true, 0)
-globalvar enableOccupiedStealing = createWorkshopSetting(bool, SETTINGS_TITLE, "Enable stealing from occupied bases", true, 1)
-globalvar enableSparkbolts = createWorkshopSetting(bool, SETTINGS_TITLE, "Spawn sparkbolts", true, 2)
-globalvar enableGoldMinerUpgrade = createWorkshopSetting(bool, SETTINGS_TITLE, "Players can upgrade gold miner", true, 3)
-globalvar enableLootOrbs = createWorkshopSetting(bool, SETTINGS_TITLE, "Spawn loot orbs", true, 4)
-globalvar lootSpawnMax = createWorkshopSetting(int[5:16], SETTINGS_TITLE, "Maximum number of loot orbs", 16, 5)
-globalvar gameLootOrbAmount = createWorkshopSetting(int[5:30], SETTINGS_TITLE, "Gold given by loot orbs", 10, 6)
-globalvar enableInvisibleLootPickup = createWorkshopSetting(bool, SETTINGS_TITLE, "Sombra can pick up orbs while invisible", false, 7)
-globalvar gameGoldVictory = createWorkshopSetting(int[1000:5000], SETTINGS_TITLE, "Amount of gold to win", 2500, 8)
-globalvar enableAlwaysFreeHeroSwitch = createWorkshopSetting(bool, SETTINGS_TITLE, "Hero switch is always free", false, 9)
-globalvar enableAlwaysFreeBaseMove = createWorkshopSetting(bool, SETTINGS_TITLE, "Base move is always free", false, 10)
-globalvar enableInefficientGoldMiner = createWorkshopSetting(bool, SETTINGS_TITLE, "Make gold miner less efficient", false, 11)
+globalvar enableStealing = createWorkshopSetting(bool, SETTINGS_TITLE, "Enable Stealing (default on)", true, 0)
+globalvar enableOccupiedStealing = createWorkshopSetting(bool, SETTINGS_TITLE, "Enable stealing from occupied bases (default on)", true, 1)
+globalvar enableSparkbolts = createWorkshopSetting(bool, SETTINGS_TITLE, "Spawn sparkbolts (default on)", true, 2)
+globalvar enableGoldMinerUpgrade = createWorkshopSetting(bool, SETTINGS_TITLE, "Players can upgrade gold miner (default on)", true, 3)
+globalvar enableLootOrbs = createWorkshopSetting(bool, SETTINGS_TITLE, "Spawn loot orbs (default on)", true, 4)
+globalvar lootSpawnMax = createWorkshopSetting(int[5:16], SETTINGS_TITLE, "Maximum number of loot orbs (default 16)", 16, 5)
+globalvar gameLootOrbAmount = createWorkshopSetting(int[5:30], SETTINGS_TITLE, "Gold given by loot orbs (default 10)", 10, 6)
+globalvar enableInvisibleLootPickup = createWorkshopSetting(bool, SETTINGS_TITLE, "Sombra can pick up orbs while invisible (default off)", false, 7)
+globalvar gameGoldVictory = createWorkshopSetting(int[500:5000], SETTINGS_TITLE, "Amount of gold to win (default 1000)", 1000, 8)
+globalvar enableAlwaysFreeHeroSwitch = createWorkshopSetting(bool, SETTINGS_TITLE, "Hero switch is always free (default off)", false, 9)
+globalvar enableAlwaysFreeBaseMove = createWorkshopSetting(bool, SETTINGS_TITLE, "Base move is always free (default off)", false, 10)
+globalvar enableInefficientGoldMiner = createWorkshopSetting(bool, SETTINGS_TITLE, "Make gold miner less efficient (default off)", false, 11)
 
 
 #Player variables
@@ -348,6 +348,11 @@ rule "GAME INIT MAP":
         mapInfo = vect(-157.179, -10.005, -51.094)
         mapRotationVector = angleToDirection(315, 0)
         gameEndCamera = vect(-217.03, 1.35, -18.18)
+
+    elif getCurrentMap() == Map.KANEZAKA:
+        mapInfo = vect(-102.070, 10.004, -86.056)
+        gameEndCamera = vect(-14.67, 68.99, -126.20)
+        #gameEndCamera = vect(138.27, 63.72, -120.02)
 
     elif getCurrentMap() == Map.KINGS_ROW or getCurrentMap() == Map.KINGS_ROW_WINTER:
         mapNavMesh = vect(-122.712, -1.072, -1.493)
@@ -1387,8 +1392,14 @@ def setBaseLocation():
         goto badLocation
     if eventPlayer.hasStatusEffect(Status.INVINCIBLE) or distance(eventPlayer.getPosition(), nearestWalkablePosition(eventPlayer.getPosition())) > 8:
         goto badLocation
+
+    #prevent placing base on cars
+    if getCurrentMap() == Map.KANEZAKA and eventPlayer.getPosition().y > 13 and eventPlayer.getPosition().z > 24:
+        goto badLocation
+
     eventPlayer.playerBaseLocation = eventPlayer.getPosition()
     return
+
     badLocation:
     smallMessage(eventPlayer, "{0}{1}{0}".format(iconString(Icon.STOP), STR_BAD_BASE_LOCATION))
 

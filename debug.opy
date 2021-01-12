@@ -69,7 +69,7 @@ rule "DEBUG VARIABLES":
     #hudSubheader(getAllPlayers(), "TEST: {0}".format(dotProduct(directionTowards(eventPlayer.getEyePosition(), eventPlayer.playerBaseLocation), eventPlayer.getFacingDirection()) >= 1 - (1 / (distance(eventPlayer.getEyePosition(), eventPlayer.playerBaseLocation) / 10 + 1))), HudPosition.LEFT, 101, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
 
 
-
+/*
 rule "DEBUG COUNT EFFECTS":
     @Event eachPlayer
     @Hero all
@@ -98,12 +98,12 @@ rule "DEBUG COUNT EFFECTS":
         goto RULE_START
     eventPlayer.debugEffectCountArray = []
     eventPlayer.debugEffectCountIterator = 0
-
-
+*/
+/*
 rule "debug win":
     @Condition hostPlayer.isHoldingButton(Button.INTERACT)
     declareTeamVictory(0[0])
-
+*/
 
 rule "DEBUG FREECAM":
     @Event eachPlayer

@@ -2,7 +2,7 @@
 
 settings {
     "main": {
-        "description": "BaseWars is a FFA in which you build your base, collect loot and raid your neighbours. First to 2500 gold wins - by any means necessary. v"+VERSION+" | Code: "+GAMEMODE_CODE+" | Feedback: discord.gg/EEMjjFB"
+        "description": "BaseWars is a FFA in which you build your base, collect loot and raid your neighbours. First to 1000 gold wins - by any means necessary. v"+VERSION+" | Code: "+GAMEMODE_CODE+" | Feedback: discord.gg/EEMjjFB"
     },
     "lobby": {
         "mapRotation": "afterGame",
@@ -11,10 +11,10 @@ settings {
         "swapTeamsAfterMatch": false
     },
     "gamemodes": {
-        "ffa": {/*
+        "ffa": {
             "enabledMaps": [
-                "lijiangNightMarket"
-            ]*/
+                "kanezaka"
+            ]/*
             "disabledMaps": [
                 "oasisCityCenter",
                 "workshopChamber",
@@ -23,7 +23,7 @@ settings {
                 "workshopGreenScreen",
                 "workshopIsland",
                 "workshopIslandNight"
-            ]
+            ]*/
         },
         "general": {
             "enableHeroSwitching": false,
