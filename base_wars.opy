@@ -1,7 +1,7 @@
 
-#!define DEBUG_MODE true
+#!define DEBUG_MODE false
 
-#!define VERSION "2.0"
+#!define VERSION "1.9"
 #!define CREATION_DATE "08/12/2020"
 #!define GAMEMODE_CODE "14WON"
 
@@ -126,18 +126,18 @@ globalvar tmpBaseOwners
 
 #settings
 #!define SETTINGS_TITLE "BASE WARS BY DURKHAZ#2629\nCONCEPT: PYROCREEP#2665\nTHANKS: CUDDLYFLOWER#2892, HuKuTa94#2589, Kevin#26140\nRemaster: Zezombye#2627"
-globalvar enableStealing = createWorkshopSetting(bool, SETTINGS_TITLE, "Enable Stealing (default on)", true, 0)
-globalvar enableOccupiedStealing = createWorkshopSetting(bool, SETTINGS_TITLE, "Enable stealing from occupied bases (default on)", true, 1)
-globalvar enableSparkbolts = createWorkshopSetting(bool, SETTINGS_TITLE, "Spawn sparkbolts (default on)", true, 2)
-globalvar enableGoldMinerUpgrade = createWorkshopSetting(bool, SETTINGS_TITLE, "Players can upgrade gold miner (default on)", true, 3)
-globalvar enableLootOrbs = createWorkshopSetting(bool, SETTINGS_TITLE, "Spawn loot orbs (default on)", true, 4)
-globalvar lootSpawnMax = createWorkshopSetting(int[5:16], SETTINGS_TITLE, "Maximum number of loot orbs (default 16)", 16, 5)
-globalvar gameLootOrbAmount = createWorkshopSetting(int[5:30], SETTINGS_TITLE, "Gold given by loot orbs (default 10)", 10, 6)
-globalvar enableInvisibleLootPickup = createWorkshopSetting(bool, SETTINGS_TITLE, "Sombra can pick up orbs while invisible (default off)", false, 7)
-globalvar gameGoldVictory = createWorkshopSetting(int[500:5000], SETTINGS_TITLE, "Amount of gold to win (default 1000)", 1000, 8)
-globalvar enableAlwaysFreeHeroSwitch = createWorkshopSetting(bool, SETTINGS_TITLE, "Hero switch is always free (default off)", false, 9)
-globalvar enableAlwaysFreeBaseMove = createWorkshopSetting(bool, SETTINGS_TITLE, "Base move is always free (default off)", false, 10)
-globalvar enableInefficientGoldMiner = createWorkshopSetting(bool, SETTINGS_TITLE, "Make gold miner less efficient (default off)", false, 11)
+globalvar enableStealing = createWorkshopSetting(bool, SETTINGS_TITLE, "Enable Stealing", true, 0)
+globalvar enableOccupiedStealing = createWorkshopSetting(bool, SETTINGS_TITLE, "Enable stealing from occupied bases", true, 1)
+globalvar enableSparkbolts = createWorkshopSetting(bool, SETTINGS_TITLE, "Spawn sparkbolts", true, 2)
+globalvar enableGoldMinerUpgrade = createWorkshopSetting(bool, SETTINGS_TITLE, "Players can upgrade gold miner", true, 3)
+globalvar enableLootOrbs = createWorkshopSetting(bool, SETTINGS_TITLE, "Spawn loot orbs", true, 4)
+globalvar lootSpawnMax = createWorkshopSetting(int[5:16], SETTINGS_TITLE, "Maximum number of loot orbs [default 16]", 16, 5)
+globalvar gameLootOrbAmount = createWorkshopSetting(int[5:30], SETTINGS_TITLE, "Gold given by loot orbs [default 10]", 10, 6)
+globalvar enableInvisibleLootPickup = createWorkshopSetting(bool, SETTINGS_TITLE, "Sombra can pick up orbs while invisible", false, 7)
+globalvar gameGoldVictory = createWorkshopSetting(int[500:5000], SETTINGS_TITLE, "Amount of gold to win [default 1000]", 1000, 8)
+globalvar enableAlwaysFreeHeroSwitch = createWorkshopSetting(bool, SETTINGS_TITLE, "Hero switch is always free", false, 9)
+globalvar enableAlwaysFreeBaseMove = createWorkshopSetting(bool, SETTINGS_TITLE, "Base move is always free", false, 10)
+globalvar enableInefficientGoldMiner = createWorkshopSetting(bool, SETTINGS_TITLE, "Make gold miner less efficient", false, 11)
 
 
 #Player variables
@@ -390,6 +390,11 @@ rule "GAME INIT MAP":
         mapInfo = vect(-185.223, -14.102, -90.096)
         gameEndCamera = vect(-63.38, 16, -63.21)
 
+    elif getCurrentMap() == Map.OASIS_CITY_CENTER:
+        mapInfo = vect(66.068, 14.0, 156.281)
+        mapRotationVector = angleToDirection(-315, 0)
+        gameEndCamera = vect(168.03, 61.19, 288.45)
+
     elif getCurrentMap() == Map.OASIS_GARDENS:
         mapInfo = vect(163.047, 11.001, -79.268)
         mapRotationVector = angleToDirection(45, 0)
@@ -427,8 +432,11 @@ rule "GAME INIT MAP":
 
     if mapInfo == null:
         return
+
+    #mapXYZ = whole numbers in mapInfo, ignoring signs
     mapXYZ = mapInfo / vect(abs(mapInfo.x), abs(mapInfo.y), abs(mapInfo.z))
     mapXYZ *= vect(floor(abs(mapInfo.x)), floor(abs(mapInfo.y)), floor(abs(mapInfo.z)))
+    #mapOrigin = fractional part of mapInfo + signs
     mapOrigin = 1000 * (mapInfo - mapXYZ)
     mapXYZ = vect(abs(mapXYZ.x), abs(mapXYZ.y), abs(mapXYZ.z))
     mapSize = sqrt(mapXYZ.x ** 2 + mapXYZ.z ** 2) - 20
@@ -641,6 +649,13 @@ rule "update scoreboard":
     
     while true:
         leaderboard = sorted([player for player in getAllPlayers() if player.statsMoneyBase + player.statsMoneyStorage > 0], lambda i: -(i.statsMoneyBase + i.statsMoneyStorage * 10))
+        wait(1)
+
+rule "update player score":
+    @Event eachPlayer
+    @Condition hasGameStarted
+    while true:
+        eventPlayer.setScore(floor(((eventPlayer.statsMoneyBase + eventPlayer.storedMoney) / totalGoldToWin) * 100))
         wait(1)
 
 
@@ -1395,13 +1410,24 @@ def setBaseLocation():
 
     #prevent placing base on cars
     if getCurrentMap() == Map.KANEZAKA and eventPlayer.getPosition().y > 13 and eventPlayer.getPosition().z > 24:
-        goto badLocation
+        goto badLocationCars
+
+    if getCurrentMap() == Map.OASIS_CITY_CENTER:
+        if dotProduct(vectorTowards(vect(186.86, 0.85, 180.78), (hostPlayer).getPosition()), angleToDirection(horizontalAngleFromDirection(directionTowards(vect(186.86, 0.85, 180.78), vect(154.55, 0.85, 206.39)))+90, 0)) < 0:
+            goto badLocationCars
+        if dotProduct(vectorTowards(vect(102.41, 0.85, 258.16), (hostPlayer).getPosition()), angleToDirection(horizontalAngleFromDirection(directionTowards(vect(102.41, 0.85, 258.16), vect(75.61, 0.85, 290.81)))+90, 0)) < 0:
+            goto badLocationCars
 
     eventPlayer.playerBaseLocation = eventPlayer.getPosition()
     return
 
     badLocation:
     smallMessage(eventPlayer, "{0}{1}{0}".format(iconString(Icon.STOP), STR_BAD_BASE_LOCATION))
+    return
+
+    badLocationCars:
+    smallMessage(eventPlayer, "{0}{1}{0}".format(iconString(Icon.STOP), STR_BAD_BASE_LOCATION_CARS))
+    return
 
 
 def playerBaseBuildEffects():

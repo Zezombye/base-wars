@@ -12,18 +12,17 @@ settings {
     },
     "gamemodes": {
         "ffa": {
-            "enabledMaps": [
-                "kanezaka"
-            ]/*
+            /*"enabledMaps": [
+                "oasisCityCenter"
+            ]*/
             "disabledMaps": [
-                "oasisCityCenter",
                 "workshopChamber",
                 "workshopExpanse",
                 "workshopExpanseNight",
                 "workshopGreenScreen",
                 "workshopIsland",
                 "workshopIslandNight"
-            ]*/
+            ]
         },
         "general": {
             "enableHeroSwitching": false,
@@ -33,7 +32,7 @@ settings {
             "enableKillCam": false,
             "enableKillFeed": false,
             "respawnTime%": 60,
-            "scoreToWin": 50,
+            #"scoreToWin": 50,
             "enableSelfInitiatedRespawn": false,
             "spawnHealthPacks": "disabled"
         }

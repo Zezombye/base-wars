@@ -24,12 +24,12 @@ rule "DEBUG SPAWN DUMMY BOT BULK":
         createDummy(Hero.ANA, Team.ALL, -1, eventPlayer.getPosition(), vect(0, 0, 0))
         debugDummyBot = getLastCreatedEntity()
 */
-
+/*
 rule "debug each player":
     @Condition DEBUG_MODE
     for I in range(12):
         print("{} stealing from {}".format(getAllPlayers()[evalOnce(I)], getAllPlayers()[evalOnce(I)].stealingFrom))
-
+*/
 rule "DEBUG SPAWN DUMMY BOT AUTO":
     @Condition DEBUG_MODE
     @Condition isGameInProgress()
@@ -188,13 +188,13 @@ rule "DEBUG MODIFY MAP BOUNDARIES":
     @Condition eventPlayer.debugFreecam != null
     
     if eventPlayer.isHoldingButton(Button.PRIMARY_FIRE):
-        mapXYZ += vect(0.75, 0, 0)
+        mapXYZ += vect(0.75 if eventPlayer.isHoldingButton(Button.MELEE) else -0.75, 0, 0)
     elif eventPlayer.isHoldingButton(Button.SECONDARY_FIRE):
-        mapXYZ += vect(0, 0, 0.75)
+        mapXYZ += vect(0, 0, 0.75 if eventPlayer.isHoldingButton(Button.MELEE) else -0.75)
     elif eventPlayer.isHoldingButton(Button.RELOAD):
-        mapXYZ += vect(0, 0.5, 0)
+        mapXYZ += vect(0, 0.5 if eventPlayer.isHoldingButton(Button.MELEE) else -0.5, 0)
     elif eventPlayer.isHoldingButton(Button.ULTIMATE):
-        debugMapRot += 1
+        debugMapRot += 1 if eventPlayer.isHoldingButton(Button.MELEE) else -1
         mapRotationVector = angleToDirection(debugMapRot, 0)
     wait()
     if RULE_CONDITION:
@@ -240,6 +240,11 @@ rule "DEBUG SPAWN DUMMY BOT":
         [player for player in getAllPlayers() if player.isDummy()].forceButtonPress(Button.INTERACT)
 */
 
+/*
+rule "debug cars":
+    print("wall 1: {}".format(dotProduct(vectorTowards(vect(186.86, 0.85, 180.78), (hostPlayer).getPosition()), angleToDirection(horizontalAngleFromDirection(directionTowards(vect(186.86, 0.85, 180.78), vect(154.55, 0.85, 206.39)))+90, 0))))
+    print("wall 2: {}".format(dotProduct(vectorTowards(vect(102.41, 0.85, 258.16), (hostPlayer).getPosition()), angleToDirection(horizontalAngleFromDirection(directionTowards(vect(102.41, 0.85, 258.16), vect(75.61, 0.85, 290.81)))+90, 0))))
+*/
 rule "make all dummies press interact":
     @Event eachPlayer
     @Hero all

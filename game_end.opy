@@ -77,8 +77,8 @@ rule "GAME WIN CONDITION":
     gameScorePositions[2] = gameScorePositions[0] + vect(gameScorePositions[1] * -1.5, gameScorePositions[1] * 0.06, gameScorePositions[1] * 0)
     gameScorePositions[3] = gameScorePositions[2] + vect(0, gameScorePositions[1] * 0.075, 0)
 
-    createInWorldText(getAllPlayers(), "{}\n ".format(STR_WINNER), gameWinner.getEyePosition() + vect(0, gameScorePositions[1] * 0.55, 0), 2, Clip.NONE, WorldTextReeval.VISIBILITY_POSITION_AND_STRING, Color.ORANGE, SpecVisibility.DEFAULT)
-    createInWorldText(getAllPlayers(), " \n{}".format(gameWinner), gameWinner.getEyePosition() + vect(0, gameScorePositions[1] * 0.55, 0), 2, Clip.NONE, WorldTextReeval.VISIBILITY_POSITION_AND_STRING, Color.WHITE, SpecVisibility.DEFAULT)
+    createInWorldText(getAllPlayers(), "{}\n ".format(STR_WINNER), updateEveryTick(gameWinner.getEyePosition() + vect(0, gameScorePositions[1] * 0.55, 0)), 2, Clip.NONE, WorldTextReeval.VISIBILITY_POSITION_AND_STRING, Color.ORANGE, SpecVisibility.DEFAULT)
+    createInWorldText(getAllPlayers(), " \n{}".format(gameWinner), updateEveryTick(gameWinner.getEyePosition() + vect(0, gameScorePositions[1] * 0.55, 0)), 2, Clip.NONE, WorldTextReeval.VISIBILITY_POSITION_AND_STRING, Color.WHITE, SpecVisibility.DEFAULT)
 
     createIwtScoreboardTitle( "{}{}\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n                                                                  ".format(iconString(Icon.SKULL), STR_BOUNTY_HUNTER))
     createIwtScoreboardTitle(" \n\n{}{}\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n                                                                  ".format(abilityIconString(Hero.MCCREE, Button.ULTIMATE), STR_ASSASSIN))

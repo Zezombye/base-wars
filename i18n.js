@@ -249,6 +249,10 @@ const translations = {
         "en-US": " BAD BASE LOCATION ",
         "pt-BR": " Local de base inválido ",
     },
+    BAD_BASE_LOCATION_CARS: {
+        "en-US": " BAD BASE LOCATION (too close to cars) ",
+        "pt-BR": " Local de base inválido (muito perto dos carros) ",
+    },
     NOT_ENOUGH_GOLD: {
         "en-US": " NOT ENOUGH GOLD IN BASE ",
         "pt-BR": " Ouro da base insuficiente ",
