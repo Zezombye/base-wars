@@ -1413,9 +1413,9 @@ def setBaseLocation():
         goto badLocationCars
 
     if getCurrentMap() == Map.OASIS_CITY_CENTER:
-        if dotProduct(vectorTowards(vect(186.86, 0.85, 180.78), (hostPlayer).getPosition()), angleToDirection(horizontalAngleFromDirection(directionTowards(vect(186.86, 0.85, 180.78), vect(154.55, 0.85, 206.39)))+90, 0)) < 0:
+        if dotProduct(vectorTowards(vect(186.86, 0.85, 180.78), (eventPlayer).getPosition()), angleToDirection(horizontalAngleFromDirection(directionTowards(vect(186.86, 0.85, 180.78), vect(154.55, 0.85, 206.39)))+90, 0)) < 0:
             goto badLocationCars
-        if dotProduct(vectorTowards(vect(102.41, 0.85, 258.16), (hostPlayer).getPosition()), angleToDirection(horizontalAngleFromDirection(directionTowards(vect(102.41, 0.85, 258.16), vect(75.61, 0.85, 290.81)))+90, 0)) < 0:
+        if dotProduct(vectorTowards(vect(102.41, 0.85, 258.16), (eventPlayer).getPosition()), angleToDirection(horizontalAngleFromDirection(directionTowards(vect(102.41, 0.85, 258.16), vect(75.61, 0.85, 290.81)))+90, 0)) < 0:
             goto badLocationCars
 
     eventPlayer.playerBaseLocation = eventPlayer.getPosition()
