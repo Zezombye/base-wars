@@ -650,14 +650,15 @@ rule "update scoreboard":
     while true:
         leaderboard = sorted([player for player in getAllPlayers() if player.statsMoneyBase + player.statsMoneyStorage > 0], lambda i: -(i.statsMoneyBase + i.statsMoneyStorage * 10))
         wait(1)
-
+/*
+#todo find a solution sadge
 rule "update player score":
     @Event eachPlayer
     @Condition hasGameStarted
     while true:
-        eventPlayer.setScore(floor(((eventPlayer.statsMoneyBase + eventPlayer.storedMoney) / totalGoldToWin) * 100))
+        eventPlayer.setScore(9999 + floor(((eventPlayer.statsMoneyBase + eventPlayer.storedMoney) / totalGoldToWin) * 100))
         wait(1)
-
+*/
 
 rule "PLAYER REGEN CONDITION":
     @Event eachPlayer
