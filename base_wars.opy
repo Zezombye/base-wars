@@ -1,8 +1,8 @@
 
 #!define DEBUG_MODE false
 
-#!define VERSION "1.9"
-#!define CREATION_DATE "08/12/2020"
+#!define VERSION "2.0"
+#!define CREATION_DATE "18/01/2021"
 #!define GAMEMODE_CODE "14WON"
 
 #!define i18n() __script__("i18n.js")
