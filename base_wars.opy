@@ -690,9 +690,11 @@ rule "PLAYER REGEN START":
     @Condition eventPlayer.regenStartTime != 0
     @Condition eventPlayer.regenID == null
     @Condition eventPlayer.isInBase == false
-    
-    eventPlayer.startHoT(null, 9999, 33)
-    eventPlayer.regenID = getLastHoT()
+    do:
+        eventPlayer.startHoT(null, 9999, 33)
+        eventPlayer.regenID = getLastHoT()
+        wait()
+    while RULE_CONDITION
 
 
 rule "PLAYER REGEN STOP":
