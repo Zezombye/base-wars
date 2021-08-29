@@ -1,8 +1,8 @@
 
 #!define DEBUG_MODE false
 
-#!define VERSION "2.0"
-#!define CREATION_DATE "18/01/2021"
+#!define VERSION "2.1"
+#!define CREATION_DATE "29/08/2021"
 #!define GAMEMODE_CODE "14WON"
 
 #!define i18n() __script__("i18n.js")
@@ -374,6 +374,11 @@ rule "GAME INIT MAP":
         mapInfo = vect(-83.084, -8.002, -185.081)
         gameEndCamera = vect(-77.06, 245.24, 369.46)
 
+    elif getCurrentMap() == Map.MALEVENTO:
+        mapInfo = vect(-78.033, -18.005, -83.032)
+        #gameEndCamera = vect(0, 10.3, -2)
+        gameEndCamera = vect(25, 9, 20)
+
     elif getCurrentMap() == Map.NECROPOLIS:
         mapInfo = vect(-65.048, -18.007, -80.036)
         gameEndCamera = vect(0.92, 12.58, -18.32)
@@ -526,12 +531,7 @@ rule "game not started":
 rule "enough players - start game":
     @Condition isWaitingForPlayers()
     @Condition getNumberOfPlayers(Team.ALL) >= (NB_PLAYERS_AUTO_START if not DEBUG_MODE else 1)
-    do:
-        for I in range(12):
-            createDummy(Hero.ANA, Team.ALL, -1, null, null)
-        wait(1)
-    while RULE_CONDITION
-    destroyAllDummies()
+    startGamemode()
 
 
 rule "unsupported map":

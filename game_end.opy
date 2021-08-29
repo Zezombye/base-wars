@@ -123,6 +123,8 @@ rule "game ended and host afk - finish game":
     @Condition displayScoreboard
     wait(30)
     declarePlayerVictory(gameWinner)
+    wait(3)
+    restartMatch()
 
 rule "game ended - disable all buttons and HUDs":
     @Event eachPlayer
