@@ -1,8 +1,8 @@
 
 #!define DEBUG_MODE false
 
-#!define VERSION "2.1"
-#!define CREATION_DATE "29/08/2021"
+#!define VERSION "2.2"
+#!define CREATION_DATE "16/10/2022"
 #!define GAMEMODE_CODE "14WON"
 
 #!define i18n() __script__("i18n.js")
@@ -123,6 +123,11 @@ globalvar gameScoreTopPlayersValues
 globalvar baseUpgradeSphereActualSize
 globalvar tmpBaseOwners
 
+globalvar team1Str = "{}".format(Team.1)
+globalvar team2Str = "{}".format(Team.2)
+globalvar workshopSettingsIterator = 0
+globalvar debugIterator
+globalvar enabledSettingsStr = ""
 
 #settings
 #!define SETTINGS_TITLE "BASE WARS BY DURKHAZ#2629\nCONCEPT: PYROCREEP#2665\nTHANKS: CUDDLYFLOWER#2892, HuKuTa94#2589, Kevin#26140\nRemaster: Zezombye#2627"
@@ -181,7 +186,6 @@ playervar showUpgradeText
 playervar regenID
 playervar upgradeOffsetLeft
 playervar upgradeOffsetRight
-playervar isInFriendlyZone
 playervar isCloaked
 playervar stealingFrom
 playervar stealingSoundEffect
@@ -214,10 +218,76 @@ subroutine gameStart
 subroutine gameEndedScreenPos
 
 #!include "settings.opy"
+
+rule "rip custom game settings":
+    if team1Str.charAt(0) == p"#":
+        if strContains(team1Str, p"S") or strContains(team1Str, p"s"):
+            enableStealing = false
+            enabledSettingsStr = "{}{}{}".format(enabledSettingsStr, "\n" if enabledSettingsStr else "", "No Stealing")
+        if (strContains(team1Str, p"O") or strContains(team1Str, p"o")) and enableStealing:
+            enableOccupiedStealing = false
+            enabledSettingsStr = "{}{}{}".format(enabledSettingsStr, "\n" if enabledSettingsStr else "", "No Occupied stealing")
+        if strContains(team1Str, p"B") or strContains(team1Str, p"b"):
+            enableSparkbolts = false
+            enabledSettingsStr = "{}{}{}".format(enabledSettingsStr, "\n" if enabledSettingsStr else "", "No Sparkbolts")
+        if strContains(team1Str, p"U") or strContains(team1Str, p"u"):
+            enableGoldMinerUpgrade = false
+            enabledSettingsStr = "{}{}{}".format(enabledSettingsStr, "\n" if enabledSettingsStr else "", "No miner upgrade")
+        if strContains(team1Str, p"L") or strContains(team1Str, p"l"):
+            enableLootOrbs = false
+            enabledSettingsStr = "{}{}{}".format(enabledSettingsStr, "\n" if enabledSettingsStr else "", "No loot orbs")
+        if strContains(team1Str, p"I") or strContains(team1Str, p"i"):
+            enableInvisibleLootPickup = true
+            enabledSettingsStr = "{}{}{}".format(enabledSettingsStr, "\n" if enabledSettingsStr else "", "Invis. loot pickup")
+        if strContains(team1Str, p"H") or strContains(team1Str, p"h"):
+            enableAlwaysFreeHeroSwitch = true
+            enabledSettingsStr = "{}{}{}".format(enabledSettingsStr, "\n" if enabledSettingsStr else "", "Free hero switch")
+        if strContains(team1Str, p"M") or strContains(team1Str, p"m"):
+            enableAlwaysFreeBaseMove = true
+            enabledSettingsStr = "{}{}{}".format(enabledSettingsStr, "\n" if enabledSettingsStr else "", "Free base move")
+        if strContains(team1Str, p"G") or strContains(team1Str, p"g"):
+            enableInefficientGoldMiner = true
+            enabledSettingsStr = "{}{}{}".format(enabledSettingsStr, "\n" if enabledSettingsStr else "", "Gold miner nerf")
+
+    if team2Str.charAt(0) == p"#":
+        team2Str = team2Str.substring(1, 9999)
+        team2Str = team2Str.split(p",")
+        #index 0: gold to win
+        gameGoldVictory = 0
+        for workshopSettingsIterator in range(strLen(team2Str[0])):
+            gameGoldVictory += p"0123456789".strIndex(team2Str[0].charAt(workshopSettingsIterator)) * 10 ** (strLen(team2Str[0]) - workshopSettingsIterator - 1)
+        gameGoldVictory min= 5000
+        gameGoldVictory max= 500
+
+        #index 1: max loot orbs
+        if len(team2Str) > 1:
+            lootSpawnMax = 0
+            for workshopSettingsIterator in range(strLen(team2Str[1])):
+                lootSpawnMax += p"0123456789".strIndex(team2Str[1].charAt(workshopSettingsIterator)) * 10 ** (strLen(team2Str[1]) - workshopSettingsIterator - 1)
+            lootSpawnMax min= 16
+            lootSpawnMax max= 5
+            if lootSpawnMax != 16:
+                enabledSettingsStr = "{}{}{}".format(enabledSettingsStr, "\n" if enabledSettingsStr else "", "{} max orbs".format(lootSpawnMax))
+
+        #index 2: loot orb amount
+        
+        if len(team2Str) > 2:
+            gameLootOrbAmount = 0
+            for workshopSettingsIterator in range(strLen(team2Str[2])):
+                gameLootOrbAmount += p"0123456789".strIndex(team2Str[2].charAt(workshopSettingsIterator)) * 10 ** (strLen(team2Str[2]) - workshopSettingsIterator - 1)
+            gameLootOrbAmount min= 10
+            gameLootOrbAmount max= 6
+            if gameLootOrbAmount != 10:
+                enabledSettingsStr = "{}{}{}".format(enabledSettingsStr, "\n" if enabledSettingsStr else "", "{} gold/orb".format(gameLootOrbAmount))
+
+    if enabledSettingsStr != "":
+        enabledSettingsStr = "Settings: \n{}".format(enabledSettingsStr)
+    hudSubheader(getAllPlayers() if enabledSettingsStr else null, enabledSettingsStr if localPlayer.isHoldingButton(Button.INTERACT) and localPlayer.isHoldingButton(Button.JUMP) else "Press [{}]+[{}] to show custom settings".format(buttonString(Button.INTERACT), buttonString(Button.JUMP)), HudPosition.TOP, -10, Color.YELLOW, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.ALWAYS)
+
+
 #!include "loot.opy"
 #!include "debug.opy"
 #!include "game_end.opy"
-
 
 rule "init":
     @Condition isGameInProgress()
@@ -285,6 +355,7 @@ rule "GAME INIT MAP":
         mapNavMesh = vect(-92.816, -1.3, 119.946)
         mapInfo = vect(-93.084, 7, 68.06)
         gameEndCamera = vect(-124.15, 1.20, 107.3)
+        #gameEndCamera = vect(-130.81, 2, 105.95)
 
     elif getCurrentMap() == Map.CASTILLO:
         mapInfo = vect(-60.13, 7.032, 52.027)
@@ -300,34 +371,39 @@ rule "GAME INIT MAP":
         mapRotationVector = angleToDirection(321, 0)
         gameEndCamera = vect(133.25, 57.86, 34.46)
 
-    elif getCurrentMap() == Map.ECOPOINT_ANTARCTICA or getCurrentMap() == Map.ECOPOINT_ANTARCTICA_WINTER:
+    elif getCurrentMap() == Map.ECOPOINT_ANTARCTICA:
         mapInfo = vect(-110.027, 10.003, -56.06)
         gameEndCamera = vect(-5.46, 24.56, -55.57)
 
     elif getCurrentMap() == Map.EICHENWALDE or getCurrentMap() == Map.EICHENWALDE_HALLOWEEN:
+        #first point: doable but meh, not enough space
         mapNavMesh = vect(21.479, 4.943, -61.208)
         mapInfo = vect(55.021, 18.004, -77.102)
         mapRotationVector = angleToDirection(15, 0)
         gameEndCamera = vect(122.30, 9.66, -29.30)
 
     elif getCurrentMap() == Map.HANAMURA or getCurrentMap() == Map.HANAMURA_WINTER:
+        #first point: doable but no space, maybe as an extension
         mapNavMesh = vect(41.188, 0.478, 24.839)
         mapInfo = vect(-138.015, -14.005, -65.105)
         mapRotationVector = angleToDirection(348, 0)
         gameEndCamera = vect(69.88, -2.14, 58.6)
 
     elif getCurrentMap() == Map.HAVANA:
+        #both points are doable and good + the secret space
         mapNavMesh = vect(-18.944, 6.062, -80.093)
         mapInfo = vect(44, 8.004, -61.103)
         gameEndCamera = vect(-35.31, 8.03, 64.56)
 
-    elif getCurrentMap() == Map.HOLLYWOOD or getCurrentMap() == Map.HOLLYWOOD_HALLOWEEN:
+    elif getCurrentMap() == Map.HOLLYWOOD:
+        #third point doable but meh, first point doable and good
         mapNavMesh = vect(-18.025, 1.777, 14.081)
         mapInfo = vect(-82.041, 6.002, -87.072)
         mapRotationVector = angleToDirection(16, 0)
         gameEndCamera = vect(-31.01, 7.16, -176.48)
 
     elif getCurrentMap() == Map.HORIZON_LUNAR_COLONY:
+        #first point: doable but no space, maybe as an extension
         mapNavMesh = vect(51.683, 6.129, -34.033)
         mapInfo = vect(-166.055, 11.003, -80.112)
         mapRotationVector = angleToDirection(48, 0)
@@ -355,6 +431,9 @@ rule "GAME INIT MAP":
         #gameEndCamera = vect(138.27, 63.72, -120.02)
 
     elif getCurrentMap() == Map.KINGS_ROW or getCurrentMap() == Map.KINGS_ROW_WINTER:
+        #first point awesome, 3rd point meh, secret area ok (only for kings row normal)
+        #for kings row winter, only 1st point ok
+
         mapNavMesh = vect(-122.712, -1.072, -1.493)
         mapInfo = vect(-74.12, -14.004, -102.068)
         mapRotationVector = angleToDirection(350, 0)
@@ -391,7 +470,7 @@ rule "GAME INIT MAP":
         mapInfo = vect(-183.073, 13.01, -54.09)
         gameEndCamera = vect(50.13, 130.99, -2.66)
 
-    elif getCurrentMap() == Map.NEPAL_VILLAGE or getCurrentMap() == Map.NEPAL_VILLAGE_WINTER:
+    elif getCurrentMap() == Map.NEPAL_VILLAGE:
         mapInfo = vect(-185.223, -14.102, -90.096)
         gameEndCamera = vect(-63.38, 16, -63.21)
 
@@ -410,6 +489,7 @@ rule "GAME INIT MAP":
         gameEndCamera = vect(-197.81, 59.98, 43.73)
 
     elif getCurrentMap() == Map.PARIS:
+        #1st point ok
         mapNavMesh = vect(-46.367, 10.098, -0.162)
         mapInfo = vect(-86.143, 8.008, -82.084)
         mapRotationVector = angleToDirection(26, 0)
@@ -418,14 +498,23 @@ rule "GAME INIT MAP":
     elif getCurrentMap() == Map.PETRA:
         mapInfo = vect(-83.044, -15.012, -83.015)
         gameEndCamera = vect(1.02, -8.96, 7.02)
+        
+    elif getCurrentMap() == Map.ROUTE66:
+        #3rd point ok
+        mapInfo = vect(-62.014, 15.004, 57.019)
+        gameEndCamera = vect(34.70, 37, 38.62)
+        #gameEndCamera = vect(88.03, 41, 51.28)
+        mapRotationVector = angleToDirection(-212, 0)
 
     elif getCurrentMap() == Map.TEMPLE_OF_ANUBIS:
+        #1st point doable but only as extension
         mapNavMesh = vect(-4.694, -2.336, -6.513)
         mapInfo = vect(80.016, 10, -130.004)
         mapRotationVector = angleToDirection(275, 0)
         gameEndCamera = vect(15.08, 16.60, -18.58)
 
     elif getCurrentMap() == Map.VOLSKAYA:
+        #1st point doable but only as extension
         mapNavMesh = vect(14.482, -4.352, 44.386)
         mapInfo = vect(-73.094, -8.005, 145.01)
         mapRotationVector = angleToDirection(335, 0)
@@ -510,7 +599,6 @@ rule "init player":
     eventPlayer.isStealingActive = false
     eventPlayer.playerBaseLocation = vect(0, -1000, 0)
     eventPlayer.playerObjectInBase = null
-    eventPlayer.isInFriendlyZone = false
     eventPlayer.debugEffectCountArray = []
 
     eventPlayer.isUpgradeInputOnCooldown = false
@@ -824,6 +912,7 @@ rule "BASE EXIT":
 rule "player finished entering base":
     @Event eachPlayer
     @Hero all
+    @SuppressWarnings w_ow2_rule_condition_chase
     @Condition eventPlayer.playerObjectInBase != null
     @Condition eventPlayer.baseProtectionTimer == 0
     @Condition eventPlayer.isAlive()

@@ -132,7 +132,7 @@ const translations = {
         format: "eventPlayer.statsMoneySec",
     },
     GOLD_ON_PLAYER: {
-        "en-US": "GOLD ON PLAYER",
+        "en-US": "GOLD ON PLAYER    ",
         "pt-BR": "Ouro no jogador",
     },
     FULL: {

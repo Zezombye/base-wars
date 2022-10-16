@@ -2,8 +2,8 @@
 
 settings {
     "main": {
-        "modeName": "Base Wars",
-        "description": "Base Wars is a FFA in which you build your base, collect loot and raid your neighbors.\n\nFirst to 1000 gold wins - by any means necessary.\n\nv"+VERSION+" | Code: "+GAMEMODE_CODE+"\n\nFeedback: discord.gg/EEMjjFB\nMade by Durkhaz"
+        "modeName": "<fg00ffffff>Base <fgff5e5ef>Wars",
+        "description": "<fg00ffffff>Base Wars <fgffa600ff>is a FFA in which you <fgff6fd0ff>build your base</fg>, <fgc752ffff>collect loot</fg> and <fgc8ff55ff>raid your neighbors</fg>.\n\nFirst to <fgffff00ff>1000 gold</fg> wins - <fgf40000ff>by any means necessary.</fg>\n\n<fgddddddff>v"+VERSION+"</fg> | Code: <fg00ff6eff>"+GAMEMODE_CODE+"</fg>\n\nFeedback: <fgff00ffff>discord.gg/EEMjjFB</fg>\nMade by </fg>Durkhaz"
     },
     "lobby": {
         "mapRotation": "afterGame",
@@ -19,10 +19,10 @@ settings {
             "disabledMaps": [
                 "workshopChamber",
                 "workshopExpanse",
-                "workshopExpanseNight",
+                /*"workshopExpanseNight",*/
                 "workshopGreenScreen",
                 "workshopIsland",
-                "workshopIslandNight"
+                /*"workshopIslandNight"*/
             ]
         },
         "general": {

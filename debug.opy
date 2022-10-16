@@ -56,7 +56,12 @@ rule "debug money":
     wait(5)
     eventPlayer.statsMoney = 110
     if eventPlayer == hostPlayer:
-        eventPlayer.statsMoney = 9999
+        eventPlayer.statsMoney = 99999
+
+rule "debug spawn points":
+    @Condition DEBUG_MODE
+    for debugIterator in range(len(getSpawnPoints(Team.ALL))):
+        createEffect(getAllPlayers(), Effect.LIGHT_SHAFT, Color.GREEN, getSpawnPoints(Team.ALL)[evalOnce(debugIterator)], 1, EffectReeval.VISIBILITY)
 
 rule "DEBUG VARIABLES":
     @Event eachPlayer
@@ -65,7 +70,7 @@ rule "DEBUG VARIABLES":
     @Condition hasGameStarted == true
     @Condition eventPlayer == hostPlayer
     
-    hudSubheader(eventPlayer, " \nDebug Output:\n\n{0}\n{1}\n{2}".format("LOAD: {0} \nAVG: {1} \nPEAK: {2}".format(getServerLoad(), getAverageServerLoad(), getPeakServerLoad()), "Distance: {0}\nPlayer Pos: {1}\nPlayer Dir: {2}".format(distance(eventPlayer.getEyePosition(), eventPlayer.playerBaseLocation), eventPlayer.getPosition(), eventPlayer.getHorizontalFacingAngle()), "In Spawn: {0}\nFriendly: {1}\nIn Base of: {2}".format(eventPlayer.isInSpawnRoom(), eventPlayer.isInFriendlyZone, eventPlayer.stealingFrom)), HudPosition.LEFT, 100, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    hudSubheader(eventPlayer, p" \nDebug:\n\nDist from base: {}\nPlayer Pos: {}\nPlayer Dir: {}\nIn Spawn: {}\nIn Base of: {}\nmapxyz: {}\nmap rotation: {}\nmap origin: {}\nnb spawn points:{}".format(distance(eventPlayer.getEyePosition(), eventPlayer.playerBaseLocation), eventPlayer.getPosition(), eventPlayer.getHorizontalFacingAngle(), eventPlayer.isInSpawnRoom(), eventPlayer.stealingFrom, mapXYZ, debugMapRot, mapOrigin, len(getSpawnPoints(Team.ALL))), HudPosition.LEFT, 100, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
     #hudSubheader(getAllPlayers(), "TEST: {0}".format(dotProduct(directionTowards(eventPlayer.getEyePosition(), eventPlayer.playerBaseLocation), eventPlayer.getFacingDirection()) >= 1 - (1 / (distance(eventPlayer.getEyePosition(), eventPlayer.playerBaseLocation) / 10 + 1))), HudPosition.LEFT, 101, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
 
 
@@ -99,8 +104,8 @@ rule "DEBUG COUNT EFFECTS":
     eventPlayer.debugEffectCountArray = []
     eventPlayer.debugEffectCountIterator = 0
 */
-/*
-rule "debug win":
+
+/*rule "debug win":
     @Condition hostPlayer.isHoldingButton(Button.INTERACT)
     declareTeamVictory(0[0])
 */
@@ -109,7 +114,8 @@ rule "DEBUG FREECAM":
     @Event eachPlayer
     @Hero all
     @Condition DEBUG_MODE
-    @Condition eventPlayer.isCommunicating(Comms.VOICE_LINE_UP) == true
+    #@Condition eventPlayer.isCommunicating(Comms.VOICE_LINE_UP) == true
+    @Condition eventPlayer.isHoldingButton(Button.CROUCH) and eventPlayer.isHoldingButton(Button.INTERACT) == true
     #@Condition eventPlayer == hostPlayer
     
     if eventPlayer.debugFreecam == null:
@@ -186,16 +192,24 @@ rule "DEBUG MODIFY MAP BOUNDARIES":
     @Condition eventPlayer == hostPlayer
     @Condition (eventPlayer.isHoldingButton(Button.PRIMARY_FIRE) or eventPlayer.isHoldingButton(Button.SECONDARY_FIRE) or eventPlayer.isHoldingButton(Button.RELOAD) or eventPlayer.isHoldingButton(Button.ULTIMATE)) == true
     @Condition eventPlayer.debugFreecam != null
-    
-    if eventPlayer.isHoldingButton(Button.PRIMARY_FIRE):
-        mapXYZ += vect(0.75 if eventPlayer.isHoldingButton(Button.MELEE) else -0.75, 0, 0)
-    elif eventPlayer.isHoldingButton(Button.SECONDARY_FIRE):
-        mapXYZ += vect(0, 0, 0.75 if eventPlayer.isHoldingButton(Button.MELEE) else -0.75)
-    elif eventPlayer.isHoldingButton(Button.RELOAD):
-        mapXYZ += vect(0, 0.5 if eventPlayer.isHoldingButton(Button.MELEE) else -0.5, 0)
-    elif eventPlayer.isHoldingButton(Button.ULTIMATE):
-        debugMapRot += 1 if eventPlayer.isHoldingButton(Button.MELEE) else -1
-        mapRotationVector = angleToDirection(debugMapRot, 0)
+
+    if eventPlayer.isHoldingButton(Button.JUMP):
+        if eventPlayer.isHoldingButton(Button.PRIMARY_FIRE):
+            mapOrigin += vect(0.25 if eventPlayer.isHoldingButton(Button.MELEE) else -0.25, 0, 0)
+        elif eventPlayer.isHoldingButton(Button.SECONDARY_FIRE):
+            mapOrigin += vect(0, 0, 0.25 if eventPlayer.isHoldingButton(Button.MELEE) else -0.25)
+        elif eventPlayer.isHoldingButton(Button.RELOAD):
+            mapOrigin += vect(0, 0.25 if eventPlayer.isHoldingButton(Button.MELEE) else -0.25, 0)
+    else:
+        if eventPlayer.isHoldingButton(Button.PRIMARY_FIRE):
+            mapXYZ += vect(0.25 if eventPlayer.isHoldingButton(Button.MELEE) else -0.25, 0, 0)
+        elif eventPlayer.isHoldingButton(Button.SECONDARY_FIRE):
+            mapXYZ += vect(0, 0, 0.25 if eventPlayer.isHoldingButton(Button.MELEE) else -0.25)
+        elif eventPlayer.isHoldingButton(Button.RELOAD):
+            mapXYZ += vect(0, 0.25 if eventPlayer.isHoldingButton(Button.MELEE) else -0.25, 0)
+        elif eventPlayer.isHoldingButton(Button.ULTIMATE):
+            debugMapRot += 0.25 if eventPlayer.isHoldingButton(Button.MELEE) else -0.25
+            mapRotationVector = angleToDirection(debugMapRot, 0)
     wait()
     if RULE_CONDITION:
         goto RULE_START
