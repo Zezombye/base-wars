@@ -81,10 +81,17 @@ rule "LOOT FIND SPAWNPOINTS":
     
     while lootSpawnpointIterator <= 200 and len(tmpLootSpawnpointProximity) < 128:
         tmpLootSpawnpointRandomPointWP = mapOrigin + mapRotationVector * random.uniform(0, mapXYZ.x) + vect(mapRotationVector.z, 0, mapRotationVector.x * -1) * random.uniform(0, mapXYZ.z) + vect(0, random.uniform(0, mapXYZ.y), 0)
-        tmpLootSpawnpoint = nearestWalkablePosition(tmpLootSpawnpointRandomPointWP) + vect(0, 0.35, 0)
-        if tmpLootSpawnpoint == 0 or lootBlockerVolumePos != 0 and distance(tmpLootSpawnpoint, lootBlockerVolumePos) <= lootBlockerVolumeRadius or distance(tmpLootSpawnpoint, tmpLootSpawnpointRandomPointWP) > 5:
+        if disableNwpCheck:
+            tmpLootSpawnpoint = raycast(tmpLootSpawnpointRandomPointWP, tmpLootSpawnpointRandomPointWP-vect(0, 100, 0), [], [], false).getHitPosition()
+            if tmpLootSpawnpoint == tmpLootSpawnpointRandomPointWP-vect(0, 100, 0):
+                goto lbl_0
+        else:
+            tmpLootSpawnpoint = nearestWalkablePosition(tmpLootSpawnpointRandomPointWP) + vect(0, 0.35, 0)
+            if distance(tmpLootSpawnpoint, tmpLootSpawnpointRandomPointWP) > 5:
+                goto lbl_0
+        if tmpLootSpawnpoint == 0 or lootBlockerVolumePos != 0 and distance(tmpLootSpawnpoint, lootBlockerVolumePos) <= lootBlockerVolumeRadius:
             goto lbl_0
-        tmpLootSpawnpointProximity = sorted([player for player in lootSpawnPoints if player != null], lambda i: distance(tmpLootSpawnpoint, i))
+        tmpLootSpawnpointProximity = sorted([i for i in lootSpawnPoints if i != null], lambda i: distance(tmpLootSpawnpoint, i))
         if distance(tmpLootSpawnpoint, tmpLootSpawnpointProximity[0]) < lootSpread and len(tmpLootSpawnpointProximity) != 0:
             goto lbl_1
         goto lbl_2
@@ -111,6 +118,9 @@ rule "LOOT LOOT EFFECTS":
     
     for lootCollectIterator in range(len(lootArrayLocations)):
         lootArrayLocations[lootCollectIterator] = vect(0, -9999, 0)
+
+    /*for lootCollectIterator in range(len(lootArrayLocations)):
+        createInWorldText(getAllPlayers(), evalOnce(lootCollectIterator), lootArrayLocations[evalOnce(lootCollectIterator)], 1, Clip.NONE, WorldTextReeval.VISIBILITY_POSITION_STRING_AND_COLOR, Color.AQUA, SpecVisibility.ALWAYS)*/
     #This is ugly, but this way loot effects stay persistent
     createEffect(getAllPlayers(), Effect.ORB, Color.GREEN, lootArrayLocations[0], 1, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
     if lootSpawnMax == 1:
@@ -162,42 +172,42 @@ rule "LOOT LOOT EFFECTS":
 
 rule "LOOT SPAWN":
     @Condition hasGameStarted
+    @Condition gameEnded == false
+    @Condition enableLootOrbs
     @Condition len(lootArrayLocations) != 0
     @Condition lootSpawnerNumLoot < lootSpawnMax
-    @Condition enableLootOrbs
-    @Condition gameEnded == false
     
-    if not lootArraySpawned[lootSpawnerEffectIterator]:
-        goto lbl_0
-    lootSpawnerEffectIterator += 1
-    if lootSpawnerEffectIterator < len(lootArrayLocations):
-        goto lbl_1
-    lootSpawnerEffectIterator = 0
-    lbl_1:
-    wait()
-    goto RULE_START
-    lbl_0:
-    while true:
-        tmpLootSpawnpointRandomPoint = normalize(vect(random.uniform(-1, 1), random.uniform(-1, 1), random.uniform(-1, 1))) * random.uniform(2, 10) + lootSpawnPoints[lootSpawnerIterator]
-        tmpLootSpawnpointRandomPointWP = nearestWalkablePosition(tmpLootSpawnpointRandomPoint)
-        if distance(tmpLootSpawnpointRandomPointWP, tmpLootSpawnpointRandomPoint) >= 1.5:
-            goto lbl_2
-        tmpLootSpawnpointRandomPointWP = raycast(tmpLootSpawnpointRandomPointWP + vect(0, 2, 0), tmpLootSpawnpointRandomPointWP - vect(0, 10, 0), null, null, false).getHitPosition() + vect(0, 0.35, 0)
-        if distance(tmpLootSpawnpointRandomPointWP, nearestWalkablePosition(tmpLootSpawnpointRandomPointWP)) <= 0.1 and (lootBlockerVolumePos == null or lootBlockerVolumePos != null and distance(tmpLootSpawnpointRandomPointWP, lootBlockerVolumePos) > lootBlockerVolumeRadius):
-            goto lbl_3
-        lbl_2:
-        wait(0.064)
-    lbl_3:
-    lootArrayLocations[lootSpawnerEffectIterator] = tmpLootSpawnpointRandomPointWP
-    lootArraySpawned[lootSpawnerEffectIterator] = true
-    lootSpawnerIterator += 1
-    lootSpawnerNumLoot += 1
-    if lootSpawnerIterator >= len(lootSpawnPoints):
-        lootSpawnerIterator = 0
-    wait(1.12)
-    if RULE_CONDITION:
-        goto RULE_START
-
+    do:
+        if lootArraySpawned[lootSpawnerEffectIterator]:
+            lootSpawnerEffectIterator += 1
+            if lootSpawnerEffectIterator >= len(lootArrayLocations):
+                lootSpawnerEffectIterator = 0
+            wait()
+            goto RULE_START
+            
+        while true:
+            if disableNwpCheck:
+                tmpLootSpawnpointRandomPointWP = lootSpawnPoints[lootSpawnerIterator]
+            else:
+                tmpLootSpawnpointRandomPoint = normalize(vect(random.uniform(-1, 1), random.uniform(-1, 1), random.uniform(-1, 1))) * random.uniform(2, 10) + lootSpawnPoints[lootSpawnerIterator]
+                tmpLootSpawnpointRandomPointWP = nearestWalkablePosition(tmpLootSpawnpointRandomPoint)
+                if distance(tmpLootSpawnpointRandomPointWP, tmpLootSpawnpointRandomPoint) >= 1.5:
+                    wait(0.064)
+                    continue
+            tmpLootSpawnpointRandomPointWP = raycast(tmpLootSpawnpointRandomPointWP + vect(0, 2, 0), tmpLootSpawnpointRandomPointWP - vect(0, 10, 0), null, null, false).getHitPosition() + vect(0, 0.35, 0)
+            if (disableNwpCheck or distance(tmpLootSpawnpointRandomPointWP, nearestWalkablePosition(tmpLootSpawnpointRandomPointWP)) <= 0.1) and (lootBlockerVolumePos == null or lootBlockerVolumePos != null and distance(tmpLootSpawnpointRandomPointWP, lootBlockerVolumePos) > lootBlockerVolumeRadius):
+                break
+                
+            wait(0.064)
+            
+        lootArrayLocations[lootSpawnerEffectIterator] = tmpLootSpawnpointRandomPointWP
+        lootArraySpawned[lootSpawnerEffectIterator] = true
+        lootSpawnerIterator += 1
+        lootSpawnerNumLoot += 1
+        if lootSpawnerIterator >= len(lootSpawnPoints):
+            lootSpawnerIterator = 0
+        wait(1.12)
+    while RULE_CONDITION
 
 rule "LOOT COLLECT LOOP":
     @Condition hasGameStarted
@@ -267,15 +277,18 @@ rule "LOOT POWERUP SPAWN":
     wait(60 - getNumberOfPlayers(Team.ALL))
     while true:
         tmpPowerupSpawnpointRandomPoint = normalize(vect(random.uniform(-1, 1), random.uniform(-1, 1), random.uniform(-1, 1))) * random.uniform(2, 10) + lootSpawnPoints[sparkboltSpawnpointIndex]
-        tmpPowerupSpawnpointRandomPointW = nearestWalkablePosition(tmpPowerupSpawnpointRandomPoint)
-        if distance(tmpPowerupSpawnpointRandomPointW, tmpPowerupSpawnpointRandomPoint) >= 1.5:
-            goto lbl_0
+        if disableNwpCheck:
+            tmpPowerupSpawnpointRandomPointW = raycast(tmpPowerupSpawnpointRandomPoint, tmpPowerupSpawnpointRandomPoint-vect(0, 100, 0), [], [], false).getHitPosition()
+        else:
+            tmpPowerupSpawnpointRandomPointW = nearestWalkablePosition(tmpPowerupSpawnpointRandomPoint)
+            if distance(tmpPowerupSpawnpointRandomPointW, tmpPowerupSpawnpointRandomPoint) >= 1.5:
+                goto lbl_0
         tmpPowerupSpawnpointRandomPointW = raycast(tmpPowerupSpawnpointRandomPointW + vect(0, 2, 0), tmpPowerupSpawnpointRandomPointW - vect(0, 10, 0), null, null, false).getHitPosition() + vect(0, 0.35, 0)
-        if distance(tmpPowerupSpawnpointRandomPointW, nearestWalkablePosition(tmpPowerupSpawnpointRandomPointW)) <= 0.1:
-            goto lbl_1
+        if distance(tmpPowerupSpawnpointRandomPointW, nearestWalkablePosition(tmpPowerupSpawnpointRandomPointW)) <= 0.1 or disableNwpCheck:
+            break
         lbl_0:
         wait(0.064)
-    lbl_1:
+        
     sparkboltPickupPos = tmpPowerupSpawnpointRandomPointW
     createEffect(getAllPlayers(), Effect.SPARKLES, Color.WHITE, sparkboltPickupPos, 0.5, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
     sparkboltEffects[0] = getLastCreatedEntity()

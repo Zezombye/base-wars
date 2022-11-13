@@ -165,6 +165,8 @@ globalvar chosenMapExtension = null
 globalvar mapExtensionSpawn = null
 globalvar availableMapExtensions = []
 
+globalvar disableNwpCheck = false #buggy in ow2
+
 #Player variables
 
 playervar storedMoney
@@ -364,7 +366,7 @@ rule "init":
         tmpTotalGoldCalc = ceil(tmpTotalGoldCalc * 1.5 / 10) * 10
     totalGoldToWin += gameGoldVictory
 
-    gameHealingHeroes = ((((([i for i in getAllHeroes() if not i in getSupportHeroes()]).concat(Hero.ZENYATTA.concat(Hero.ANA).concat(Hero.BRIGITTE))))).exclude(Hero.ROADHOG)).exclude(Hero.SOLDIER)
+    gameHealingHeroes = [i for i in getAllHeroes() if not i in getSupportHeroes()].exclude(Hero.ROADHOG).exclude(Hero.SOLDIER)
     hasGameStarted = true
     wait(1)
     pauseMatchTime()
@@ -583,6 +585,8 @@ rule "GAME INIT MAP":
         mapExtension1Xyz = vect(42.5, 14.5, 115)
         mapExtension1Rotation = -137
 
+        nbMapExtensions = 1
+
     elif getCurrentMap() == Map.PETRA:
         mapInfo = vect(-83.044, -15.012, -83.015)
         gameEndCamera = vect(1.02, -8.96, 7.02)
@@ -647,6 +651,9 @@ rule "GAME INIT MAP":
         mapOrigin = mapExtension3Origin
         mapRotationVector = angleToDirection(mapExtension3Rotation, 0)
         mapExtensionSpawn = mapExtension3Spawn
+        
+    if getCurrentMap() == Map.HAVANA and chosenMapExtension == 3 or getCurrentMap() == Map.KINGS_ROW and chosenMapExtension == 1 or getCurrentMap() == Map.ROUTE66 and chosenMapExtension == 1:
+        disableNwpCheck = true
 
     mapSize = sqrt(mapXYZ.x ** 2 + mapXYZ.z ** 2) - 20
     wait(1)
@@ -762,10 +769,10 @@ rule "init player hud":
     eventPlayer.isInitialized = true
     
     #gold in base
-    hudText(eventPlayer, iconString(Icon.CIRCLE), STR_GOLD_IN_BASE, "{0}/{1} ({2})".format(eventPlayer.statsMoneyBase, eventPlayer.statsMoneyStorage, STR_GOLD_PER_SEC if eventPlayer.statsMoneyBase < eventPlayer.statsMoneyStorage else STR_FULL), HudPosition.LEFT, 0, Color.ORANGE, Color.ORANGE, Color.WHITE if eventPlayer.statsMoneyBase < eventPlayer.statsMoneyStorage else Color.RED, HudReeval.VISIBILITY_STRING_AND_COLOR, SpecVisibility.DEFAULT)
+    hudText(eventPlayer, iconString(Icon.CIRCLE), STR_GOLD_IN_BASE, "{0}/{1} ({2})                                                                                                                                                              ".format(eventPlayer.statsMoneyBase, eventPlayer.statsMoneyStorage, STR_GOLD_PER_SEC if eventPlayer.statsMoneyBase < eventPlayer.statsMoneyStorage else STR_FULL), HudPosition.LEFT, 0, Color.ORANGE, Color.ORANGE, Color.WHITE if eventPlayer.statsMoneyBase < eventPlayer.statsMoneyStorage else Color.RED, HudReeval.VISIBILITY_STRING_AND_COLOR, SpecVisibility.DEFAULT)
 
     #gold on player
-    hudText(eventPlayer, iconString(Icon.POISON), STR_GOLD_ON_PLAYER, eventPlayer.statsMoney, HudPosition.LEFT, 1, Color.ORANGE, Color.ORANGE, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
+    hudText(eventPlayer, iconString(Icon.POISON), STR_GOLD_ON_PLAYER, "{}                                                                                                                                                              ".format(eventPlayer.statsMoney), HudPosition.LEFT, 1, Color.ORANGE, Color.ORANGE, Color.WHITE, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.DEFAULT)
 
     #upgrade header
     createInWorldText(eventPlayer if eventPlayer.showUpgradeText else [], "{}{}\n{}\n\n\n\n".format([
@@ -1622,7 +1629,7 @@ def setBaseLocation():
     if eventPlayer.hasStatusEffect(Status.INVINCIBLE):
         goto badLocation
 
-    if distance(eventPlayer.getPosition(), nearestWalkablePosition(eventPlayer.getPosition())) > 8 and not (getCurrentMap() == Map.HAVANA and chosenMapExtension == 3 or getCurrentMap() == Map.KINGS_ROW and chosenMapExtension == 2):
+    if distance(eventPlayer.getPosition(), nearestWalkablePosition(eventPlayer.getPosition())) > 8 and not disableNwpCheck:
         goto badLocation
 
     #prevent placing base on cars
