@@ -1,8 +1,8 @@
 
 #!define DEBUG_MODE false
 
-#!define VERSION "2.2"
-#!define CREATION_DATE "16/10/2022"
+#!define VERSION "2.3"
+#!define CREATION_DATE "12/11/2022"
 #!define GAMEMODE_CODE "14WON"
 
 #!define i18n() __script__("i18n.js")
@@ -143,7 +143,27 @@ globalvar gameGoldVictory = createWorkshopSetting(int[500:5000], SETTINGS_TITLE,
 globalvar enableAlwaysFreeHeroSwitch = createWorkshopSetting(bool, SETTINGS_TITLE, "Hero switch is always free", false, 9)
 globalvar enableAlwaysFreeBaseMove = createWorkshopSetting(bool, SETTINGS_TITLE, "Base move is always free", false, 10)
 globalvar enableInefficientGoldMiner = createWorkshopSetting(bool, SETTINGS_TITLE, "Make gold miner less efficient", false, 11)
+globalvar enableMapExtensions = false
 
+
+#map extensions
+globalvar mapExtension1Spawn = null
+globalvar mapExtension1Xyz = null
+globalvar mapExtension1Origin = null
+globalvar mapExtension1Rotation = null
+globalvar mapExtension2Spawn = null
+globalvar mapExtension2Xyz = null
+globalvar mapExtension2Origin = null
+globalvar mapExtension2Rotation = null
+globalvar mapExtension3Spawn = null
+globalvar mapExtension3Xyz = null
+globalvar mapExtension3Origin = null
+globalvar mapExtension3Rotation = null
+
+globalvar nbMapExtensions = 0
+globalvar chosenMapExtension = null
+globalvar mapExtensionSpawn = null
+globalvar availableMapExtensions = []
 
 #Player variables
 
@@ -223,31 +243,42 @@ rule "rip custom game settings":
     if team1Str.charAt(0) == p"#":
         if strContains(team1Str, p"S") or strContains(team1Str, p"s"):
             enableStealing = false
-            enabledSettingsStr = "{}{}{}".format(enabledSettingsStr, "\n" if enabledSettingsStr else "", "No Stealing")
+            enabledSettingsStr = "{}{}{}".format(enabledSettingsStr, "\n" if enabledSettingsStr else "", p"No Stealing")
         if (strContains(team1Str, p"O") or strContains(team1Str, p"o")) and enableStealing:
             enableOccupiedStealing = false
-            enabledSettingsStr = "{}{}{}".format(enabledSettingsStr, "\n" if enabledSettingsStr else "", "No Occupied stealing")
+            enabledSettingsStr = "{}{}{}".format(enabledSettingsStr, "\n" if enabledSettingsStr else "", p"No Occupied stealing")
         if strContains(team1Str, p"B") or strContains(team1Str, p"b"):
             enableSparkbolts = false
-            enabledSettingsStr = "{}{}{}".format(enabledSettingsStr, "\n" if enabledSettingsStr else "", "No Sparkbolts")
+            enabledSettingsStr = "{}{}{}".format(enabledSettingsStr, "\n" if enabledSettingsStr else "", p"No Sparkbolts")
         if strContains(team1Str, p"U") or strContains(team1Str, p"u"):
             enableGoldMinerUpgrade = false
-            enabledSettingsStr = "{}{}{}".format(enabledSettingsStr, "\n" if enabledSettingsStr else "", "No miner upgrade")
+            enabledSettingsStr = "{}{}{}".format(enabledSettingsStr, "\n" if enabledSettingsStr else "", p"No miner upgrade")
         if strContains(team1Str, p"L") or strContains(team1Str, p"l"):
             enableLootOrbs = false
-            enabledSettingsStr = "{}{}{}".format(enabledSettingsStr, "\n" if enabledSettingsStr else "", "No loot orbs")
+            enabledSettingsStr = "{}{}{}".format(enabledSettingsStr, "\n" if enabledSettingsStr else "", p"No loot orbs")
         if strContains(team1Str, p"I") or strContains(team1Str, p"i"):
             enableInvisibleLootPickup = true
-            enabledSettingsStr = "{}{}{}".format(enabledSettingsStr, "\n" if enabledSettingsStr else "", "Invis. loot pickup")
+            enabledSettingsStr = "{}{}{}".format(enabledSettingsStr, "\n" if enabledSettingsStr else "", p"Invis. loot pickup")
         if strContains(team1Str, p"H") or strContains(team1Str, p"h"):
             enableAlwaysFreeHeroSwitch = true
-            enabledSettingsStr = "{}{}{}".format(enabledSettingsStr, "\n" if enabledSettingsStr else "", "Free hero switch")
+            enabledSettingsStr = "{}{}{}".format(enabledSettingsStr, "\n" if enabledSettingsStr else "", p"Free hero switch")
         if strContains(team1Str, p"M") or strContains(team1Str, p"m"):
             enableAlwaysFreeBaseMove = true
-            enabledSettingsStr = "{}{}{}".format(enabledSettingsStr, "\n" if enabledSettingsStr else "", "Free base move")
+            enabledSettingsStr = "{}{}{}".format(enabledSettingsStr, "\n" if enabledSettingsStr else "", p"Free base move")
         if strContains(team1Str, p"G") or strContains(team1Str, p"g"):
             enableInefficientGoldMiner = true
-            enabledSettingsStr = "{}{}{}".format(enabledSettingsStr, "\n" if enabledSettingsStr else "", "Gold miner nerf")
+            enabledSettingsStr = "{}{}{}".format(enabledSettingsStr, "\n" if enabledSettingsStr else "", p"Gold miner nerf")
+        if strContains(team1Str, p"E") or strContains(team1Str, p"e"):
+            enableMapExtensions = true
+            enabledSettingsStr = "{}{}{}".format(enabledSettingsStr, "\n" if enabledSettingsStr else "", p"Map extensions")
+        if strContains(team1Str, p"0"):
+            availableMapExtensions.append(0)
+        if strContains(team1Str, p"1"):
+            availableMapExtensions.append(1)
+        if strContains(team1Str, p"2"):
+            availableMapExtensions.append(2)
+        if strContains(team1Str, p"3"):
+            availableMapExtensions.append(3)
 
     if team2Str.charAt(0) == p"#":
         team2Str = team2Str.substring(1, 9999)
@@ -333,7 +364,7 @@ rule "init":
         tmpTotalGoldCalc = ceil(tmpTotalGoldCalc * 1.5 / 10) * 10
     totalGoldToWin += gameGoldVictory
 
-    gameHealingHeroes = ((((([i for i in getAllHeroes() if not i in getSupportHeroes()]).concat(Hero.ZENYATTA.concat(Hero.ANA).concat(Hero.BRIGITTE))).exclude(Hero.BASTION)).exclude(Hero.MEI)).exclude(Hero.ROADHOG)).exclude(Hero.SOLDIER)
+    gameHealingHeroes = ((((([i for i in getAllHeroes() if not i in getSupportHeroes()]).concat(Hero.ZENYATTA.concat(Hero.ANA).concat(Hero.BRIGITTE))))).exclude(Hero.ROADHOG)).exclude(Hero.SOLDIER)
     hasGameStarted = true
     wait(1)
     pauseMatchTime()
@@ -355,7 +386,6 @@ rule "GAME INIT MAP":
         mapNavMesh = vect(-92.816, -1.3, 119.946)
         mapInfo = vect(-93.084, 7, 68.06)
         gameEndCamera = vect(-124.15, 1.20, 107.3)
-        #gameEndCamera = vect(-130.81, 2, 105.95)
 
     elif getCurrentMap() == Map.CASTILLO:
         mapInfo = vect(-60.13, 7.032, 52.027)
@@ -376,11 +406,17 @@ rule "GAME INIT MAP":
         gameEndCamera = vect(-5.46, 24.56, -55.57)
 
     elif getCurrentMap() == Map.EICHENWALDE or getCurrentMap() == Map.EICHENWALDE_HALLOWEEN:
-        #first point: doable but meh, not enough space
         mapNavMesh = vect(21.479, 4.943, -61.208)
         mapInfo = vect(55.021, 18.004, -77.102)
         mapRotationVector = angleToDirection(15, 0)
         gameEndCamera = vect(122.30, 9.66, -29.30)
+
+        mapExtension1Spawn = vect(12, 6, -70)
+        mapExtension1Origin = vect(-32, -1.75, -14.5)
+        mapExtension1Xyz = vect(48, 16.75, 85.75)
+        mapExtension1Rotation = -284.5
+
+        nbMapExtensions = 1
 
     elif getCurrentMap() == Map.HANAMURA or getCurrentMap() == Map.HANAMURA_WINTER:
         #first point: doable but no space, maybe as an extension
@@ -389,11 +425,35 @@ rule "GAME INIT MAP":
         mapRotationVector = angleToDirection(348, 0)
         gameEndCamera = vect(69.88, -2.14, 58.6)
 
+        mapExtension1Spawn = vect(39, 1, 10.3)
+        mapExtension1Origin = vect(31, -5, -29.75)
+        mapExtension1Xyz = vect(65.5, 14, 38)
+        mapExtension1Rotation = -0.5
+
+        nbMapExtensions = 1
+
     elif getCurrentMap() == Map.HAVANA:
         #both points are doable and good + the secret space
         mapNavMesh = vect(-18.944, 6.062, -80.093)
         mapInfo = vect(44, 8.004, -61.103)
         gameEndCamera = vect(-35.31, 8.03, 64.56)
+        
+        mapExtension1Spawn = vect(-11, 6, -80)
+        mapExtension1Origin = vect(1, 4, -97.25)
+        mapExtension1Xyz = vect(96, 8, 61)
+        mapExtension1Rotation = -88.75
+        
+        mapExtension2Spawn = vect(140, 6, -46.5)
+        mapExtension2Origin = vect(69.5, 4, -84.75)
+        mapExtension2Xyz = vect(56, 8, 94.75)
+        mapExtension2Rotation = -10
+        
+        mapExtension3Spawn = vect(17.6, 20, -7.6)
+        mapExtension3Origin = vect(-18.25, 4, -36)
+        mapExtension3Xyz = vect(64.75, 13, 70.25)
+        mapExtension3Rotation = 0
+
+        nbMapExtensions = 3
 
     elif getCurrentMap() == Map.HOLLYWOOD:
         #third point doable but meh, first point doable and good
@@ -401,9 +461,20 @@ rule "GAME INIT MAP":
         mapInfo = vect(-82.041, 6.002, -87.072)
         mapRotationVector = angleToDirection(16, 0)
         gameEndCamera = vect(-31.01, 7.16, -176.48)
+        
+        mapExtension1Spawn = vect(-35, 2, -135)
+        mapExtension1Origin = vect(-38.75, 2, -78.50)
+        mapExtension1Xyz = vect(57.25, 15.25, 67)
+        mapExtension1Rotation = 104
+        
+        mapExtension2Spawn = vect(-27, 2, -3)
+        mapExtension2Origin = vect(-41.5, 2, -18.75)
+        mapExtension2Xyz = vect(70.5, 15.25, 94.25)
+        mapExtension2Rotation = -25.75
+
+        nbMapExtensions = 2
 
     elif getCurrentMap() == Map.HORIZON_LUNAR_COLONY:
-        #first point: doable but no space, maybe as an extension
         mapNavMesh = vect(51.683, 6.129, -34.033)
         mapInfo = vect(-166.055, 11.003, -80.112)
         mapRotationVector = angleToDirection(48, 0)
@@ -428,7 +499,6 @@ rule "GAME INIT MAP":
     elif getCurrentMap() == Map.KANEZAKA:
         mapInfo = vect(-102.070, 10.004, -86.056)
         gameEndCamera = vect(-14.67, 68.99, -126.20)
-        #gameEndCamera = vect(138.27, 63.72, -120.02)
 
     elif getCurrentMap() == Map.KINGS_ROW or getCurrentMap() == Map.KINGS_ROW_WINTER:
         #first point awesome, 3rd point meh, secret area ok (only for kings row normal)
@@ -439,6 +509,20 @@ rule "GAME INIT MAP":
         mapRotationVector = angleToDirection(350, 0)
         lootBlockerVolumePos = vect(-127.119, 0.434, -57.126)
         gameEndCamera = vect(-33.72, 40.35, -61.41)
+        
+        mapExtension1Spawn = vect(-4.64, 0, 11)
+        mapExtension1Origin = vect(24, -4, -45.25)
+        mapExtension1Xyz = vect(52, 13, 100.25)
+        mapExtension1Rotation = -95
+        
+        if getCurrentMap() == Map.KINGS_ROW:
+            mapExtension2Spawn = vect(-59.12, 1, 37.79)
+            mapExtension2Origin = vect(-29.5, 4, -7.75)
+            mapExtension2Xyz = vect(45.25, 15.75, 73.50)
+            mapExtension2Rotation = -101
+            nbMapExtensions = 2
+        else:
+            nbMapExtensions = 1
 
     elif getCurrentMap() == Map.LIJIANG_CONTROL_CENTER or getCurrentMap() == Map.LIJIANG_CONTROL_CENTER_LNY:
         mapInfo = vect(-123.089, 14.265, 127.335)
@@ -455,7 +539,6 @@ rule "GAME INIT MAP":
 
     elif getCurrentMap() == Map.MALEVENTO:
         mapInfo = vect(-78.033, -18.005, -83.032)
-        #gameEndCamera = vect(0, 10.3, -2)
         gameEndCamera = vect(25, 9, 20)
 
     elif getCurrentMap() == Map.NECROPOLIS:
@@ -494,6 +577,11 @@ rule "GAME INIT MAP":
         mapInfo = vect(-86.143, 8.008, -82.084)
         mapRotationVector = angleToDirection(26, 0)
         gameEndCamera = vect(27.85, 12.88, -83.67)
+        
+        mapExtension1Spawn = vect(-52, 12, 11.55)
+        mapExtension1Origin = vect(31.75, 8, -48.5)
+        mapExtension1Xyz = vect(42.5, 14.5, 115)
+        mapExtension1Rotation = -137
 
     elif getCurrentMap() == Map.PETRA:
         mapInfo = vect(-83.044, -15.012, -83.015)
@@ -503,18 +591,22 @@ rule "GAME INIT MAP":
         #3rd point ok
         mapInfo = vect(-62.014, 15.004, 57.019)
         gameEndCamera = vect(34.70, 37, 38.62)
-        #gameEndCamera = vect(88.03, 41, 51.28)
         mapRotationVector = angleToDirection(-212, 0)
+        
+        mapExtension1Spawn = vect(-92.5, 7, -23.3)
+        mapExtension1Origin = vect(-67.5, 4, 46.25)
+        mapExtension1Xyz = vect(51.5, 15, 101.5)
+        mapExtension1Rotation = -224
+
+        nbMapExtensions = 1
 
     elif getCurrentMap() == Map.TEMPLE_OF_ANUBIS:
-        #1st point doable but only as extension
         mapNavMesh = vect(-4.694, -2.336, -6.513)
         mapInfo = vect(80.016, 10, -130.004)
         mapRotationVector = angleToDirection(275, 0)
         gameEndCamera = vect(15.08, 16.60, -18.58)
 
     elif getCurrentMap() == Map.VOLSKAYA:
-        #1st point doable but only as extension
         mapNavMesh = vect(14.482, -4.352, 44.386)
         mapInfo = vect(-73.094, -8.005, 145.01)
         mapRotationVector = angleToDirection(335, 0)
@@ -527,19 +619,40 @@ rule "GAME INIT MAP":
     if mapInfo == null:
         return
 
-    #mapXYZ = whole numbers in mapInfo, ignoring signs
-    mapXYZ = mapInfo / vect(abs(mapInfo.x), abs(mapInfo.y), abs(mapInfo.z))
-    mapXYZ *= vect(floor(abs(mapInfo.x)), floor(abs(mapInfo.y)), floor(abs(mapInfo.z)))
-    #mapOrigin = fractional part of mapInfo + signs
-    mapOrigin = 1000 * (mapInfo - mapXYZ)
-    mapXYZ = vect(abs(mapXYZ.x), abs(mapXYZ.y), abs(mapXYZ.z))
+    if enableMapExtensions:
+        availableMapExtensions = [x for x in availableMapExtensions if x <= nbMapExtensions]
+        if availableMapExtensions == []:
+            availableMapExtensions = [0,1,2,3].slice(0, nbMapExtensions+1)
+        chosenMapExtension = random.choice(availableMapExtensions)
+
+    if not enableMapExtensions or chosenMapExtension == 0:
+        #mapXYZ = whole numbers in mapInfo, ignoring signs
+        mapXYZ = mapInfo / vect(abs(mapInfo.x), abs(mapInfo.y), abs(mapInfo.z))
+        mapXYZ *= vect(floor(abs(mapInfo.x)), floor(abs(mapInfo.y)), floor(abs(mapInfo.z)))
+        #mapOrigin = fractional part of mapInfo + signs
+        mapOrigin = 1000 * (mapInfo - mapXYZ)
+        mapXYZ = vect(abs(mapXYZ.x), abs(mapXYZ.y), abs(mapXYZ.z))
+    elif chosenMapExtension == 1:
+        mapXYZ = mapExtension1Xyz
+        mapOrigin = mapExtension1Origin
+        mapRotationVector = angleToDirection(mapExtension1Rotation, 0)
+        mapExtensionSpawn = mapExtension1Spawn
+    elif chosenMapExtension == 2:
+        mapXYZ = mapExtension2Xyz
+        mapOrigin = mapExtension2Origin
+        mapRotationVector = angleToDirection(mapExtension2Rotation, 0)
+        mapExtensionSpawn = mapExtension2Spawn
+    elif chosenMapExtension == 3:
+        mapXYZ = mapExtension3Xyz
+        mapOrigin = mapExtension3Origin
+        mapRotationVector = angleToDirection(mapExtension3Rotation, 0)
+        mapExtensionSpawn = mapExtension3Spawn
+
     mapSize = sqrt(mapXYZ.x ** 2 + mapXYZ.z ** 2) - 20
     wait(1)
-    if mapNavMesh == null:
-        goto lbl_0
-    while distance(nearestWalkablePosition(mapNavMesh), mapNavMesh) <= 2:
-        wait(0.25)
-    lbl_0:
+    if mapNavMesh != null:
+        while distance(nearestWalkablePosition(mapNavMesh), mapNavMesh) <= 2:
+            wait(0.25)
     isGameInitialized = true
     destroyHudText(waitingNavmeshHud)
     setMatchTime(62)
@@ -951,9 +1064,18 @@ rule "player finished entering base":
 rule "BASE RESPAWN":
     @Event eachPlayer
     @Hero all
+    @Condition eventPlayer.hasSpawned()
     @Condition eventPlayer.isAlive()
+
     
     if not eventPlayer.hasBase or eventPlayer.isMovingBase:
+        if chosenMapExtension > 0:
+            wait(0.1)
+            eventPlayer.teleport(mapExtensionSpawn)
+            if (eventPlayer.getCurrentHero() == Hero.TRACER):
+                eventPlayer.setAbility2Enabled(false)
+                wait(3.1)
+                eventPlayer.setAbility2Enabled(true)
         return
     eventPlayer.statsMoney = 0
     destroyHudText(eventPlayer.hudBaseProtection)
@@ -1497,7 +1619,10 @@ def setBaseLocation():
         goto badLocation
     if distance(raycast(eventPlayer.getEyePosition(), eventPlayer.getPosition() + ((directionTowards(eventPlayer.getEyePosition(), eventPlayer.getPosition() + vect(0, 0, -2))) * 40), [], [], false).getHitPosition(), eventPlayer.getPosition() + vect(0, 0, -2)) > 0.6:
         goto badLocation
-    if eventPlayer.hasStatusEffect(Status.INVINCIBLE) or distance(eventPlayer.getPosition(), nearestWalkablePosition(eventPlayer.getPosition())) > 8:
+    if eventPlayer.hasStatusEffect(Status.INVINCIBLE):
+        goto badLocation
+
+    if distance(eventPlayer.getPosition(), nearestWalkablePosition(eventPlayer.getPosition())) > 8 and not (getCurrentMap() == Map.HAVANA and chosenMapExtension == 3 or getCurrentMap() == Map.KINGS_ROW and chosenMapExtension == 2):
         goto badLocation
 
     #prevent placing base on cars
