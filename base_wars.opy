@@ -68,9 +68,6 @@ globalvar hudIterator
 globalvar antiCrashActivated
 globalvar isGameInitialized
 globalvar hasGameStarted
-#globalvar gameRulesCurrentSelection
-#globalvar gameRulesArray
-#globalvar gameRulesHost
 globalvar gameRulesGoldMinerInitialCost
 globalvar debugDummyBot
 globalvar mapNavMesh
@@ -130,7 +127,7 @@ globalvar debugIterator
 globalvar enabledSettingsStr = ""
 
 #settings
-#!define SETTINGS_TITLE "BASE WARS BY DURKHAZ#2629\nCONCEPT: PYROCREEP#2665\nTHANKS: CUDDLYFLOWER#2892, HuKuTa94#2589, Kevin#26140\nRemaster: Zezombye#2627"
+#!define SETTINGS_TITLE "\zBASE WARS BY DURKHAZ#2629\nCONCEPT: PYROCREEP#2665\nTHANKS: CUDDLYFLOWER#2892, HuKuTa94#2589, Kevin#26140\nRemaster: Zezombye#2627"
 globalvar enableStealing = createWorkshopSetting(bool, SETTINGS_TITLE, "Enable Stealing", true, 0)
 globalvar enableOccupiedStealing = createWorkshopSetting(bool, SETTINGS_TITLE, "Enable stealing from occupied bases", true, 1)
 globalvar enableSparkbolts = createWorkshopSetting(bool, SETTINGS_TITLE, "Spawn sparkbolts", true, 2)
@@ -143,7 +140,8 @@ globalvar gameGoldVictory = createWorkshopSetting(int[500:5000], SETTINGS_TITLE,
 globalvar enableAlwaysFreeHeroSwitch = createWorkshopSetting(bool, SETTINGS_TITLE, "Hero switch is always free", false, 9)
 globalvar enableAlwaysFreeBaseMove = createWorkshopSetting(bool, SETTINGS_TITLE, "Base move is always free", false, 10)
 globalvar enableInefficientGoldMiner = createWorkshopSetting(bool, SETTINGS_TITLE, "Make gold miner less efficient", false, 11)
-globalvar enableMapExtensions = false
+
+#!define createMapExtensionSetting(category, title, isEnabledByDefault, sortOrder) createWorkshopSetting(bool, category, title, isEnabledByDefault, sortOrder)
 
 
 #map extensions
@@ -160,10 +158,9 @@ globalvar mapExtension3Xyz = null
 globalvar mapExtension3Origin = null
 globalvar mapExtension3Rotation = null
 
-globalvar nbMapExtensions = 0
-globalvar chosenMapExtension = null
 globalvar mapExtensionSpawn = null
-globalvar availableMapExtensions = []
+globalvar chosenMapExtension = 0
+globalvar availableMapExtensions = [0]
 
 globalvar disableNwpCheck = false #buggy in ow2
 
@@ -240,21 +237,6 @@ subroutine gameStart
 subroutine gameEndedScreenPos
 
 #!include "settings.opy"
-
-rule "rip custom game settings":
-    if team1Str.charAt(0) == p"#":
-        if strContains(team1Str, p"E") or strContains(team1Str, p"e"):
-            enableMapExtensions = true
-            enabledSettingsStr = "{}{}{}".format(enabledSettingsStr, "\n" if enabledSettingsStr else "", p"Map extensions")
-        if strContains(team1Str, p"0"):
-            availableMapExtensions.append(0)
-        if strContains(team1Str, p"1"):
-            availableMapExtensions.append(1)
-        if strContains(team1Str, p"2"):
-            availableMapExtensions.append(2)
-        if strContains(team1Str, p"3"):
-            availableMapExtensions.append(3)
-
 #!include "loot.opy"
 #!include "debug.opy"
 #!include "game_end.opy"
@@ -345,6 +327,7 @@ rule "GAME INIT MAP":
         gameEndCamera = vect(-5.46, 24.56, -55.57)
 
     elif getCurrentMap() == Map.EICHENWALDE or getCurrentMap() == Map.EICHENWALDE_HALLOWEEN:
+
         mapNavMesh = vect(21.479, 4.943, -61.208)
         mapInfo = vect(55.021, 18.004, -77.102)
         mapRotationVector = angleToDirection(15, 0)
@@ -354,8 +337,11 @@ rule "GAME INIT MAP":
         mapExtension1Origin = vect(-32, -1.75, -14.5)
         mapExtension1Xyz = vect(48, 16.75, 85.75)
         mapExtension1Rotation = -284.5
-
-        nbMapExtensions = 1
+        
+        if not createMapExtensionSetting("\z\nMap extensions", "Eichenwalde 2nd point (default)", true, 0):
+            availableMapExtensions.remove(0)
+        if createMapExtensionSetting("\z\nMap extensions", "Eichenwalde 1st point", false, 1):
+            availableMapExtensions.append(1)
 
     elif getCurrentMap() == Map.HANAMURA or getCurrentMap() == Map.HANAMURA_WINTER:
         #first point: doable but no space, maybe as an extension
@@ -369,7 +355,10 @@ rule "GAME INIT MAP":
         mapExtension1Xyz = vect(65.5, 14, 38)
         mapExtension1Rotation = -0.5
 
-        nbMapExtensions = 1
+        if not createMapExtensionSetting("      ", "Hanamura 1st point (default)", true, 0):
+            availableMapExtensions.remove(0)
+        if createMapExtensionSetting("      ", "Hanamura pre-choke", false, 1):
+            availableMapExtensions.append(1)
 
     elif getCurrentMap() == Map.HAVANA:
         #both points are doable and good + the secret space
@@ -392,7 +381,14 @@ rule "GAME INIT MAP":
         mapExtension3Xyz = vect(64.75, 13, 70.25)
         mapExtension3Rotation = 0
 
-        nbMapExtensions = 3
+        if not createMapExtensionSetting("     ", "Havana 2nd point (default)", true, 0):
+            availableMapExtensions.remove(0)
+        if createMapExtensionSetting("     ", "Havana 1st point", false, 1):
+            availableMapExtensions.append(1)
+        if createMapExtensionSetting("     ", "Havana 3rd point", false, 2):
+            availableMapExtensions.append(2)
+        if createMapExtensionSetting("     ", "Havana secret area", false, 3):
+            availableMapExtensions.append(3)
 
     elif getCurrentMap() == Map.HOLLYWOOD or getCurrentMap() == Map.HOLLYWOOD_HALLOWEEN:
         #third point doable but meh, first point doable and good
@@ -411,7 +407,12 @@ rule "GAME INIT MAP":
         mapExtension2Xyz = vect(70.5, 15.25, 94.25)
         mapExtension2Rotation = -25.75
 
-        nbMapExtensions = 2
+        if not createMapExtensionSetting("    ", "Hollywood 2nd point (default)", true, 0):
+            availableMapExtensions.remove(0)
+        if createMapExtensionSetting("    ", "Hollywood 3rd point", false, 1):
+            availableMapExtensions.append(1)
+        if createMapExtensionSetting("    ", "Hollywood 1st point", false, 2):
+            availableMapExtensions.append(2)
 
     elif getCurrentMap() == Map.HORIZON_LUNAR_COLONY:
         mapNavMesh = vect(51.683, 6.129, -34.033)
@@ -454,14 +455,18 @@ rule "GAME INIT MAP":
         mapExtension1Xyz = vect(52, 13, 100.25)
         mapExtension1Rotation = -95
         
-        if getCurrentMap() == Map.KINGS_ROW:
-            mapExtension2Spawn = vect(-59.12, 1, 37.79)
-            mapExtension2Origin = vect(-29.5, 4, -7.75)
-            mapExtension2Xyz = vect(45.25, 15.75, 73.50)
-            mapExtension2Rotation = -101
-            nbMapExtensions = 2
-        else:
-            nbMapExtensions = 1
+        #only for normal version
+        mapExtension2Spawn = vect(-59.12, 1, 37.79)
+        mapExtension2Origin = vect(-29.5, 4, -7.75)
+        mapExtension2Xyz = vect(45.25, 15.75, 73.50)
+        mapExtension2Rotation = -101
+        
+        if not createMapExtensionSetting("   ", "King's Row 2nd point (default)", true, 0):
+            availableMapExtensions.remove(0)
+        if createMapExtensionSetting("   ", "King's Row 1st point", false, 1):
+            availableMapExtensions.append(1)
+        if createMapExtensionSetting("   ", "King's Row secret area (not available on winter)", false, 2) and getCurrentMap() == Map.KINGS_ROW:
+            availableMapExtensions.append(2)
 
     elif getCurrentMap() == Map.LIJIANG_CONTROL_CENTER or getCurrentMap() == Map.LIJIANG_CONTROL_CENTER_LNY:
         mapInfo = vect(-123.089, 14.265, 127.335)
@@ -522,7 +527,10 @@ rule "GAME INIT MAP":
         mapExtension1Xyz = vect(42.5, 14.5, 115)
         mapExtension1Rotation = -137
 
-        nbMapExtensions = 1
+        if not createMapExtensionSetting("  ", "Paris 2nd point (default)", true, 0):
+            availableMapExtensions.remove(0)
+        if createMapExtensionSetting("  ", "Paris 1st point", false, 1):
+            availableMapExtensions.append(1)
 
     elif getCurrentMap() == Map.PETRA:
         mapInfo = vect(-83.044, -15.012, -83.015)
@@ -539,7 +547,10 @@ rule "GAME INIT MAP":
         mapExtension1Xyz = vect(51.5, 15, 101.5)
         mapExtension1Rotation = -224
 
-        nbMapExtensions = 1
+        if not createMapExtensionSetting(" ", "Route 66 2nd point (default)", true, 0):
+            availableMapExtensions.remove(0)
+        if createMapExtensionSetting(" ", "Route 66 3rd point", false, 1):
+            availableMapExtensions.append(1)
 
     elif getCurrentMap() == Map.TEMPLE_OF_ANUBIS:
         mapNavMesh = vect(-4.694, -2.336, -6.513)
@@ -560,13 +571,11 @@ rule "GAME INIT MAP":
     if mapInfo == null:
         return
 
-    if enableMapExtensions:
-        availableMapExtensions = [x for x in availableMapExtensions if x <= nbMapExtensions]
-        if availableMapExtensions == []:
-            availableMapExtensions = [0,1,2,3].slice(0, nbMapExtensions+1)
-        chosenMapExtension = random.choice(availableMapExtensions)
+    if len(availableMapExtensions) == 0:
+        availableMapExtensions = [0]
+    chosenMapExtension = random.choice(availableMapExtensions)
 
-    if not enableMapExtensions or chosenMapExtension == 0:
+    if chosenMapExtension == 0:
         #mapXYZ = whole numbers in mapInfo, ignoring signs
         mapXYZ = mapInfo / vect(abs(mapInfo.x), abs(mapInfo.y), abs(mapInfo.z))
         mapXYZ *= vect(floor(abs(mapInfo.x)), floor(abs(mapInfo.y)), floor(abs(mapInfo.z)))
