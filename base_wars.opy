@@ -243,33 +243,6 @@ subroutine gameEndedScreenPos
 
 rule "rip custom game settings":
     if team1Str.charAt(0) == p"#":
-        if strContains(team1Str, p"S") or strContains(team1Str, p"s"):
-            enableStealing = false
-            enabledSettingsStr = "{}{}{}".format(enabledSettingsStr, "\n" if enabledSettingsStr else "", p"No Stealing")
-        if (strContains(team1Str, p"O") or strContains(team1Str, p"o")) and enableStealing:
-            enableOccupiedStealing = false
-            enabledSettingsStr = "{}{}{}".format(enabledSettingsStr, "\n" if enabledSettingsStr else "", p"No Occupied stealing")
-        if strContains(team1Str, p"B") or strContains(team1Str, p"b"):
-            enableSparkbolts = false
-            enabledSettingsStr = "{}{}{}".format(enabledSettingsStr, "\n" if enabledSettingsStr else "", p"No Sparkbolts")
-        if strContains(team1Str, p"U") or strContains(team1Str, p"u"):
-            enableGoldMinerUpgrade = false
-            enabledSettingsStr = "{}{}{}".format(enabledSettingsStr, "\n" if enabledSettingsStr else "", p"No miner upgrade")
-        if strContains(team1Str, p"L") or strContains(team1Str, p"l"):
-            enableLootOrbs = false
-            enabledSettingsStr = "{}{}{}".format(enabledSettingsStr, "\n" if enabledSettingsStr else "", p"No loot orbs")
-        if strContains(team1Str, p"I") or strContains(team1Str, p"i"):
-            enableInvisibleLootPickup = true
-            enabledSettingsStr = "{}{}{}".format(enabledSettingsStr, "\n" if enabledSettingsStr else "", p"Invis. loot pickup")
-        if strContains(team1Str, p"H") or strContains(team1Str, p"h"):
-            enableAlwaysFreeHeroSwitch = true
-            enabledSettingsStr = "{}{}{}".format(enabledSettingsStr, "\n" if enabledSettingsStr else "", p"Free hero switch")
-        if strContains(team1Str, p"M") or strContains(team1Str, p"m"):
-            enableAlwaysFreeBaseMove = true
-            enabledSettingsStr = "{}{}{}".format(enabledSettingsStr, "\n" if enabledSettingsStr else "", p"Free base move")
-        if strContains(team1Str, p"G") or strContains(team1Str, p"g"):
-            enableInefficientGoldMiner = true
-            enabledSettingsStr = "{}{}{}".format(enabledSettingsStr, "\n" if enabledSettingsStr else "", p"Gold miner nerf")
         if strContains(team1Str, p"E") or strContains(team1Str, p"e"):
             enableMapExtensions = true
             enabledSettingsStr = "{}{}{}".format(enabledSettingsStr, "\n" if enabledSettingsStr else "", p"Map extensions")
@@ -281,42 +254,6 @@ rule "rip custom game settings":
             availableMapExtensions.append(2)
         if strContains(team1Str, p"3"):
             availableMapExtensions.append(3)
-
-    if team2Str.charAt(0) == p"#":
-        team2Str = team2Str.substring(1, 9999)
-        team2Str = team2Str.split(p",")
-        #index 0: gold to win
-        gameGoldVictory = 0
-        for workshopSettingsIterator in range(strLen(team2Str[0])):
-            gameGoldVictory += p"0123456789".strIndex(team2Str[0].charAt(workshopSettingsIterator)) * 10 ** (strLen(team2Str[0]) - workshopSettingsIterator - 1)
-        gameGoldVictory min= 5000
-        gameGoldVictory max= 500
-
-        #index 1: max loot orbs
-        if len(team2Str) > 1:
-            lootSpawnMax = 0
-            for workshopSettingsIterator in range(strLen(team2Str[1])):
-                lootSpawnMax += p"0123456789".strIndex(team2Str[1].charAt(workshopSettingsIterator)) * 10 ** (strLen(team2Str[1]) - workshopSettingsIterator - 1)
-            lootSpawnMax min= 16
-            lootSpawnMax max= 5
-            if lootSpawnMax != 16:
-                enabledSettingsStr = "{}{}{}".format(enabledSettingsStr, "\n" if enabledSettingsStr else "", "{} max orbs".format(lootSpawnMax))
-
-        #index 2: loot orb amount
-        
-        if len(team2Str) > 2:
-            gameLootOrbAmount = 0
-            for workshopSettingsIterator in range(strLen(team2Str[2])):
-                gameLootOrbAmount += p"0123456789".strIndex(team2Str[2].charAt(workshopSettingsIterator)) * 10 ** (strLen(team2Str[2]) - workshopSettingsIterator - 1)
-            gameLootOrbAmount min= 10
-            gameLootOrbAmount max= 6
-            if gameLootOrbAmount != 10:
-                enabledSettingsStr = "{}{}{}".format(enabledSettingsStr, "\n" if enabledSettingsStr else "", "{} gold/orb".format(gameLootOrbAmount))
-
-    if enabledSettingsStr != "":
-        enabledSettingsStr = "Settings: \n{}".format(enabledSettingsStr)
-    hudSubheader(getAllPlayers() if enabledSettingsStr else null, enabledSettingsStr if localPlayer.isHoldingButton(Button.INTERACT) and localPlayer.isHoldingButton(Button.JUMP) else "Press [{}]+[{}] to show custom settings".format(buttonString(Button.INTERACT), buttonString(Button.JUMP)), HudPosition.TOP, -10, Color.YELLOW, HudReeval.VISIBILITY_AND_STRING, SpecVisibility.ALWAYS)
-
 
 #!include "loot.opy"
 #!include "debug.opy"
@@ -403,7 +340,7 @@ rule "GAME INIT MAP":
         mapRotationVector = angleToDirection(321, 0)
         gameEndCamera = vect(133.25, 57.86, 34.46)
 
-    elif getCurrentMap() == Map.ECOPOINT_ANTARCTICA:
+    elif getCurrentMap() == Map.ECOPOINT_ANTARCTICA or getCurrentMap() == Map.ECOPOINT_ANTARCTICA_WINTER:
         mapInfo = vect(-110.027, 10.003, -56.06)
         gameEndCamera = vect(-5.46, 24.56, -55.57)
 
@@ -457,7 +394,7 @@ rule "GAME INIT MAP":
 
         nbMapExtensions = 3
 
-    elif getCurrentMap() == Map.HOLLYWOOD:
+    elif getCurrentMap() == Map.HOLLYWOOD or getCurrentMap() == Map.HOLLYWOOD_HALLOWEEN:
         #third point doable but meh, first point doable and good
         mapNavMesh = vect(-18.025, 1.777, 14.081)
         mapInfo = vect(-82.041, 6.002, -87.072)
